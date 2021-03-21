@@ -11,10 +11,10 @@
 
 #include <readline/readline.h>
 
-#include <def.h>
-#include <log.h>
-#include <clean.h>
-#include <command.h>
+#include <clean/def.h>
+#include <clean/log.h>
+#include <clean/clean.h>
+#include <clean/command.h>
 
 static const char *CLEAN_BUILTIN_COMMANDS[] = {
     "quit",

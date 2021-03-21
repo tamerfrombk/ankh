@@ -2,8 +2,8 @@
 #include <ctype.h>
 #include <string.h>
 
-#include <command.h>
-#include <log.h>
+#include <clean/command.h>
+#include <clean/log.h>
 
 static char **split_by_whitespace(const char *str)
 {
