@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-#include <stdbool.h>
+#include <errno.h>
 
 #include <readline/readline.h>
 
@@ -50,26 +50,43 @@ char **split_by_whitespace(const char *str)
     return tokens;
 }
 
-int execute(char *const args[])
+bool execute(char *const args[])
 {
     const pid_t pid = fork();
     if (pid == -1) {
-        // error
-        return -1;
-    } else if (pid == 0) {
-        // child
+        perror("fork");
+        return false;
+    }
+
+    if (pid == 0) {
+        // child process
         if (execvp(args[0], args) == -1) {
-            // TODO: hard error on failed process?
+            error("could not find %s\n", args[0]);
             exit(EXIT_FAILURE);
         }
-        return 1;
-    } else {
-        // parent
 
-        // TODO: inspect status of wait
-        wait(NULL);
-        return 1;
+        return true;
     }
+
+    // parent process
+    int status;
+    const pid_t child_pid = wait(&status);
+    if (child_pid == -1) {
+        // error waiting on child
+        perror("wait");
+        return false;
+    } 
+    
+    if (WIFEXITED(status)) {
+        debug("child %d exited with status %d\n", child_pid, WEXITSTATUS(status));
+        return WEXITSTATUS(status) == EXIT_SUCCESS;
+    } else if (WIFSIGNALED(status)) {
+        debug("child %d terminated with signal %d and dumped?: %d\n", child_pid, WTERMSIG(status), WCOREDUMP(status));
+    } else if (WIFSTOPPED(status)) {
+        debug("child %d stopped with signal %d\n", child_pid, WSTOPSIG(status));
+    }
+
+    return true;
 }
 
 int shell_loop(int argc, char **argv)

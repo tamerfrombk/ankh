@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdbool.h>
+
 int shell_loop(int argc, char **argv);
 
-int execute( char *const cmd[]);
+bool execute( char *const cmd[]);
