@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include <readline/readline.h>
 
@@ -13,8 +14,6 @@
 #include <log.h>
 #include <clean.h>
 
-// TODO: handle signal to gracefully kill shell
-volatile int done = 0;
 
 // TODO: move this somewhere we can test it
 char **split_by_whitespace(const char *str)
@@ -78,7 +77,7 @@ int shell_loop(int argc, char **argv)
     CLEAN_UNUSED(argc);
     CLEAN_UNUSED(argv);
 
-    while (!done) {
+    while (true) {
         char *line = readline("> ");
         if (line == NULL) {
             // EOF encountered on empty line
