@@ -83,6 +83,7 @@ int shell_loop(int argc, char **argv)
         if (line == NULL) {
             // EOF encountered on empty line
             debug("EOF\n");
+            exit(EXIT_SUCCESS);
         } else if (*line == '\0') {
             // empty line
             debug("empty line\n");
