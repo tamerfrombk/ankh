@@ -13,44 +13,9 @@
 #include <def.h>
 #include <log.h>
 #include <clean.h>
+#include <command.h>
 
-
-// TODO: move this somewhere we can test it
-char **split_by_whitespace(const char *str)
-{
-    // TODO: expand number of arguments or customize them
-    char **tokens = calloc(10, sizeof(*tokens));
-    if (tokens == NULL) {
-        // TODO: OOM error
-    }
-
-    int t = 0;
-    for (char c = *str; c != '\0'; c = *str) {
-        if (isspace(c)) {
-            ++str;
-            continue;
-        }
-
-        // find the end of the current word
-        int len = 0;
-        for (const char *eow = str; *eow != '\0' && !isspace(*eow); ++eow) {
-            ++len;
-        }
-
-        char *token = strndup(str, len);
-        if (token == NULL) {
-            // TODO: OOM error
-        }
-
-        str += len;
-
-        tokens[t++] = token;
-    }
-
-    return tokens;
-}
-
-bool execute(char *const args[])
+bool execute(const command_t *cmd)
 {
     const pid_t pid = fork();
     if (pid == -1) {
@@ -60,8 +25,8 @@ bool execute(char *const args[])
 
     if (pid == 0) {
         // child process
-        if (execvp(args[0], args) == -1) {
-            error("could not find %s\n", args[0]);
+        if (execvp(cmd->cmd, cmd->args) == -1) {
+            error("could not find %s\n", cmd->cmd);
             exit(EXIT_FAILURE);
         }
 
@@ -107,16 +72,18 @@ int shell_loop(int argc, char **argv)
         } else {
             debug("read line: '%s'\n", line);
             
-            char **tokens = split_by_whitespace(line);
+            command_t cmd;
+            parse_command(line, &cmd);
             
             debug("read line parsed:\n");
-            for (char **t = tokens; *t != NULL; ++t) {
+            debug("command: %s\n", cmd.cmd);
+            for (char **t = cmd.args; *t != NULL; ++t) {
                 debug("%s\n", *t);
             }
 
-            execute(tokens);
+            execute(&cmd);
             
-            free(tokens);
+            command_destroy(&cmd);
             free(line);
         }
     }
