@@ -15,8 +15,50 @@
 #include <clean.h>
 #include <command.h>
 
+static const char *CLEAN_BUILTIN_COMMANDS[] = {
+    "quit",
+    "cd"
+};
+
+static const size_t CLEAN_BUILTIN_COMMANDS_LENGTH = sizeof(CLEAN_BUILTIN_COMMANDS) / sizeof(CLEAN_BUILTIN_COMMANDS[0]);
+
+static bool is_builtin_command(const command_t *cmd)
+{
+    for (size_t i = 0; i < CLEAN_BUILTIN_COMMANDS_LENGTH; ++i) {
+        if (strcmp(CLEAN_BUILTIN_COMMANDS[i], cmd->cmd) == 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// TODO: think about making a function table instead of this approach?
+// Also, think about verifying arguments, # of arguments for each builtin??
+static bool execute_builtin_command(const command_t *cmd)
+{
+    if (strcmp("quit", cmd->cmd) == 0) {
+        exit(EXIT_SUCCESS);
+    }
+
+    if (strcmp("cd", cmd->cmd) == 0) {
+        if (chdir(cmd->args[1]) == -1) {
+            perror("chdir");
+            return false;
+        }
+        return true;
+    }
+
+    return true;
+}
+
 bool execute(const command_t *cmd)
 {
+    // before executing a process on the PATH, check if the command is built in
+    if (is_builtin_command(cmd)) {
+        return execute_builtin_command(cmd);
+    }
+
     const pid_t pid = fork();
     if (pid == -1) {
         perror("fork");
@@ -77,8 +119,8 @@ int shell_loop(int argc, char **argv)
             
             debug("read line parsed:\n");
             debug("command: %s\n", cmd.cmd);
-            for (char **t = cmd.args; *t != NULL; ++t) {
-                debug("%s\n", *t);
+            for (size_t i = 0; i < cmd.args_len; ++i) {
+                debug("%s\n", cmd.args[i]);
             }
 
             execute(&cmd);

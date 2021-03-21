@@ -5,13 +5,6 @@
 #include <command.h>
 #include <log.h>
 
-const char *CLEAN_BUILT_IN_COMMANDS[] = {
-    "quit"
-};
-
-static const size_t CLEAN_BUILT_IN_COMMANDS_LENGTH = sizeof(CLEAN_BUILT_IN_COMMANDS) / sizeof(CLEAN_BUILT_IN_COMMANDS[0]);
-
-
 static char **split_by_whitespace(const char *str)
 {
     // TODO: expand number of arguments or customize them
@@ -71,15 +64,4 @@ void parse_command(const char *line, command_t *cmd)
     for (char **t = cmd->args; *t != NULL; ++t) {
         ++cmd->args_len;
     }
-}
-
-bool is_built_in_command(const command_t *cmd)
-{
-    for (size_t i = 0; i < CLEAN_BUILT_IN_COMMANDS_LENGTH; ++i) {
-        if (strcmp(CLEAN_BUILT_IN_COMMANDS[i], cmd->cmd) == 0) {
-            return true;
-        }
-    }
-
-    return false;
 }
