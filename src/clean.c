@@ -1,3 +1,7 @@
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -47,6 +51,28 @@ char **split_by_whitespace(const char *str)
     return tokens;
 }
 
+int execute(char *const args[])
+{
+    const pid_t pid = fork();
+    if (pid == -1) {
+        // error
+        return -1;
+    } else if (pid == 0) {
+        // child
+        if (execvp(args[0], args) == -1) {
+            // TODO: hard error on failed process?
+            exit(EXIT_FAILURE);
+        }
+        return 1;
+    } else {
+        // parent
+
+        // TODO: inspect status of wait
+        wait(NULL);
+        return 1;
+    }
+}
+
 int shell_loop(int argc, char **argv)
 {
     CLEAN_UNUSED(argc);
@@ -70,6 +96,8 @@ int shell_loop(int argc, char **argv)
             for (char **t = tokens; *t != NULL; ++t) {
                 debug("%s\n", *t);
             }
+
+            execute(tokens);
             
             free(tokens);
             free(line);
