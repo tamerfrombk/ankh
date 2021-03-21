@@ -6,6 +6,7 @@
 #include <readline/readline.h>
 
 #include <def.h>
+#include <log.h>
 #include <clean.h>
 
 // TODO: handle signal to gracefully kill shell
@@ -55,18 +56,21 @@ int shell_loop(int argc, char **argv)
         char *line = readline("> ");
         if (line == NULL) {
             // EOF encountered on empty line
-            puts("EOF");
+            debug("EOF\n");
         } else if (*line == '\0') {
             // empty line
-            puts("empty line");
+            debug("empty line\n");
             free(line);
         } else {
-            printf("you entered '%s'\n", line);
+            debug("read line: '%s'\n", line);
+            
             char **tokens = split_by_whitespace(line);
+            
+            debug("read line parsed:\n");
             for (char **t = tokens; *t != NULL; ++t) {
-                puts(*t);
-                free(*t);
+                debug("%s\n", *t);
             }
+            
             free(tokens);
             free(line);
         }
