@@ -1,8 +1,6 @@
-#include <stdio.h>
+#include <clean.h>
 
 int main(int argc, char **argv) {
-    for (int i = 1; i < argc; ++i) {
-        printf("%i: %s\n", i, argv[i]);
-    }
+    return shell_loop(argc, argv);
 }
 
