@@ -7,6 +7,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <errno.h>
+#include <stdbool.h>
 
 #include <readline/readline.h>
 
@@ -52,17 +53,19 @@ static bool execute_builtin_command(const command_t *cmd)
     return true;
 }
 
-bool execute(const command_t *cmd)
+int execute(const command_t *cmd)
 {
     // before executing a process on the PATH, check if the command is built in
     if (is_builtin_command(cmd)) {
-        return execute_builtin_command(cmd);
+        return execute_builtin_command(cmd)
+            ? EXIT_SUCCESS
+            : EXIT_FAILURE;
     }
 
     const pid_t pid = fork();
     if (pid == -1) {
         perror("fork");
-        return false;
+        return EXIT_FAILURE;
     }
 
     if (pid == 0) {
@@ -72,7 +75,7 @@ bool execute(const command_t *cmd)
             exit(EXIT_FAILURE);
         }
 
-        return true;
+        return EXIT_SUCCESS;
     }
 
     // parent process
@@ -81,19 +84,19 @@ bool execute(const command_t *cmd)
     if (child_pid == -1) {
         // error waiting on child
         perror("wait");
-        return false;
+        return EXIT_FAILURE;
     } 
     
     if (WIFEXITED(status)) {
         debug("child %d exited with status %d\n", child_pid, WEXITSTATUS(status));
-        return WEXITSTATUS(status) == EXIT_SUCCESS;
+        return WEXITSTATUS(status);
     } else if (WIFSIGNALED(status)) {
         debug("child %d terminated with signal %d and dumped?: %d\n", child_pid, WTERMSIG(status), WCOREDUMP(status));
     } else if (WIFSTOPPED(status)) {
         debug("child %d stopped with signal %d\n", child_pid, WSTOPSIG(status));
     }
 
-    return true;
+    return EXIT_SUCCESS;
 }
 
 int shell_loop(int argc, char **argv)
@@ -101,6 +104,9 @@ int shell_loop(int argc, char **argv)
     CLEAN_UNUSED(argc);
     CLEAN_UNUSED(argv);
 
+    // when our shell exits, we want to ensure it exits
+    // with an exit code equivalent to its last process
+    int prev_process_exit_code = EXIT_SUCCESS;
     while (true) {
         char *line = readline("> ");
         if (line == NULL) {
@@ -123,12 +129,12 @@ int shell_loop(int argc, char **argv)
                 debug("%s\n", cmd.args[i]);
             }
 
-            execute(&cmd);
+            prev_process_exit_code = execute(&cmd);
             
             command_destroy(&cmd);
             free(line);
         }
     }
 
-    return 0;
+    return prev_process_exit_code;
 }
