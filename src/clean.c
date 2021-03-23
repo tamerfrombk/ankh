@@ -36,7 +36,7 @@ static bool is_builtin_command(const command_t *cmd)
 
 // TODO: think about making a function table instead of this approach?
 // Also, think about verifying arguments, # of arguments for each builtin??
-static bool execute_builtin_command(const command_t *cmd)
+static int execute_builtin_command(const command_t *cmd)
 {
     if (strcmp("quit", cmd->cmd) == 0) {
         exit(EXIT_SUCCESS);
@@ -45,21 +45,19 @@ static bool execute_builtin_command(const command_t *cmd)
     if (strcmp("cd", cmd->cmd) == 0) {
         if (chdir(cmd->args[1]) == -1) {
             perror("chdir");
-            return false;
+            return EXIT_FAILURE;
         }
-        return true;
+        return EXIT_SUCCESS;
     }
 
-    return true;
+    return EXIT_SUCCESS;
 }
 
 int execute(const command_t *cmd)
 {
     // before executing a process on the PATH, check if the command is built in
     if (is_builtin_command(cmd)) {
-        return execute_builtin_command(cmd)
-            ? EXIT_SUCCESS
-            : EXIT_FAILURE;
+        return execute_builtin_command(cmd);
     }
 
     const pid_t pid = fork();
