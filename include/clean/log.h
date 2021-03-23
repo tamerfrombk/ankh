@@ -2,23 +2,25 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#define CLEAN_LOG_MAX_BUFFER_LENGTH (255)
-
-#define CLEAN_LOG_IMPL(prefix, str, ...) do {\
-        char debug_buf[CLEAN_LOG_MAX_BUFFER_LENGTH + 1] = {0};\
-        strcpy(debug_buf, prefix);\
-        strncat(debug_buf, str, CLEAN_LOG_MAX_BUFFER_LENGTH - strlen(prefix));\
-        fprintf(stderr, debug_buf,##__VA_ARGS__);\
-    } while (0)
+// These macros where created with the help of this answer from Stack Overflow
+// https://stackoverflow.com/a/1644898
 
 #ifdef NDEBUG
     #define debug(str, ...)
 #else
-    #define debug(str, ...) CLEAN_LOG_IMPL("DEBUG: ", str,##__VA_ARGS__)
+    #define debug(fmt, ...) \
+            do { fprintf(stderr, "DEBUG: [ %s:%d | %s() ]: " fmt, __FILE__, __LINE__, __func__,##__VA_ARGS__); } while (0)
 #endif
 
-#define error(str, ...) CLEAN_LOG_IMPL("ERROR: ", str,##__VA_ARGS__)
+#define info(fmt, ...) \
+        do { fprintf(stdout, "INFO: " fmt,##__VA_ARGS__); } while (0)
 
-#define fatal(str, ...) CLEAN_LOG_IMPL("FATAL: ", str,##__VA_ARGS__)
+#define error(fmt, ...) \
+        do { fprintf(stderr, "ERROR: " fmt,##__VA_ARGS__); } while (0)
+
+#define fatal(fmt, ...) \
+        do { fprintf(stderr, "FATAL: " fmt,##__VA_ARGS__); exit(EXIT_FAILURE); } while (0)
+
+#define ASSERT_NOT_NULL(ptr) \
+    if ((ptr) == NULL) { fprintf(stderr, "NULLPTR @ [ %s:%d | %s() ]", __FILE__, __LINE__, __func__); exit(EXIT_FAILURE); }
