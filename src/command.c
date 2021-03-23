@@ -9,9 +9,7 @@ static char **split_by_whitespace(const char *str)
 {
     // TODO: expand number of arguments or customize them
     char **tokens = calloc(10, sizeof(*tokens));
-    if (tokens == NULL) {
-        // TODO: OOM error
-    }
+    ASSERT_NOT_NULL(tokens);
 
     int t = 0;
     for (char c = *str; c != '\0'; c = *str) {
@@ -27,9 +25,7 @@ static char **split_by_whitespace(const char *str)
         }
 
         char *token = strndup(str, len);
-        if (token == NULL) {
-            // TODO: OOM error
-        }
+        ASSERT_NOT_NULL(token);
 
         str += len;
 
@@ -53,9 +49,6 @@ void command_destroy(command_t *cmd)
 void parse_command(const char *line, command_t *cmd)
 {
     char **tokens = split_by_whitespace(line);
-    if (tokens == NULL) {
-        // TODO: handle error
-    }
 
     cmd->cmd = tokens[0];
     cmd->args = tokens;
