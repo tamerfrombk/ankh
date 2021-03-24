@@ -24,7 +24,4 @@ void parse_command(const char *line, command_t *cmd)
     cmd->args = words;
 
     cmd->args_len = num_words;
-    for (char **t = cmd->args; *t != NULL; ++t) {
-        ++cmd->args_len;
-    }
 }
