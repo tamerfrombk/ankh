@@ -16,6 +16,7 @@
 #include <clean/clean.h>
 #include <clean/command.h>
 #include <clean/string.h>
+#include <clean/lexer.h>
 
 static const char *CLEAN_BUILTIN_COMMANDS[] = {
     "quit",
@@ -39,6 +40,8 @@ static bool is_builtin_command(const command_t *cmd)
 // Also, think about verifying arguments, # of arguments for each builtin??
 static int execute_builtin_command(shell_t *sh, const command_t *cmd)
 {
+    CLEAN_UNUSED(sh);
+    
     if (strcmp("quit", cmd->cmd) == 0) {
         exit(EXIT_SUCCESS);
     }
@@ -56,9 +59,9 @@ static int execute_builtin_command(shell_t *sh, const command_t *cmd)
 
 void shell_init(shell_t *sh)
 {
-    // TODO: clean up
     variable_t *v = calloc(1, sizeof(*v));
     ASSERT_NOT_NULL(v);
+    
     v->name = strdup("VARIABLE");
     v->value = strdup("this is the expanded value of VARIABLE");
 
@@ -67,7 +70,15 @@ void shell_init(shell_t *sh)
 
 void shell_teardown(shell_t *sh)
 {
+    variable_t *v = sh->vars;
+    while (v != NULL) {
+        variable_t *next = v->next;
+        free(v->name);
+        free(v->value);
+        free(v);
 
+        v = next;
+    }
 }
 
 int execute(shell_t *sh, const command_t *cmd)
@@ -176,7 +187,118 @@ char *substitute_variables(shell_t *sh, const char *str)
     // get rid of the final extra ' '
     concat_string[total_len - 1] = '\0';
 
+    // clean up tokens
+    for (size_t i = 0; i < num_words; ++i) {
+        free(words[i]);
+    }
+    free(words);
+
     return concat_string;
+}
+
+void shell_consume_export_statement(shell_t *sh, lexer_t *lexer)
+{
+    CLEAN_UNUSED(sh);
+
+    token_t *identifier = lex_next_token(lexer);
+    if (identifier->type != IDENTIFIER) {
+        error("expected identifier but got %s\n", token_type_str(identifier->type));
+        goto cleanup;
+    }
+
+    token_t *eq = lex_next_token(lexer);
+    if (eq->type != EQ) {
+        error("expected eq but got %s\n", token_type_str(eq->type));
+        goto cleanup;
+    }
+
+    token_t *str = lex_next_token(lexer);
+    if (str->type != STRING) {
+        error("expected str but got %s\n", token_type_str(str->type));
+        goto cleanup;
+    }
+
+    // add to the environment and overwrite old values
+    if (setenv(identifier->str, str->str, 1) == -1) {
+        perror("setenv");
+    }
+
+cleanup:
+    debug("done\n");
+    // TODO: clean up
+}
+
+int shell_consume_statement(shell_t *sh, const char *stmt)
+{
+    const expr_result_t result = shell_evaluate_expression(sh, stmt);
+    if (result.type == RT_ERROR) {
+        error("unable to evaluate expression due to :%s\n", result.err);
+        return EXIT_FAILURE;
+    } else if (result.type == RT_NIL) {
+        return EXIT_SUCCESS;
+    } else if (result.type == RT_EXIT_CODE) {
+        return result.exit_code;
+    } else {
+        puts(result.str);
+        free(result.str);
+        return EXIT_SUCCESS;
+    }
+}
+
+// statement := <variable_definition>
+// variable_definition := export <identifier> | export <identifier> = <string>
+// string := "[a-zA-Z0-9 ]+"
+expr_result_t shell_evaluate_expression(shell_t *sh, const char *line)
+{
+    const char *substituted_line = substitute_variables(sh, line);
+    debug("substituted string: '%s' of length %zu\n", substituted_line, strlen(substituted_line));
+
+    debug("beginning lexical analysis\n");
+
+    lexer_t lexer;
+    lexer_init(&lexer, substituted_line, strlen(substituted_line));
+
+    token_t *tok = lex_next_token(&lexer);
+    if (tok->type == T_EOF) {
+        free(tok);
+        debug("EOF evaluated\n");
+        
+        expr_result_t e = {.type = RT_NIL};
+        return e;
+    } else if (tok->type == KEYWORD) {
+        if (strcmp(tok->str, "export") == 0) {
+            shell_consume_export_statement(sh, &lexer);
+            free(tok);
+            goto teardown;
+        } else {
+            fatal("KEYWORD can't happen\n");
+        }
+    } else { // assume command
+        free(tok);
+
+        command_t cmd;
+        parse_command(substituted_line, &cmd);
+        
+        debug("read line parsed:\n");
+        debug("command: %s\n", cmd.cmd);
+        for (size_t i = 0; i < cmd.args_len; ++i) {
+            debug("arg: %s\n", cmd.args[i]);
+        }
+
+        int exit_code = execute(sh, &cmd);
+        
+        command_destroy(&cmd);
+
+        expr_result_t result = {.type=RT_EXIT_CODE, .exit_code=exit_code};
+
+        return result;
+    }
+
+teardown:
+    lexer_teardown(&lexer);
+
+    expr_result_t e = {.type = RT_NIL};
+    return e; 
 }
 
 int shell_loop(int argc, char **argv)
@@ -202,23 +324,7 @@ int shell_loop(int argc, char **argv)
             free(line);
         } else {
             debug("read line: '%s'\n", line);
-
-            const char *substituted_line = substitute_variables(&shell, line);
-
-            debug("substituted string: '%s' of length %zu\n", substituted_line, strlen(substituted_line));
-            
-            command_t cmd;
-            parse_command(substituted_line, &cmd);
-            
-            debug("read line parsed:\n");
-            debug("command: %s\n", cmd.cmd);
-            for (size_t i = 0; i < cmd.args_len; ++i) {
-                debug("arg: %s\n", cmd.args[i]);
-            }
-
-            prev_process_exit_code = execute(&shell, &cmd);
-            
-            command_destroy(&cmd);
+            prev_process_exit_code = shell_consume_statement(&shell, line);
             free(line);
         }
     }
