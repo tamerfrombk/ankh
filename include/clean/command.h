@@ -2,12 +2,12 @@
 
 #include <stddef.h>
 
-typedef struct command_t {
-    char *cmd;
-    char **args;
-    size_t args_len;
-} command_t;
+#include <string>
+#include <vector>
 
-void command_destroy(command_t *cmd);
+struct command_t {
+    std::string cmd;
+    std::vector<std::string> args;
+};
 
-void parse_command(const char *line, command_t *cmd);
+command_t parse_command(const std::string& str);

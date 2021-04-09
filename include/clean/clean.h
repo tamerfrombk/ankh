@@ -1,45 +1,61 @@
 #pragma once
 
+#include <string>
+#include <vector>
+#include <optional>
+
 // Forward declarations
 struct command_t;
 struct lexer_t;
 
-typedef struct variable_t {
-    char *name, *value;
-    struct variable_t *next;
-} variable_t;
-typedef struct shell_t {
-    variable_t *vars;
-} shell_t;
+struct variable_t {
+    std::string name;
+    std::string value;
 
-typedef enum expr_result_type {
+    variable_t(std::string name, std::string value)
+        : name(std::move(name))
+        , value(std::move(value))
+        {}
+};
+
+enum class expr_result_type {
     RT_EXIT_CODE,
     RT_STRING,
     RT_NIL,
     RT_ERROR
-} expr_result_type;
+};
 
-typedef struct expr_result_t {
-    union {
-        char *str;
-        char err[31 + 1];
-        int exit_code;
-    };
+struct expr_result_t {
+
+    // TODO: unionize these fields. Right now, getting implicitly deleted destructor error because of union
+    // and I don't want to block myself figuring it out right now.
+    std::string str;
+    std::string err;
+    int exit_code;
+
     expr_result_type type;
-} expr_result_t;
+};
 
-void shell_init(shell_t *sh);
-void shell_teardown(shell_t *sh);
+class shell_t {
 
-char *shell_find_variable_value(shell_t *sh, const char *var);
+public:
+    shell_t();
+
+    std::optional<variable_t> find_variable(const std::string& name) const;
+
+    int  execute_statement(const std::string& stmt);
+
+    expr_result_t evaluate_export(lexer_t *lexer);
+
+    expr_result_t evaluate_expression(const std::string& expr);
+
+    int execute(const command_t *cmd);
+
+    std::string substitute_variables(const std::string& stmt);
+
+private:
+    std::vector<variable_t> vars_;
+};
 
 int shell_loop(int argc, char **argv);
 
-int shell_consume_statement(shell_t *sh, const char *stmt);
-void shell_consume_export_statement(shell_t *sh, struct lexer_t *lexer);
-
-expr_result_t shell_evaluate_expression(shell_t *sh, const char *line);
-
-int execute(shell_t *sh, const struct command_t *cmd);
-
-char *substitute_variables(shell_t *sh, const char *str);

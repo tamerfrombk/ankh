@@ -1,5 +1,8 @@
 #pragma once
 
-#include <stddef.h>
+#include <vector>
+#include <string>
 
-void split_by_whitespace(const char *str, char ***words_buffer_out, size_t *num_words_out);
+std::vector<std::string> split_by_whitespace(const std::string& str);
+
+std::string join(const std::vector<std::string>& strs, const std::string& joiner);
