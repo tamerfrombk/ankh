@@ -37,21 +37,27 @@ struct expr_result_t {
 };
 
 class shell_t {
-
 public:
     shell_t();
 
-    std::optional<variable_t> find_variable(const std::string& name) const;
-
-    int  execute_statement(const std::string& stmt);
-
-    expr_result_t evaluate_export(lexer_t *lexer);
-
-    expr_result_t evaluate_expression(const std::string& expr);
+    // grammar:
+    // newline := \n | \r\n
+    // string := " any valid characters* "
+    // statement := expression newline
+    // expression := string | export_expression
+    // export_expression := export '=' expression
+    int execute_statement(const std::string& stmt);
 
     int execute(const command_t *cmd);
 
+    expr_result_t evaluate_expression(lexer_t *lexer);
+    expr_result_t evaluate_export(lexer_t *lexer);
+
+    std::optional<variable_t> find_variable(const std::string& name) const;
+
     std::string substitute_variables(const std::string& stmt);
+
+    bool addenv(const std::string& name, const std::string& value) const;
 
 private:
     std::vector<variable_t> vars_;

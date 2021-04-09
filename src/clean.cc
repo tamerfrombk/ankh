@@ -161,12 +161,21 @@ std::string shell_t::substitute_variables(const std::string& stmt)
     return join(words, " ");
 }
 
+bool shell_t::addenv(const std::string& name, const std::string& value) const
+{
+    if (setenv(name.c_str(), value.c_str(), 1) == -1) {
+        return false;
+    }
+
+    return true;
+}
+
 expr_result_t shell_t::evaluate_export(lexer_t *lexer)
 {
     token_t identifier = lexer->next_token();
-    if (identifier.type != token_type::IDENTIFIER) {
+    if (identifier.str != "export") {
         auto str = token_type_str(identifier.type);
-        error("expected identifier but got %s\n", str.c_str());
+        error("expected 'export' keyword but got '%s'\n", str.c_str());
     }
 
     token_t eq = lexer->next_token();
@@ -175,28 +184,31 @@ expr_result_t shell_t::evaluate_export(lexer_t *lexer)
         error("expected eq but got %s\n", str.c_str());
     }
 
-    token_t str = lexer->next_token();
-    if (str.type != token_type::STRING) {
-        auto msg = token_type_str(str.type);
-        error("expected str but got %s\n", msg.c_str());
+    expr_result_t result = evaluate_expression(lexer);
+    switch (result.type) {
+    case expr_result_type::RT_ERROR:
+        error("error evaluating expression: '%s'\n", result.err.c_str());
+        break;
+    case expr_result_type::RT_NIL:
+        addenv(identifier.str, "");
+        break;
+    case expr_result_type::RT_STRING:
+        addenv(identifier.str, result.str);
+        break;
+    default:
+        break;
     }
-
-    // add to the environment and overwrite old values
-    if (setenv(identifier.str.c_str(), str.str.c_str(), 1) == -1) {
-        perror("setenv");
-    }
-
-    expr_result_t result;
-    result.type = expr_result_type::RT_NIL;
 
     return result;
 }
 
 int shell_t::execute_statement(const std::string& stmt)
 {
-    const expr_result_t result = evaluate_expression(stmt);
+    lexer_t lexer(stmt);
+
+    const expr_result_t result = evaluate_expression(&lexer);
     if (result.type == expr_result_type::RT_ERROR) {
-        error("unable to evaluate expression due to :%s\n", result.err.c_str());
+        error("unable to evaluate expression due to: '%s'\n", result.err.c_str());
         return EXIT_FAILURE;
     } else if (result.type == expr_result_type::RT_NIL) {
         return EXIT_SUCCESS;
@@ -208,18 +220,14 @@ int shell_t::execute_statement(const std::string& stmt)
     }
 }
 
-// statement := <variable_definition>
-// variable_definition := export <identifier> | export <identifier> = <string>
-// string := "[a-zA-Z0-9 ]+"
-expr_result_t shell_t::evaluate_expression(const std::string& expr)
+expr_result_t shell_t::evaluate_expression(lexer_t *lexer)
 {
+    // TODO: think about how to put in the remainder of the string here
     std::string substituted_line = substitute_variables(expr);
 
     debug("beginning lexical analysis on '%s'\n", substituted_line.c_str());
 
-    lexer_t lexer(substituted_line);
-
-    token_t tok = lexer.next_token();
+    token_t tok = lexer->next_token();
     if (tok.type == token_type::T_EOF) {
         debug("EOF evaluated\n");
         
@@ -227,23 +235,25 @@ expr_result_t shell_t::evaluate_expression(const std::string& expr)
         result.type = expr_result_type::RT_NIL;
 
         return result;
-    } else if (tok.type == token_type::KEYWORD) {
-        if (tok.str == "export") {
-            return evaluate_export(&lexer);
-        } else {
-            fatal("KEYWORD can't happen\n");
-        }
-    } else { // assume command
-        command_t cmd = parse_command(substituted_line);
+    }
 
-        int exit_code = execute(&cmd);
-
+    if (tok.type == token_type::STRING) {
         expr_result_t result;
-        result.type = expr_result_type::RT_EXIT_CODE;
-        result.exit_code = exit_code;
+        result.type = expr_result_type::RT_STRING;
+        result.str  = tok.str;
 
         return result;
     }
+
+    if (tok.str == "export") {
+        return evaluate_export(lexer);
+    }
+
+    expr_result_t result;
+    result.type = expr_result_type::RT_ERROR;
+    result.err  = tok.str + " is unknown expression";
+
+    return result;
 }
 
 int shell_loop(int argc, char **argv)
