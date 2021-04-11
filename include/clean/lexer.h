@@ -9,8 +9,11 @@ public:
     lexer_t(std::string text);
 
     token_t next_token() noexcept;
+    token_t peek_token() noexcept;
 
     bool is_eof() const noexcept;
+
+    std::string rest() const noexcept;
 
 private:
     void skip_whitespace() noexcept;

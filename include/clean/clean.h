@@ -34,6 +34,13 @@ struct expr_result_t {
     int exit_code;
 
     expr_result_type type;
+
+    static expr_result_t nil() {
+        expr_result_t e;
+        e.type = expr_result_type::RT_NIL;
+
+        return e;
+    }
 };
 
 class shell_t {
@@ -48,14 +55,14 @@ public:
     // export_expression := export '=' expression
     int execute_statement(const std::string& stmt);
 
-    int execute(const command_t *cmd);
+    int execute(const command_t& cmd);
 
-    expr_result_t evaluate_expression(lexer_t *lexer);
-    expr_result_t evaluate_export(lexer_t *lexer);
+    expr_result_t evaluate_expression(lexer_t& lexer);
+    expr_result_t evaluate_export(lexer_t& lexer);
 
     std::optional<variable_t> find_variable(const std::string& name) const;
 
-    std::string substitute_variables(const std::string& stmt);
+    std::string substitute_variables(std::string stmt, size_t beginning_at = 0);
 
     bool addenv(const std::string& name, const std::string& value) const;
 

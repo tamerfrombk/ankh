@@ -32,9 +32,27 @@ token_t lexer_t::next_token() noexcept
     }
 }
 
+token_t lexer_t::peek_token() noexcept
+{
+    size_t old_cursor = cursor_;
+    
+    token_t token = next_token();
+
+    cursor_ = old_cursor;
+
+    return token;
+}
+
 bool lexer_t::is_eof() const noexcept
 {
     return cursor_ >= text_.length();
+}
+
+std::string lexer_t::rest() const noexcept
+{
+    return is_eof()
+        ? ""
+        : text_.substr(cursor_);   
 }
 
 void lexer_t::skip_whitespace() noexcept

@@ -1,3 +1,4 @@
+#include "clean/token.h"
 #include <cstddef>
 #include <optional>
 #include <sys/types.h>
@@ -25,10 +26,10 @@ static const char *CLEAN_BUILTIN_COMMANDS[] = {
 
 static const size_t CLEAN_BUILTIN_COMMANDS_LENGTH = sizeof(CLEAN_BUILTIN_COMMANDS) / sizeof(CLEAN_BUILTIN_COMMANDS[0]);
 
-static bool is_builtin_command(const command_t *cmd)
+static bool is_builtin_command(const command_t& cmd)
 {
     for (size_t i = 0; i < CLEAN_BUILTIN_COMMANDS_LENGTH; ++i) {
-        if (cmd->cmd == CLEAN_BUILTIN_COMMANDS[i]) {
+        if (cmd.cmd == CLEAN_BUILTIN_COMMANDS[i]) {
             return true;
         }
     }
@@ -38,16 +39,16 @@ static bool is_builtin_command(const command_t *cmd)
 
 // TODO: think about making a function table instead of this approach?
 // Also, think about verifying arguments, # of arguments for each builtin??
-static int execute_builtin_command(shell_t *sh, const command_t *cmd)
+static int execute_builtin_command(shell_t *sh, const command_t& cmd)
 {
     CLEAN_UNUSED(sh);
     
-    if (cmd->cmd == "quit") {
+    if (cmd.cmd == "quit") {
         exit(EXIT_SUCCESS);
     }
 
-    if (cmd->cmd == "cd") {
-        if (chdir(cmd->args[1].c_str()) == -1) {
+    if (cmd.cmd == "cd") {
+        if (chdir(cmd.args[1].c_str()) == -1) {
             perror("chdir");
             return EXIT_FAILURE;
         }
@@ -65,6 +66,8 @@ shell_t::shell_t()
 
 std::optional<variable_t> shell_t::find_variable(const std::string &name) const {
     char *value = std::getenv(name.c_str());
+    debug("getenv('%s') = '%s'\n", name.c_str(), value);
+
     if (value == nullptr) {
         return std::nullopt;
     }
@@ -74,7 +77,7 @@ std::optional<variable_t> shell_t::find_variable(const std::string &name) const 
     return std::optional(v);
 }
 
-int shell_t::execute(const command_t *cmd)
+int shell_t::execute(const command_t& cmd)
 {
     // before executing a process on the PATH, check if the command is built in
     if (is_builtin_command(cmd)) {
@@ -89,16 +92,16 @@ int shell_t::execute(const command_t *cmd)
 
     if (pid == 0) {
         // child process
-        char **vs = new char*[cmd->args.size()];
+        char **vs = new char*[cmd.args.size()];
         int i = 0;
-        for (auto& arg : cmd->args) {
+        for (auto& arg : cmd.args) {
             vs[i] = const_cast<char*>(arg.c_str());
             debug("vs: '%s'\n", vs[i]);
             ++i;
         }
 
-        if (execvp(cmd->cmd.c_str(), vs) == -1) {
-            error("could not find '%s'\n", cmd->cmd.c_str());
+        if (execvp(cmd.cmd.c_str(), vs) == -1) {
+            error("could not find '%s'\n", cmd.cmd.c_str());
             exit(EXIT_FAILURE);
         }
         free(vs);
@@ -127,38 +130,35 @@ int shell_t::execute(const command_t *cmd)
     return EXIT_SUCCESS;
 }
 
-std::string shell_t::substitute_variables(const std::string& stmt)
+std::string shell_t::substitute_variables(std::string stmt, size_t beginning_at)
 {
-    std::vector<std::string> words = split_by_whitespace(stmt);
-
-    debug("Before variable evaluation %s:\n", stmt.c_str());
-
-    for (size_t i = 0; i < words.size(); ++i) {
-        std::string& word = words[i];
-        debug("WORD: '%s'\n", word.c_str());
-        // it might be a variable so let's be sure
-        if (word[0] == '$' && word.length() > 1) {
-            // it is a variable
-            auto var = find_variable(word.substr(1));
-            if (var.has_value()) {
-                // substitute the current word with the expanded variable value
-                auto v = var.value();
-                debug("variable '%s' = '%s'\n", v.name.c_str(), v.value.c_str());
-                word = v.value;
-            } else {
-                auto v = word.substr(1);
-                error("%s is not defined in this scope\n", v.c_str());
-            }
-        }
+    const auto idx = stmt.find_first_of("$", beginning_at);
+    if (idx == std::string::npos) {
+        return stmt;
     }
 
-    debug("After variable evaluation:\n");
-    for (const auto& word : words) {
-        debug("token: %s\n", word.c_str());
+    std::string var_name;
+    for (size_t i = idx + 1; i < stmt.length() && std::isalnum(stmt[i]); ++i) {
+        var_name += stmt[i];
     }
 
-    // concat all the strings back together now
-    return join(words, " ");
+    // false alarm, just a "$"
+    if (var_name.empty()) {
+        return stmt;
+    }
+
+    if (auto potential_variable = find_variable(var_name); potential_variable.has_value()) {
+            const variable_t& variable = potential_variable.value();
+            auto prefix = stmt.substr(0, idx);
+            // idx points to where the '$' is so we add 1 to remove it and the variable itself from the suffix
+            auto suffix = stmt.substr(idx + 1 + variable.name.length());
+            
+            return substitute_variables(prefix + variable.value + suffix, idx + 1);
+    } else {
+        error("'%s' is not defined in the current scope\n", var_name.c_str());
+    }
+    
+    return stmt;
 }
 
 bool shell_t::addenv(const std::string& name, const std::string& value) const
@@ -170,43 +170,62 @@ bool shell_t::addenv(const std::string& name, const std::string& value) const
     return true;
 }
 
-expr_result_t shell_t::evaluate_export(lexer_t *lexer)
+expr_result_t shell_t::evaluate_export(lexer_t& lexer)
 {
-    token_t identifier = lexer->next_token();
-    if (identifier.str != "export") {
+    debug("evaluating export expression: '%s'\n", lexer.rest().c_str());
+
+    // "export"
+    {
+        const token_t tok = lexer.next_token();
+        if (tok.str != "export") {
+            auto str = token_type_str(tok.type);
+            error("expected 'export' but got '%s' of type '%s'\n", tok.str.c_str(), str.c_str());
+        }
+    }
+
+
+    // identifier
+    const token_t identifier = lexer.next_token();
+    if (identifier.type != token_type::IDENTIFIER) {
         auto str = token_type_str(identifier.type);
-        error("expected 'export' keyword but got '%s'\n", str.c_str());
+        error("expected 'IDENTIFIER' but got '%s' of type '%s'\n", identifier.str.c_str(), str.c_str());
     }
 
-    token_t eq = lexer->next_token();
-    if (eq.type != token_type::EQ) {
-        auto str = token_type_str(eq.type);
-        error("expected eq but got %s\n", str.c_str());
+    // "="
+    {
+        const token_t eq = lexer.next_token();
+        if (eq.type != token_type::EQ) {
+            auto str = token_type_str(eq.type);
+            error("expected '=' but got '%s' of type '%s'\n", eq.str.c_str(), str.c_str());
+        }
     }
 
-    expr_result_t result = evaluate_expression(lexer);
+    // right hand expression
+    const expr_result_t result = evaluate_expression(lexer);
     switch (result.type) {
     case expr_result_type::RT_ERROR:
         error("error evaluating expression: '%s'\n", result.err.c_str());
-        break;
+        return result;
     case expr_result_type::RT_NIL:
         addenv(identifier.str, "");
-        break;
+        return result;
     case expr_result_type::RT_STRING:
         addenv(identifier.str, result.str);
-        break;
+        return expr_result_t::nil();
     default:
-        break;
+        return expr_result_t::nil();
     }
-
-    return result;
 }
 
 int shell_t::execute_statement(const std::string& stmt)
 {
-    lexer_t lexer(stmt);
+    const std::string substituted_line = substitute_variables(stmt);
 
-    const expr_result_t result = evaluate_expression(&lexer);
+    debug("substituted line: '%s'\n", substituted_line.c_str());
+
+    lexer_t lexer(substituted_line);
+
+    const expr_result_t result = evaluate_expression(lexer);
     if (result.type == expr_result_type::RT_ERROR) {
         error("unable to evaluate expression due to: '%s'\n", result.err.c_str());
         return EXIT_FAILURE;
@@ -220,24 +239,27 @@ int shell_t::execute_statement(const std::string& stmt)
     }
 }
 
-expr_result_t shell_t::evaluate_expression(lexer_t *lexer)
+expr_result_t shell_t::evaluate_expression(lexer_t& lexer)
 {
-    // TODO: think about how to put in the remainder of the string here
-    std::string substituted_line = substitute_variables(expr);
+    debug("evaluating expression '%s'\n", lexer.rest().c_str());
+    
+    token_t peek = lexer.peek_token();
 
-    debug("beginning lexical analysis on '%s'\n", substituted_line.c_str());
-
-    token_t tok = lexer->next_token();
-    if (tok.type == token_type::T_EOF) {
+    if (peek.type == token_type::T_EOF) {
         debug("EOF evaluated\n");
-        
-        expr_result_t result;
-        result.type = expr_result_type::RT_NIL;
 
-        return result;
+        return expr_result_t::nil();
     }
 
+    if (peek.str == "export") {
+        return evaluate_export(lexer);
+    }
+
+    // now we advance the lexer
+
+    token_t tok = lexer.next_token();
     if (tok.type == token_type::STRING) {
+
         expr_result_t result;
         result.type = expr_result_type::RT_STRING;
         result.str  = tok.str;
@@ -245,13 +267,17 @@ expr_result_t shell_t::evaluate_expression(lexer_t *lexer)
         return result;
     }
 
-    if (tok.str == "export") {
-        return evaluate_export(lexer);
-    }
+
+    // assume command
+    auto rest = tok.str + lexer.rest();
+    debug("rest: %s\n", rest.c_str());
+
+    command_t cmd = parse_command(rest);
+    int exit_code = execute(cmd);
 
     expr_result_t result;
-    result.type = expr_result_type::RT_ERROR;
-    result.err  = tok.str + " is unknown expression";
+    result.type = expr_result_type::RT_EXIT_CODE;
+    result.exit_code = exit_code;
 
     return result;
 }
