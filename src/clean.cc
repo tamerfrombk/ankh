@@ -92,13 +92,15 @@ int shell_t::execute(const command_t& cmd)
 
     if (pid == 0) {
         // child process
-        char **vs = new char*[cmd.args.size()];
+        // add one to NULL terminate the array of arguments per execvp()'s man page spec
+        char **vs = new char*[cmd.args.size() + 1];
         int i = 0;
         for (auto& arg : cmd.args) {
             vs[i] = const_cast<char*>(arg.c_str());
             debug("vs: '%s'\n", vs[i]);
             ++i;
         }
+        vs[i] = NULL;
 
         if (execvp(cmd.cmd.c_str(), vs) == -1) {
             error("could not find '%s'\n", cmd.cmd.c_str());
