@@ -47,12 +47,7 @@ class shell_t {
 public:
     shell_t();
 
-    // grammar:
-    // newline := \n | \r\n
-    // string := " any valid characters* "
-    // statement := expression newline
-    // expression := string | export_expression
-    // export_expression := export '=' expression
+    // see GRAMMAR.txt for the language grammar spec
     int execute_statement(const std::string& stmt);
 
     int execute(const command_t& cmd);
