@@ -49,7 +49,7 @@ public:
 
     // see GRAMMAR.txt for the language grammar spec
     int execute_statement(const std::string& stmt);
-
+    int execute_script(const std::string& script);
     int execute(const command_t& cmd);
 
     expr_result_t evaluate_expression(lexer_t& lexer);

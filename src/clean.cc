@@ -132,6 +132,11 @@ int shell_t::execute(const command_t& cmd)
     return EXIT_SUCCESS;
 }
 
+int shell_t::execute_script(const std::string& script)
+{
+    return 0;
+}
+
 std::string shell_t::substitute_variables(std::string stmt, size_t beginning_at)
 {
     const auto idx = stmt.find_first_of("$", beginning_at);
@@ -284,19 +289,45 @@ expr_result_t shell_t::evaluate_expression(lexer_t& lexer)
     return result;
 }
 
+static std::optional<std::string> read_file(const std::string& path) noexcept
+{
+    std::FILE *fp = std::fopen(path.c_str(), "r");
+    if (fp == nullptr) {
+        return std::nullopt;
+    }
+
+    // TODO: instead of reading one character at a time, read a whole bunch to increase performance
+    std::string result;
+    char c;
+    while ((c = std::fgetc(fp)) != EOF) {
+        result += c;
+    }
+    
+    std::fclose(fp);
+
+    return { result };
+}
+
 int shell_loop(int argc, char **argv)
 {
-    CLEAN_UNUSED(argc);
-    CLEAN_UNUSED(argv);
-
     shell_t shell;
+
+    if (argc > 1) {
+        if (auto possible_script = read_file(argv[1]); possible_script) {
+            return shell.execute_script(possible_script.value());
+        }
+        
+        error("could not open script '%s'\n", argv[1]);
+
+        return EXIT_FAILURE;
+    }
 
     // when our shell exits, we want to ensure it exits
     // with an exit code equivalent to its last process
     int prev_process_exit_code = EXIT_SUCCESS;
     while (true) {
         char *line = readline("> ");
-        if (line == NULL) {
+        if (line == nullptr) {
             // EOF encountered on empty line
             debug("EOF\n");
             exit(EXIT_SUCCESS);
