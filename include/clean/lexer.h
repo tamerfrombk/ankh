@@ -17,8 +17,12 @@ public:
 
 private:
     void skip_whitespace() noexcept;
-    token_t lex_alnum() noexcept;
+    token_t lex_alnum(char init) noexcept;
     token_t lex_string() noexcept;
+
+    char curr() const noexcept;
+    char peek() const noexcept;
+    char advance() noexcept;
 
 private:
     const std::string text_;

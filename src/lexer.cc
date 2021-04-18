@@ -18,14 +18,12 @@ token_t lexer_t::next_token() noexcept
         return { "", token_type::T_EOF };
     }
 
-    char c = text_[cursor_];
+    char c = advance();
     if (c == '=') {
-        ++cursor_; // eat the =
         return { "=", token_type::EQ };
     } else if (isalpha(c)) {
-        return lex_alnum();
+        return lex_alnum(c);
     } else if (c == '"') {
-        ++cursor_; // eat the ""
         return lex_string();
     } else {
         return { "", token_type::UNKNOWN };
@@ -63,16 +61,16 @@ void lexer_t::skip_whitespace() noexcept
     }
 }
 
-token_t lexer_t::lex_alnum() noexcept
+token_t lexer_t::lex_alnum(char init) noexcept
 {
     debug("LEXER: lexing alnum token\n");
 
-    std::string token;
+    std::string token(1, init);
     while (!is_eof()) {
-        char c = text_[cursor_];
+        char c = curr();
         if (std::isalnum(c)) {
             token += c;
-            ++cursor_;
+            advance();
         } else {
             break;
         }
@@ -91,7 +89,7 @@ token_t lexer_t::lex_string() noexcept
 {
     std::string str;
     while (!is_eof()) {
-        char c = text_[cursor_++];
+        char c = advance();
         if (c == '"') {
             break;
         } else if (is_eof()) {
@@ -103,4 +101,19 @@ token_t lexer_t::lex_string() noexcept
     }
 
     return { str, token_type::STRING };
+}
+
+char lexer_t::curr() const noexcept
+{
+    return text_[cursor_];
+}
+
+char lexer_t::peek() const noexcept
+{
+    return text_[cursor_ + 1];
+}
+
+char lexer_t::advance() noexcept
+{
+    return text_[cursor_++];
 }
