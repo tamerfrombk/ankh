@@ -15,6 +15,8 @@ public:
 
     expression_ptr parse_expression();
 
+    bool is_eof() const noexcept;
+    
 private:
     expression_ptr parse_equality();
     expression_ptr parse_comparison();
@@ -27,7 +29,6 @@ private:
     const token_t& curr() const noexcept;
     const token_t& advance() noexcept;
 
-    bool is_eof() const noexcept;
     bool match(std::initializer_list<token_type> types) noexcept;
     bool check(token_type type) const noexcept;
 

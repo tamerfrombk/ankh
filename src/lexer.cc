@@ -33,6 +33,34 @@ token_t lexer_t::next_token() noexcept
         return { "*", token_type::STAR };
     } else if (c == '/') {
         return { "/", token_type::FSLASH };
+    } else if (c == '(') {
+        return { "(", token_type::LPAREN };  
+    } else if (c == ')') {
+        return { ")", token_type::RPAREN };
+    } else if (c == '=') {
+        if (curr() == '=') {
+            advance(); // eat the other equal
+            return {"==", token_type::EQEQ};
+        }
+        return {"=", token_type::EQ};
+    } else if (c == '<') {
+        if (curr() == '=') {
+            advance(); // eat the '='
+            return {"<=", token_type::LTE};
+        }
+        return {"<", token_type::LT};
+    } else if (c == '>') {
+        if (curr() == '=') {
+            advance(); // eat the '='
+            return {">=", token_type::GTE};
+        }
+        return {">", token_type::GT};
+    } else if (c == '!') {
+        if (curr() == '=') {
+            advance(); // eat the '='
+            return {"!=", token_type::NEQ};
+        }
+        return {"!", token_type::BANG};
     } else if (c == '"') {
         return lex_string();
     } else {
@@ -118,9 +146,10 @@ token_t lexer_t::lex_number(char init) noexcept
 {
     std::string num(1, init);
     while (!is_eof()) {
-        char c = advance();
+        char c = curr();
         if (std::isdigit(c)) {
             num += c;
+            advance();
         } else {
             break;
         }

@@ -139,13 +139,13 @@ int shell_t::execute_script(const std::string& script)
 {
     parser_t parser(script);
 
-    expression_ptr expr = parser.parse_expression();
-
     pretty_printer_t printer;
-    std::string pp = expr->accept(&printer);
-
-    debug("PP: %s\n", pp.c_str());
-
+    while (!parser.is_eof()) {
+        expression_ptr expr = parser.parse_expression();
+        std::string pp = expr->accept(&printer);
+        debug("pretty print: '%s'\n", pp.c_str());
+    }
+    
     return 0;
 }
 

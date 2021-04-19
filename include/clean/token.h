@@ -7,6 +7,7 @@ enum class token_type {
     IDENTIFIER,
     EQ,                // =
     EQEQ,              // ==
+    BANG,              // !
     NEQ,               // !=
     LT,                // <
     LTE,               // <=
@@ -16,7 +17,6 @@ enum class token_type {
     PLUS,              // +
     FSLASH,            // /
     STAR,              // *
-    BANG,              // !
     LPAREN,            // (
     RPAREN,            // )
     NUMBER,

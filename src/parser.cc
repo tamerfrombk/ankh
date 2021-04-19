@@ -125,11 +125,13 @@ expression_ptr parser_t::parse_primary()
         expression_ptr expr = parse_expression();
         token_t paren = advance();
         if (paren.type != token_type::RPAREN) {
-            // error
+            // TODO: handle error appropriately
+            error("terminating ')' not found\n");
         }
         return make_expression<paren_expression_t>(std::move(expr));
     }
 
+    // TODO: handle error appropriately
     fatal("expression token expected but got '%s'\n", tok.str.c_str());
 }
 
