@@ -5,7 +5,21 @@
 enum class token_type {
     KEYWORD,
     IDENTIFIER,
-    EQ,
+    EQ,                // =
+    EQEQ,              // ==
+    NEQ,               // !=
+    LT,                // <
+    LTE,               // <=
+    GT,                // >
+    GTE,               // >=
+    MINUS,             // -
+    PLUS,              // +
+    FSLASH,            // /
+    STAR,              // *
+    BANG,              // !
+    LPAREN,            // (
+    RPAREN,            // )
+    NUMBER,
     STRING,
     T_EOF,
     UNKNOWN

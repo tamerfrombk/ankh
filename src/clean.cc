@@ -18,6 +18,9 @@
 #include <clean/command.h>
 #include <clean/string.h>
 #include <clean/lexer.h>
+#include <clean/parser.h>
+
+#include <clean/internal/pretty_printer.h>
 
 static const char *CLEAN_BUILTIN_COMMANDS[] = {
     "quit",
@@ -134,6 +137,15 @@ int shell_t::execute(const command_t& cmd)
 
 int shell_t::execute_script(const std::string& script)
 {
+    parser_t parser(script);
+
+    expression_ptr expr = parser.parse_expression();
+
+    pretty_printer_t printer;
+    std::string pp = expr->accept(&printer);
+
+    debug("PP: %s\n", pp.c_str());
+
     return 0;
 }
 

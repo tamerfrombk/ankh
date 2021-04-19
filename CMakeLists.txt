@@ -11,7 +11,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_WARNING_FLAGS}")
 
 SET(APP_EXE cleansh)
 
-ADD_EXECUTABLE(${APP_EXE} src/main.cc src/clean.cc src/command.cc src/string.cc src/lexer.cc src/token.cc)
+ADD_EXECUTABLE(${APP_EXE} src/main.cc src/clean.cc src/command.cc src/string.cc src/lexer.cc src/token.cc src/parser.cc)
 
 TARGET_INCLUDE_DIRECTORIES(${APP_EXE} PRIVATE ${CMAKE_SOURCE_DIR}/include)
 TARGET_LINK_LIBRARIES(${APP_EXE} readline)

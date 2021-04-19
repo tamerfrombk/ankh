@@ -19,6 +19,7 @@ private:
     void skip_whitespace() noexcept;
     token_t lex_alnum(char init) noexcept;
     token_t lex_string() noexcept;
+    token_t lex_number(char init) noexcept;
 
     char curr() const noexcept;
     char peek() const noexcept;

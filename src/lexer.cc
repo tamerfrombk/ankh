@@ -21,8 +21,18 @@ token_t lexer_t::next_token() noexcept
     char c = advance();
     if (c == '=') {
         return { "=", token_type::EQ };
-    } else if (isalpha(c)) {
+    } else if (std::isalpha(c)) {
         return lex_alnum(c);
+    } else if (std::isdigit(c)) {
+        return lex_number(c);  
+    } else if (c == '+') {
+        return { "+", token_type::PLUS };
+    } else if (c == '-') {
+        return { "-", token_type::MINUS };
+    } else if (c == '*') {
+        return { "*", token_type::STAR };
+    } else if (c == '/') {
+        return { "/", token_type::FSLASH };
     } else if (c == '"') {
         return lex_string();
     } else {
@@ -101,6 +111,22 @@ token_t lexer_t::lex_string() noexcept
     }
 
     return { str, token_type::STRING };
+}
+
+// TODO: lex floating point numbers
+token_t lexer_t::lex_number(char init) noexcept
+{
+    std::string num(1, init);
+    while (!is_eof()) {
+        char c = advance();
+        if (std::isdigit(c)) {
+            num += c;
+        } else {
+            break;
+        }
+    }
+
+    return { num, token_type::NUMBER };
 }
 
 char lexer_t::curr() const noexcept
