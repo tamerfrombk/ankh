@@ -1,12 +1,13 @@
-#include "clean/token.h"
 #include <cctype>
 
 #include <clean/log.h>
 #include <clean/lexer.h>
+#include <clean/error_handler.h>
 
-lexer_t::lexer_t(std::string text)
+lexer_t::lexer_t(std::string text, error_handler_t *error_handler)
     : text_(std::move(text))
     , cursor_(0)
+    , error_handler_(error_handler)
 {}
 
 token_t lexer_t::next_token() noexcept
@@ -64,6 +65,7 @@ token_t lexer_t::next_token() noexcept
     } else if (c == '"') {
         return lex_string();
     } else {
+        error_handler_->report_error({"unknown token!"});
         return { "", token_type::UNKNOWN };
     }
 }
@@ -131,7 +133,7 @@ token_t lexer_t::lex_string() noexcept
         if (c == '"') {
             break;
         } else if (is_eof()) {
-            error("terminal \" not found\n");
+            error_handler_->report_error({"terminal \" not found"});
             return { str, token_type::UNKNOWN };
         } else {
             str += c;

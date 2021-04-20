@@ -1,4 +1,3 @@
-#include "clean/expr.h"
 #include <algorithm>
 #include <initializer_list>
 
@@ -6,11 +5,13 @@
 #include <clean/lexer.h>
 #include <clean/token.h>
 #include <clean/log.h>
+#include <clean/error_handler.h>
 
-parser_t::parser_t(std::string str)
+parser_t::parser_t(std::string str, error_handler_t *error_handler)
     : cursor_(0)
+    , error_handler_(error_handler)
 {
-    lexer_t lexer(str);
+    lexer_t lexer(str, error_handler_);
     for (token_t tok = lexer.next_token(); tok.type != token_type::T_EOF; tok = lexer.next_token()) {
         tokens_.push_back(tok);
     }
@@ -125,14 +126,12 @@ expression_ptr parser_t::parse_primary()
         expression_ptr expr = parse_expression();
         token_t paren = advance();
         if (paren.type != token_type::RPAREN) {
-            // TODO: handle error appropriately
-            error("terminating ')' not found\n");
+            error_handler_->report_error({"terminating ')' not found"});
         }
         return make_expression<paren_expression_t>(std::move(expr));
     }
 
-    // TODO: handle error appropriately
-    fatal("expression token expected but got '%s'\n", tok.str.c_str());
+    error_handler_->report_error({"expected expression but got " + tok.str});
 }
 
 const token_t& parser_t::prev() const noexcept

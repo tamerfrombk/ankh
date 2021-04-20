@@ -4,9 +4,12 @@
 
 #include <clean/token.h>
 
+// forward declarations
+struct error_handler_t;
+
 class lexer_t {
 public:
-    lexer_t(std::string text);
+    lexer_t(std::string text, error_handler_t *error_handler);
 
     token_t next_token() noexcept;
     token_t peek_token() noexcept;
@@ -28,4 +31,6 @@ private:
 private:
     const std::string text_;
     size_t cursor_;
+
+    error_handler_t *error_handler_;
 };

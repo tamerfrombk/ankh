@@ -1,22 +1,24 @@
 #pragma once
 
-#include "clean/lexer.h"
+#include "clean/error_handler.h"
 #include <string>
 #include <vector>
 
 #include <clean/expr.h>
 #include <clean/token.h>
 
+// forward declarations
+struct error_handler_t;
 
 class parser_t 
 {
 public:
-    explicit parser_t(std::string str);
+    explicit parser_t(std::string str, error_handler_t *error_handler);
 
     expression_ptr parse_expression();
 
     bool is_eof() const noexcept;
-    
+
 private:
     expression_ptr parse_equality();
     expression_ptr parse_comparison();
@@ -35,4 +37,6 @@ private:
 private:
     std::vector<token_t> tokens_;
     size_t cursor_;
+
+    error_handler_t *error_handler_;
 };

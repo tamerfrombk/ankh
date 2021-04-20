@@ -1,14 +1,16 @@
-#include "clean/token.h"
-#include <cstddef>
-#include <optional>
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/wait.h>
 
+#include <cstddef>
 #include <cstdlib>
 #include <cstdio>
 #include <cctype>
 #include <algorithm>
+#include <memory>
+#include <utility>
+#include <iostream>
+#include <optional>
 
 #include <readline/readline.h>
 
@@ -21,6 +23,7 @@
 #include <clean/parser.h>
 
 #include <clean/internal/pretty_printer.h>
+#include <clean/error_handler.h>
 
 static const char *CLEAN_BUILTIN_COMMANDS[] = {
     "quit",
@@ -137,11 +140,19 @@ int shell_t::execute(const command_t& cmd)
 
 int shell_t::execute_script(const std::string& script)
 {
-    parser_t parser(script);
+    auto errh = std::make_unique<error_handler_t>();
+    parser_t parser(script, errh.get());
 
     pretty_printer_t printer;
     while (!parser.is_eof()) {
         expression_ptr expr = parser.parse_expression();
+        if (errh->error_count() > 0) {
+            const auto& errors = errh->errors();
+            for (const auto& e :  errors) {
+                std::cerr << "ERROR! : " << e.msg << "\n";
+            }
+            return 1;
+        }
         std::string pp = expr->accept(&printer);
         debug("pretty print: '%s'\n", pp.c_str());
     }
@@ -238,24 +249,26 @@ expr_result_t shell_t::evaluate_export(lexer_t& lexer)
 
 int shell_t::execute_statement(const std::string& stmt)
 {
-    const std::string substituted_line = substitute_variables(stmt);
+    // const std::string substituted_line = substitute_variables(stmt);
 
-    debug("substituted line: '%s'\n", substituted_line.c_str());
+    // debug("substituted line: '%s'\n", substituted_line.c_str());
 
-    lexer_t lexer(substituted_line);
+    // lexer_t lexer(substituted_line);
 
-    const expr_result_t result = evaluate_expression(lexer);
-    if (result.type == expr_result_type::RT_ERROR) {
-        error("unable to evaluate expression due to: '%s'\n", result.err.c_str());
-        return EXIT_FAILURE;
-    } else if (result.type == expr_result_type::RT_NIL) {
-        return EXIT_SUCCESS;
-    } else if (result.type == expr_result_type::RT_EXIT_CODE) {
-        return result.exit_code;
-    } else {
-        std::puts(result.str.c_str());
-        return EXIT_SUCCESS;
-    }
+    // const expr_result_t result = evaluate_expression(lexer);
+    // if (result.type == expr_result_type::RT_ERROR) {
+    //     error("unable to evaluate expression due to: '%s'\n", result.err.c_str());
+    //     return EXIT_FAILURE;
+    // } else if (result.type == expr_result_type::RT_NIL) {
+    //     return EXIT_SUCCESS;
+    // } else if (result.type == expr_result_type::RT_EXIT_CODE) {
+    //     return result.exit_code;
+    // } else {
+    //     std::puts(result.str.c_str());
+    //     return EXIT_SUCCESS;
+    // }
+
+    return 0;
 }
 
 expr_result_t shell_t::evaluate_expression(lexer_t& lexer)
