@@ -20,9 +20,7 @@ token_t lexer_t::next_token() noexcept
     }
 
     char c = advance();
-    if (c == '=') {
-        return { "=", token_type::EQ };
-    } else if (std::isalpha(c)) {
+    if (std::isalpha(c)) {
         return lex_alnum(c);
     } else if (std::isdigit(c)) {
         return lex_number(c);  
@@ -38,12 +36,6 @@ token_t lexer_t::next_token() noexcept
         return { "(", token_type::LPAREN };  
     } else if (c == ')') {
         return { ")", token_type::RPAREN };
-    } else if (c == '=') {
-        if (curr() == '=') {
-            advance(); // eat the other equal
-            return {"==", token_type::EQEQ};
-        }
-        return {"=", token_type::EQ};
     } else if (c == '<') {
         if (curr() == '=') {
             advance(); // eat the '='
@@ -56,6 +48,12 @@ token_t lexer_t::next_token() noexcept
             return {">=", token_type::GTE};
         }
         return {">", token_type::GT};
+    } else if (c == '=') {
+        if (curr() == '=') {
+            advance(); // eat the other equal
+            return {"==", token_type::EQEQ};
+        }
+        return {"=", token_type::EQ};
     } else if (c == '!') {
         if (curr() == '=') {
             advance(); // eat the '='

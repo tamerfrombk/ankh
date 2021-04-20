@@ -30,7 +30,7 @@ expression_ptr parser_t::parse_expression()
 
 expression_ptr parser_t::parse_equality()
 {
-    static auto eq_ops = { token_type::EQ, token_type::NEQ };
+    static auto eq_ops = { token_type::EQEQ, token_type::NEQ };
 
 //    debug("PARSER: parsing equality: '%s'\n", lexer_.rest().c_str());
 
