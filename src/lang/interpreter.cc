@@ -70,7 +70,21 @@ static expr_result_t eqeq(const expr_result_t& left, const expr_result_t& right)
     return expr_result_t::e("unknown overload for (!=) operator");
 }
 
-static expr_result_t plus(const expr_result_t& left, const expr_result_t& right) noexcept
+template <class BinaryOperation>
+static expr_result_t arithmetic(const expr_result_t& left, const expr_result_t& right, BinaryOperation op) noexcept
+{
+    if (operands_are(expr_result_type::RT_NUMBER, {left, right})) {
+        return expr_result_t::num(op(left.n, right.n));
+    }
+
+    // TODO: improve error message
+    return expr_result_t::e("unknown overload for arithmetic operator");
+}
+
+// We handle + separately as it has two overloads for numbers and strings
+// The generic arithmetic() function overloads all of the general arithmetic operations
+// on only numbers
+static expr_result_t plus(const expr_result_t& left, const expr_result_t& right)
 {
     if (operands_are(expr_result_type::RT_NUMBER, {left, right})) {
         return expr_result_t::num(left.n + right.n);
@@ -117,8 +131,15 @@ expr_result_t interpreter_t::visit(binary_expression_t *expr)
         return compare(left, right, std::less<>{});
     case token_type::LTE:
         return compare(left, right, std::less_equal<>{});
+    case token_type::MINUS:
+        return arithmetic(left, right, std::minus<>{});
     case token_type::PLUS:
         return plus(left, right);
+    case token_type::STAR:
+        return arithmetic(left, right, std::multiplies<>{});
+    case token_type::FSLASH:
+        // TODO: right now, dividing by 0 yields 'inf' revisit this and make sure that's the behavior we want for the language
+        return arithmetic(left, right, std::divides<>{});
     default:
         fatal("unimplemented binary operator '%s'\n", expr->op.str.c_str());
     }
