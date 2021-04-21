@@ -20,6 +20,8 @@ public:
 
 private:
     void skip_whitespace() noexcept;
+    void skip_comment() noexcept;
+    
     token_t lex_alnum(char init) noexcept;
     token_t lex_string() noexcept;
     token_t lex_number(char init) noexcept;

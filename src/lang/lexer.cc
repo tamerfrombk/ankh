@@ -70,6 +70,9 @@ token_t lexer_t::next_token() noexcept
         return {"!", token_type::BANG};
     } else if (c == '"') {
         return lex_string();
+    } else if (c == '#') {
+        skip_comment();
+        return next_token();
     } else {
         error_handler_->report_error({"unknown token!"});
         return { "", token_type::UNKNOWN };
@@ -103,7 +106,14 @@ void lexer_t::skip_whitespace() noexcept
 {
     debug("LEXER: skipping whitespace\n");
     while (!is_eof() && std::isspace(text_[cursor_])) {
-        ++cursor_;
+        advance();
+    }
+}
+
+void lexer_t::skip_comment() noexcept
+{
+    while (!is_eof() && curr() != '\n') {
+        advance();
     }
 }
 

@@ -138,4 +138,24 @@ LEXER_TEST("scan all basic language lexemes")
         REQUIRE(tokens[0].type == token_type::UNKNOWN);
         REQUIRE(error_handler->error_count() > 0);
     }
+
+    SECTION("lex comment")
+    {
+        const std::string stream = R"(
+            "string" # this is a comment on the same line as an expression
+
+            # here is a comment preceding the expression
+            123.45
+        )";
+
+        lexer_t lexer(stream, error_handler.get());
+
+        std::vector<token_t> tokens = extract_all_tokens(lexer);
+        
+        REQUIRE(tokens.size() == 3);
+        REQUIRE((tokens[0].str == "string" && tokens[0].type == token_type::STRING));
+        REQUIRE((tokens[1].str == "123.45" && tokens[1].type == token_type::NUMBER));
+
+        REQUIRE(error_handler->error_count() == 0);
+    }
 }
