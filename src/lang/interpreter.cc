@@ -1,25 +1,101 @@
 #include <cstdlib>
+#include <algorithm>
+#include <initializer_list>
 
 #include <clean/lang/interpreter.h>
 #include <clean/lang/token.h>
 #include <clean/lang/expr.h>
 #include <clean/log.h>
 
+static bool operands_are(expr_result_type type, std::initializer_list<expr_result_t> elems)
+{
+    return std::all_of(elems.begin(), elems.end(), [=](const expr_result_t& result) {
+        return type == result.type;
+    });
+}
+
+static number_t to_num(const std::string& s) noexcept
+{
+    char *end;
+
+    number_t n = std::strtod(s.c_str(), &end);
+    if (*end == '\0') {
+        return n;
+    }
+
+    // TODO: properly handle error
+    return -1;
+}
+
+static expr_result_t negate(const expr_result_t& result) noexcept
+{
+    if (result.type == expr_result_type::RT_NUMBER) {
+        return expr_result_t::num(-1 * result.n);
+    }
+    
+    // TODO: improve the error message
+    return expr_result_t::e("- operator expects a number expression");
+}
+
+static expr_result_t invert(const expr_result_t& result) noexcept
+{
+    if (result.type == expr_result_type::RT_BOOL) {
+        return expr_result_t::boolean(!(result.b));
+    }
+
+    // TODO: improve the error message
+    return expr_result_t::e("! operator expects a boolean expression");
+}
+
+static expr_result_t eqeq(const expr_result_t& left, const expr_result_t& right) noexcept
+{
+    if (operands_are(expr_result_type::RT_NUMBER, {left, right})) {
+        return expr_result_t::boolean(left.n == right.n);
+    }
+
+    if (operands_are(expr_result_type::RT_STRING, {left, right})) {
+        return expr_result_t::boolean(left.str == right.str);
+    }
+
+    if (operands_are(expr_result_type::RT_BOOL, {left, right})) {
+        return expr_result_t::boolean(left.b == right.b);
+    }
+
+    if (operands_are(expr_result_type::RT_NIL, {left, right})) {
+        return expr_result_t::boolean(true);
+    }
+
+    // TODO: improve error message
+    return expr_result_t::e("unknown overload for (!=) operator");
+}
+
+static expr_result_t plus(const expr_result_t& left, const expr_result_t& right) noexcept
+{
+    if (operands_are(expr_result_type::RT_NUMBER, {left, right})) {
+        return expr_result_t::num(left.n + right.n);
+    }
+
+    if (operands_are(expr_result_type::RT_STRING, {left, right})) {
+        return expr_result_t::stringe(left.str + right.str);
+    }
+
+    // TODO: improve error message
+    return expr_result_t::e("unknown overload for (+) operator");
+}
+
+
 expr_result_t interpreter_t::visit(binary_expression_t *expr)
 {
-    const expr_result_t left  = expr->left->accept(this);
-    const expr_result_t right = expr->right->accept(this);
+    const expr_result_t left  = evaluate(expr->left);
+    const expr_result_t right = evaluate(expr->right);
 
-    // TODO: implement other binary operators
     switch (expr->op.type) {
+    case token_type::EQEQ:
+        return eqeq(left, right);
+    case token_type::NEQ:
+        return invert(eqeq(left, right));
     case token_type::PLUS:
-        if (left.type == expr_result_type::RT_NUMBER && right.type == expr_result_type::RT_NUMBER) {
-            return expr_result_t::num(left.n + right.n);
-        }
-        if (left.type == expr_result_type::RT_STRING && right.type == expr_result_type::RT_STRING) {
-            return expr_result_t::stringe(left.str + right.str);
-        }
-        return expr_result_t::e("unknown overload for (+) operator ");
+        return plus(left, right);
     default:
         fatal("unimplemented binary operator '%s'\n", expr->op.str.c_str());
     }
@@ -27,7 +103,7 @@ expr_result_t interpreter_t::visit(binary_expression_t *expr)
 
 expr_result_t interpreter_t::visit(unary_expression_t *expr)
 {
-    const expr_result_t result = expr->right->accept(this);
+    const expr_result_t result = evaluate(expr->right);
     switch (expr->op.type) {
     case token_type::MINUS:
         return negate(result);
@@ -59,38 +135,10 @@ expr_result_t interpreter_t::visit(literal_expression_t *expr)
 
 expr_result_t interpreter_t::visit(paren_expression_t *expr)
 {
-    return expr->expr->accept(this);
+    return evaluate(expr->expr);
 }
 
-number_t interpreter_t::to_num(const std::string& s) const noexcept
+expr_result_t interpreter_t::evaluate(expression_ptr& expr) noexcept
 {
-    char *end;
-
-    number_t n = std::strtod(s.c_str(), &end);
-    if (*end == '\0') {
-        return n;
-    }
-
-    // TODO: properly handle error
-    return -1;
-}
-
-expr_result_t interpreter_t::negate(const expr_result_t& result) const noexcept
-{
-    if (result.type == expr_result_type::RT_NUMBER) {
-        return expr_result_t::num(-1 * result.n);
-    }
-    
-    // TODO: improve the error message
-    return expr_result_t::e("- operator expects a number expression");
-}
-
-expr_result_t interpreter_t::invert(const expr_result_t& result) const noexcept
-{
-    if (result.type == expr_result_type::RT_BOOL) {
-        return expr_result_t::boolean(!(result.b));
-    }
-
-    // TODO: improve the error message
-    return expr_result_t::e("! operator expects a boolean expression");
+    return expr->accept(this);
 }
