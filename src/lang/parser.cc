@@ -111,14 +111,7 @@ expression_ptr parser_t::parse_unary()
 expression_ptr parser_t::parse_primary()
 {
     //debug("PARSER: parsing primary: '%s'\n", lexer_.rest().c_str());
-
-    const token_t& tok = curr();
-    if (tok.str == "false" || tok.str == "true" || tok.str == "nil") {
-        advance();
-        return make_expression<literal_expression_t>(tok);
-    }
-
-    if (match({token_type::NUMBER, token_type::STRING})) {
+    if (match({ token_type::NUMBER, token_type::STRING, token_type::BTRUE, token_type::BFALSE, token_type::NIL })) {
         return make_expression<literal_expression_t>(prev());
     } 
 
@@ -131,7 +124,8 @@ expression_ptr parser_t::parse_primary()
         return make_expression<paren_expression_t>(std::move(expr));
     }
 
-    error_handler_->report_error({"expected expression but got " + tok.str});
+    // TODO: improve error message
+    error_handler_->report_error({"expected expression"});
 }
 
 const token_t& parser_t::prev() const noexcept
