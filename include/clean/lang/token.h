@@ -3,7 +3,6 @@
 #include <string>
 
 enum class token_type {
-    KEYWORD,
     IDENTIFIER,
     EQ,                // =
     EQEQ,              // ==
@@ -19,6 +18,10 @@ enum class token_type {
     STAR,              // *
     LPAREN,            // (
     RPAREN,            // )
+    // "B" for "bool" -- prepended to avoid clashing with TRUE/FALSE macros
+    BTRUE,             // "true"
+    BFALSE,            // "false"
+    NIL,               // "nil"
     NUMBER,
     STRING,
     T_EOF,

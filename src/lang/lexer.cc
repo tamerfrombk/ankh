@@ -1,8 +1,16 @@
+#include "clean/lang/token.h"
 #include <cctype>
+#include <unordered_map>
 
 #include <clean/log.h>
 #include <clean/lang/lexer.h>
 #include <clean/lang/error_handler.h>
+
+static const std::unordered_map<std::string, token_type> KEYWORDS = {
+      { "true", token_type::BTRUE }
+    , { "false", token_type::BFALSE }
+    , { "nil", token_type::NIL }
+};
 
 lexer_t::lexer_t(std::string text, error_handler_t *error_handler)
     : text_(std::move(text))
@@ -114,11 +122,9 @@ token_t lexer_t::lex_alnum(char init) noexcept
         }
     }
 
-    token_type type = token_type::IDENTIFIER;
-    // TODO: create keyword table
-    if (token == "export") {
-        type = token_type::KEYWORD;
-    }
+    token_type type = is_keyword(token)
+        ? KEYWORDS.at(token)
+        : token_type::IDENTIFIER;
 
     return { token, type };
 }
@@ -171,4 +177,9 @@ char lexer_t::peek() const noexcept
 char lexer_t::advance() noexcept
 {
     return text_[cursor_++];
+}
+
+bool lexer_t::is_keyword(const std::string& str) const noexcept
+{
+    return KEYWORDS.find(str) != KEYWORDS.cend();
 }

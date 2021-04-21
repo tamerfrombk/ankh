@@ -29,6 +29,7 @@ enum class expr_result_type {
     RT_EXIT_CODE,
     RT_STRING,
     RT_NUMBER,
+    RT_BOOL,
     RT_NIL,
     RT_ERROR
 };
@@ -42,6 +43,7 @@ struct expr_result_t {
     std::string str;
     std::string err;
     number_t    n;
+    bool        b;
     int         exit_code;
 
     expr_result_type type;
@@ -50,6 +52,7 @@ struct expr_result_t {
     static expr_result_t num(number_t n);
     static expr_result_t stringe(std::string s);
     static expr_result_t e(std::string s);
+    static expr_result_t boolean(bool b);
 };
 
 struct expression_t {

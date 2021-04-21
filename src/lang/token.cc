@@ -4,8 +4,6 @@
 std::string token_type_str(token_type type)
 {
     switch (type) {
-    case token_type::KEYWORD:
-        return "KEYWORD";
     case token_type::IDENTIFIER:
         return "IDENTIFIER";
     case token_type::EQ:
@@ -36,6 +34,12 @@ std::string token_type_str(token_type type)
         return "LPAREN";
     case token_type::RPAREN:
         return "RPAREN";
+    case token_type::BTRUE:
+        return "BTRUE";
+    case token_type::BFALSE:
+        return "BFALSE";
+    case token_type::NIL:
+        return "NIL";
     case token_type::NUMBER:
         return "NUMBER";
     case token_type::STRING:

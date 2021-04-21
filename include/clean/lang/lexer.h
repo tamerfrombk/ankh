@@ -28,6 +28,8 @@ private:
     char peek() const noexcept;
     char advance() noexcept;
 
+    bool is_keyword(const std::string& str) const noexcept;
+
 private:
     const std::string text_;
     size_t cursor_;
