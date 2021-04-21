@@ -1,3 +1,4 @@
+#include "clean/lang/expr.h"
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -25,7 +26,31 @@
 #include <clean/lang/error_handler.h>
 #include <clean/lang/interpreter.h>
 
-int interpret(const std::string& script)
+static void print_result(const expr_result_t& result)
+{
+    switch (result.type) {
+    case expr_result_type::RT_ERROR:
+        error("error evaluating expression: '%s'\n", result.err.c_str());
+        break;
+    case expr_result_type::RT_STRING:
+        std::puts(result.str.c_str());
+        break;
+    case expr_result_type::RT_NUMBER:
+        std::printf("%f\n", result.n);
+        break;
+    case expr_result_type::RT_BOOL:
+        std::puts(result.b ? "true" : "false");
+        break;
+    case expr_result_type::RT_NIL:
+        std::puts("nil");
+        break;
+    default:
+        error("unhandled expression result type");
+        break;
+    }
+}
+
+static int interpret(const std::string& script)
 {
     auto errh = std::make_unique<error_handler_t>();
     parser_t parser(script, errh.get());
@@ -43,13 +68,7 @@ int interpret(const std::string& script)
         }
         std::string pp = expr->accept(&printer).str;
         expr_result_t result = expr->accept(&interpreter);
-        if (result.type == expr_result_type::RT_ERROR) {
-            // TODO: enhance this
-            error("error evaluationg expression: '%s'\n", result.err.c_str());
-        } else {
-            debug("pretty print: '%s'\n", pp.c_str());
-            printf("The result: %f\n", result.n);
-        }
+        print_result(result);
     }
     
     return 0;

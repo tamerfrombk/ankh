@@ -13,4 +13,5 @@ public:
 private:
     number_t      to_num(const std::string& s) const noexcept;
     expr_result_t negate(const expr_result_t& result) const noexcept;
+    expr_result_t invert(const expr_result_t& result) const noexcept;
 };
