@@ -20,11 +20,11 @@ static std::vector<token_t> extract_all_tokens(lexer_t& lexer)
     return tokens;
 }
 
-LEXER_TEST("test language tokens are lexed")
+LEXER_TEST("test all basic language lexemes are lexable")
 {
     auto error_handler = std::make_unique<error_handler_t>();
 
-    SECTION("foo")
+    SECTION("happy path")
     {
         const std::string all_tokens = R"(
             =
@@ -98,5 +98,22 @@ LEXER_TEST("test language tokens are lexed")
 
         // EOF -- make sure this is LAST
         REQUIRE(tokens[i++].type == token_type::T_EOF);
+
+        REQUIRE(error_handler->error_count() == 0);
+    }
+
+    SECTION("lex non-terminated string")
+    {
+        const std::string stream = R"(
+            "notice the lack of the terminating double quotes
+        )";
+
+        lexer_t lexer(stream, error_handler.get());
+
+        std::vector<token_t> tokens = extract_all_tokens(lexer);
+        
+        REQUIRE(tokens[0].type == token_type::UNKNOWN);
+
+        REQUIRE(error_handler->error_count() == 1);
     }
 }
