@@ -10,9 +10,9 @@ SET(CMAKE_CXX_WARNING_FLAGS "-Wall -Wextra -Wpedantic")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_WARNING_FLAGS}")
 
 SET(APP_EXE cleansh)
+SET(APP_LIB cleanapi)
 
-ADD_EXECUTABLE(${APP_EXE} 
-    src/main.cc 
+SET(SOURCES 
     src/clean.cc 
     src/string.cc 
     src/lang/lexer.cc 
@@ -22,8 +22,12 @@ ADD_EXECUTABLE(${APP_EXE}
     src/lang/interpreter.cc
 )
 
+ADD_LIBRARY(${APP_LIB} STATIC ${SOURCES})
+ADD_EXECUTABLE(${APP_EXE} src/main.cc)
+
 TARGET_INCLUDE_DIRECTORIES(${APP_EXE} PRIVATE ${CMAKE_SOURCE_DIR}/include)
-TARGET_LINK_LIBRARIES(${APP_EXE} readline)
+TARGET_INCLUDE_DIRECTORIES(${APP_LIB} PRIVATE ${CMAKE_SOURCE_DIR}/include)
+TARGET_LINK_LIBRARIES(${APP_EXE} readline ${APP_LIB})
 
 # tests
 ADD_SUBDIRECTORY(test)
