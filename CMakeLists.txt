@@ -14,7 +14,6 @@ SET(APP_EXE cleansh)
 ADD_EXECUTABLE(${APP_EXE} 
     src/main.cc 
     src/clean.cc 
-    src/command.cc 
     src/string.cc 
     src/lang/lexer.cc 
     src/lang/token.cc 
