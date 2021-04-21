@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <algorithm>
 #include <initializer_list>
+#include <functional>
 
 #include <clean/lang/interpreter.h>
 #include <clean/lang/token.h>
@@ -83,6 +84,20 @@ static expr_result_t plus(const expr_result_t& left, const expr_result_t& right)
     return expr_result_t::e("unknown overload for (+) operator");
 }
 
+template <class Compare>
+static expr_result_t compare(const expr_result_t& left, const expr_result_t& right, Compare cmp) noexcept
+{
+    if (operands_are(expr_result_type::RT_NUMBER, {left, right})) {
+        return expr_result_t::boolean(cmp(left.n, right.n));
+    }
+
+    if (operands_are(expr_result_type::RT_STRING, {left, right})) {
+        return expr_result_t::boolean(cmp(left.str, right.str));
+    }
+
+    // TODO: improve error message
+    return expr_result_t::e("unknown overload for comparison operator");
+}
 
 expr_result_t interpreter_t::visit(binary_expression_t *expr)
 {
@@ -94,6 +109,14 @@ expr_result_t interpreter_t::visit(binary_expression_t *expr)
         return eqeq(left, right);
     case token_type::NEQ:
         return invert(eqeq(left, right));
+    case token_type::GT:
+        return compare(left, right, std::greater<>{});
+    case token_type::GTE:
+        return compare(left, right, std::greater_equal<>{});
+    case token_type::LT:
+        return compare(left, right, std::less<>{});
+    case token_type::LTE:
+        return compare(left, right, std::less_equal<>{});
     case token_type::PLUS:
         return plus(left, right);
     default:
