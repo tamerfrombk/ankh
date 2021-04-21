@@ -1,15 +1,15 @@
 #include "catch.hpp"
-#include "clean/lang/token.h"
 
 #include <string>
 #include <vector>
 
+#include <clean/lang/token.h>
 #include <clean/lang/lexer.h>
 #include <clean/lang/error_handler.h>
 
 #define LEXER_TEST(description) TEST_CASE(description, "[lexer]")
 
-static std::vector<token_t> extract_all_tokens(lexer_t& lexer) 
+static std::vector<token_t> extract_all_tokens(lexer_t& lexer) noexcept
 {
     std::vector<token_t> tokens;
     for (token_t token = lexer.next_token(); token.type != token_type::T_EOF; token = lexer.next_token()) {
@@ -20,7 +20,7 @@ static std::vector<token_t> extract_all_tokens(lexer_t& lexer)
     return tokens;
 }
 
-LEXER_TEST("test all basic language lexemes are lexable")
+LEXER_TEST("scan all basic language lexemes")
 {
     auto error_handler = std::make_unique<error_handler_t>();
 
@@ -53,6 +53,10 @@ LEXER_TEST("test all basic language lexemes are lexable")
             "non-empty string"
 
             123
+            123.45
+            123.
+            0.1
+            1.0
         )";
 
         lexer_t lexer(all_tokens, error_handler.get());
@@ -95,6 +99,10 @@ LEXER_TEST("test all basic language lexemes are lexable")
 
         // number
         REQUIRE((tokens[i].str == "123" && tokens[i++].type == token_type::NUMBER));
+        REQUIRE((tokens[i].str == "123.45" && tokens[i++].type == token_type::NUMBER));
+        REQUIRE((tokens[i].str == "123." && tokens[i++].type == token_type::NUMBER));
+        REQUIRE((tokens[i].str == "0.1" && tokens[i++].type == token_type::NUMBER));
+        REQUIRE((tokens[i].str == "1.0" && tokens[i++].type == token_type::NUMBER));
 
         // EOF -- make sure this is LAST
         REQUIRE(tokens[i++].type == token_type::T_EOF);
@@ -115,5 +123,19 @@ LEXER_TEST("test all basic language lexemes are lexable")
         REQUIRE(tokens[0].type == token_type::UNKNOWN);
 
         REQUIRE(error_handler->error_count() == 1);
+    }
+
+    SECTION("lex floating point with two decimals")
+    {
+        const std::string stream = R"(
+            123.45.67
+        )";
+
+        lexer_t lexer(stream, error_handler.get());
+
+        std::vector<token_t> tokens = extract_all_tokens(lexer);
+        
+        REQUIRE(tokens[0].type == token_type::UNKNOWN);
+        REQUIRE(error_handler->error_count() > 0);
     }
 }

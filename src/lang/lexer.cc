@@ -147,14 +147,23 @@ token_t lexer_t::lex_string() noexcept
     return { str, token_type::STRING };
 }
 
-// TODO: lex floating point numbers
 token_t lexer_t::lex_number(char init) noexcept
 {
     std::string num(1, init);
+
+    bool decimal_found = false;
     while (!is_eof()) {
         char c = curr();
         if (std::isdigit(c)) {
             num += c;
+            advance();
+        } else if (c == '.') {
+            if (decimal_found) {
+                error_handler_->report_error({"'.' lexeme not expected"});
+                return { ".", token_type::UNKNOWN };
+            }
+            num += c;
+            decimal_found = true;
             advance();
         } else {
             break;
