@@ -19,11 +19,12 @@
 #include <clean/clean.h>
 #include <clean/command.h>
 #include <clean/string.h>
-#include <clean/lexer.h>
-#include <clean/parser.h>
+#include <clean/lang/lexer.h>
+#include <clean/lang/parser.h>
 
 #include <clean/internal/pretty_printer.h>
-#include <clean/error_handler.h>
+#include <clean/lang/error_handler.h>
+#include <clean/lang/interpreter.h>
 
 static const char *CLEAN_BUILTIN_COMMANDS[] = {
     "quit",
@@ -144,6 +145,7 @@ int shell_t::execute_script(const std::string& script)
     parser_t parser(script, errh.get());
 
     pretty_printer_t printer;
+    interpreter_t interpreter;
     while (!parser.is_eof()) {
         expression_ptr expr = parser.parse_expression();
         if (errh->error_count() > 0) {
@@ -153,8 +155,15 @@ int shell_t::execute_script(const std::string& script)
             }
             return 1;
         }
-        std::string pp = expr->accept(&printer);
-        debug("pretty print: '%s'\n", pp.c_str());
+        std::string pp = expr->accept(&printer).str;
+        expr_result_t result = expr->accept(&interpreter);
+        if (result.type == expr_result_type::RT_ERROR) {
+            // TODO: enhance this
+            error("error evaluationg expression: '%s'\n", result.err.c_str());
+        } else {
+            debug("pretty print: '%s'\n", pp.c_str());
+            printf("The result: %f\n", result.n);
+        }
     }
     
     return 0;
@@ -200,52 +209,52 @@ bool shell_t::addenv(const std::string& name, const std::string& value) const
     return true;
 }
 
-expr_result_t shell_t::evaluate_export(lexer_t& lexer)
-{
-    debug("evaluating export expression: '%s'\n", lexer.rest().c_str());
+// expr_result_t shell_t::evaluate_export(lexer_t& lexer)
+// {
+//     debug("evaluating export expression: '%s'\n", lexer.rest().c_str());
 
-    // "export"
-    {
-        const token_t tok = lexer.next_token();
-        if (tok.str != "export") {
-            auto str = token_type_str(tok.type);
-            error("expected 'export' but got '%s' of type '%s'\n", tok.str.c_str(), str.c_str());
-        }
-    }
+//     // "export"
+//     {
+//         const token_t tok = lexer.next_token();
+//         if (tok.str != "export") {
+//             auto str = token_type_str(tok.type);
+//             error("expected 'export' but got '%s' of type '%s'\n", tok.str.c_str(), str.c_str());
+//         }
+//     }
 
 
-    // identifier
-    const token_t identifier = lexer.next_token();
-    if (identifier.type != token_type::IDENTIFIER) {
-        auto str = token_type_str(identifier.type);
-        error("expected 'IDENTIFIER' but got '%s' of type '%s'\n", identifier.str.c_str(), str.c_str());
-    }
+//     // identifier
+//     const token_t identifier = lexer.next_token();
+//     if (identifier.type != token_type::IDENTIFIER) {
+//         auto str = token_type_str(identifier.type);
+//         error("expected 'IDENTIFIER' but got '%s' of type '%s'\n", identifier.str.c_str(), str.c_str());
+//     }
 
-    // "="
-    {
-        const token_t eq = lexer.next_token();
-        if (eq.type != token_type::EQ) {
-            auto str = token_type_str(eq.type);
-            error("expected '=' but got '%s' of type '%s'\n", eq.str.c_str(), str.c_str());
-        }
-    }
+//     // "="
+//     {
+//         const token_t eq = lexer.next_token();
+//         if (eq.type != token_type::EQ) {
+//             auto str = token_type_str(eq.type);
+//             error("expected '=' but got '%s' of type '%s'\n", eq.str.c_str(), str.c_str());
+//         }
+//     }
 
-    // right hand expression
-    const expr_result_t result = evaluate_expression(lexer);
-    switch (result.type) {
-    case expr_result_type::RT_ERROR:
-        error("error evaluating expression: '%s'\n", result.err.c_str());
-        return result;
-    case expr_result_type::RT_NIL:
-        addenv(identifier.str, "");
-        return result;
-    case expr_result_type::RT_STRING:
-        addenv(identifier.str, result.str);
-        return expr_result_t::nil();
-    default:
-        return expr_result_t::nil();
-    }
-}
+//     // right hand expression
+//     const expr_result_t result = evaluate_expression(lexer);
+//     switch (result.type) {
+//     case expr_result_type::RT_ERROR:
+//         error("error evaluating expression: '%s'\n", result.err.c_str());
+//         return result;
+//     case expr_result_type::RT_NIL:
+//         addenv(identifier.str, "");
+//         return result;
+//     case expr_result_type::RT_STRING:
+//         addenv(identifier.str, result.str);
+//         return expr_result_t::nil();
+//     default:
+//         return expr_result_t::nil();
+//     }
+// }
 
 int shell_t::execute_statement(const std::string& stmt)
 {
@@ -271,48 +280,48 @@ int shell_t::execute_statement(const std::string& stmt)
     return 0;
 }
 
-expr_result_t shell_t::evaluate_expression(lexer_t& lexer)
-{
-    debug("evaluating expression '%s'\n", lexer.rest().c_str());
+// expr_result_t shell_t::evaluate_expression(lexer_t& lexer)
+// {
+//     debug("evaluating expression '%s'\n", lexer.rest().c_str());
     
-    token_t peek = lexer.peek_token();
+//     token_t peek = lexer.peek_token();
 
-    if (peek.type == token_type::T_EOF) {
-        debug("EOF evaluated\n");
+//     if (peek.type == token_type::T_EOF) {
+//         debug("EOF evaluated\n");
 
-        return expr_result_t::nil();
-    }
+//         return expr_result_t::nil();
+//     }
 
-    if (peek.str == "export") {
-        return evaluate_export(lexer);
-    }
+//     if (peek.str == "export") {
+//         return evaluate_export(lexer);
+//     }
 
-    // now we advance the lexer
+//     // now we advance the lexer
 
-    token_t tok = lexer.next_token();
-    if (tok.type == token_type::STRING) {
+//     token_t tok = lexer.next_token();
+//     if (tok.type == token_type::STRING) {
 
-        expr_result_t result;
-        result.type = expr_result_type::RT_STRING;
-        result.str  = tok.str;
+//         expr_result_t result;
+//         result.type = expr_result_type::RT_STRING;
+//         result.str  = tok.str;
 
-        return result;
-    }
+//         return result;
+//     }
 
 
-    // assume command
-    auto rest = tok.str + lexer.rest();
-    debug("rest: %s\n", rest.c_str());
+//     // assume command
+//     auto rest = tok.str + lexer.rest();
+//     debug("rest: %s\n", rest.c_str());
 
-    command_t cmd = parse_command(rest);
-    int exit_code = execute(cmd);
+//     command_t cmd = parse_command(rest);
+//     int exit_code = execute(cmd);
 
-    expr_result_t result;
-    result.type = expr_result_type::RT_EXIT_CODE;
-    result.exit_code = exit_code;
+//     expr_result_t result;
+//     result.type = expr_result_type::RT_EXIT_CODE;
+//     result.exit_code = exit_code;
 
-    return result;
-}
+//     return result;
+// }
 
 static std::optional<std::string> read_file(const std::string& path) noexcept
 {

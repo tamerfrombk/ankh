@@ -1,9 +1,8 @@
 #pragma once
 
-#include "clean/clean.h"
 #include <memory>
 #include <utility>
-#include <clean/token.h>
+#include <clean/lang/token.h>
 
 
 // forward declare our expression types for the visitor
@@ -22,10 +21,63 @@ struct expression_visitor_t {
     virtual R visit(paren_expression_t *expr) = 0;
 };
 
+using number_t = double;
+
+enum class expr_result_type {
+    RT_EXIT_CODE,
+    RT_STRING,
+    RT_NUMBER,
+    RT_NIL,
+    RT_ERROR
+};
+
+struct expr_result_t {
+
+    // TODO: unionize these fields. Right now, getting implicitly deleted destructor error because of union
+    // and I don't want to block myself figuring it out right now.
+    std::string str;
+    std::string err;
+    number_t    n;
+    int         exit_code;
+
+    expr_result_type type;
+
+    static expr_result_t nil() {
+        expr_result_t e;
+        e.type = expr_result_type::RT_NIL;
+
+        return e;
+    }
+
+    static expr_result_t num(number_t n) {
+        expr_result_t e;
+        e.type = expr_result_type::RT_NUMBER;
+        e.n  = n;
+
+        return e;
+    }
+
+    static expr_result_t stringe(std::string s) {
+        expr_result_t e;
+        e.type = expr_result_type::RT_STRING;
+        e.str  = std::move(s);
+
+        return e;
+    }
+
+    static expr_result_t e(std::string s) {
+        expr_result_t e;
+        e.type = expr_result_type::RT_ERROR;
+        e.err  = std::move(s);
+
+        return e;
+    }
+};
+
 struct expression_t {
     virtual ~expression_t() = default;
 
-    virtual std::string accept(expression_visitor_t<std::string> *visitor) = 0;
+    virtual expr_result_t accept(expression_visitor_t<expr_result_t> *visitor) = 0;
 };
 
 using expression_ptr = std::unique_ptr<expression_t>;
@@ -46,7 +98,7 @@ struct binary_expression_t
     binary_expression_t(expression_ptr left, token_t op, expression_ptr right)
         : left(std::move(left)), op(std::move(op)), right(std::move(right)) {}
 
-    virtual std::string accept(expression_visitor_t<std::string> *visitor) override
+    virtual expr_result_t accept(expression_visitor_t<expr_result_t> *visitor) override
     {
         return visitor->visit(this);
     }
@@ -61,7 +113,7 @@ struct unary_expression_t
     unary_expression_t(token_t op, expression_ptr right)
         : op(std::move(op)), right(std::move(right)) {}
     
-    virtual std::string accept(expression_visitor_t<std::string> *visitor) override
+    virtual expr_result_t accept(expression_visitor_t<expr_result_t> *visitor) override
     {
         return visitor->visit(this);
     }
@@ -75,7 +127,7 @@ struct literal_expression_t
     literal_expression_t(token_t literal)
         : literal(std::move(literal)) {}
 
-    virtual std::string accept(expression_visitor_t<std::string> *visitor) override
+    virtual expr_result_t accept(expression_visitor_t<expr_result_t> *visitor) override
     {
         return visitor->visit(this);
     }
@@ -89,7 +141,7 @@ struct paren_expression_t
     paren_expression_t(expression_ptr expr)
         : expr(std::move(expr)) {}
 
-    virtual std::string accept(expression_visitor_t<std::string> *visitor) override
+    virtual expr_result_t accept(expression_visitor_t<expr_result_t> *visitor) override
     {
         return visitor->visit(this);
     }

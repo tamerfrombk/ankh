@@ -1,11 +1,11 @@
 #include <algorithm>
 #include <initializer_list>
 
-#include <clean/parser.h>
-#include <clean/lexer.h>
-#include <clean/token.h>
+#include <clean/lang/parser.h>
+#include <clean/lang/lexer.h>
+#include <clean/lang/token.h>
+#include <clean/lang/error_handler.h>
 #include <clean/log.h>
-#include <clean/error_handler.h>
 
 parser_t::parser_t(std::string str, error_handler_t *error_handler)
     : cursor_(0)

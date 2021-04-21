@@ -1,8 +1,8 @@
 #include <cctype>
 
 #include <clean/log.h>
-#include <clean/lexer.h>
-#include <clean/error_handler.h>
+#include <clean/lang/lexer.h>
+#include <clean/lang/error_handler.h>
 
 lexer_t::lexer_t(std::string text, error_handler_t *error_handler)
     : text_(std::move(text))

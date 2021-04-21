@@ -1,11 +1,10 @@
 #pragma once
 
-#include "clean/error_handler.h"
 #include <string>
 #include <vector>
 
-#include <clean/expr.h>
-#include <clean/token.h>
+#include <clean/lang/expr.h>
+#include <clean/lang/token.h>
 
 // forward declarations
 struct error_handler_t;
