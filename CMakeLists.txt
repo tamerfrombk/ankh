@@ -19,6 +19,7 @@ ADD_EXECUTABLE(${APP_EXE}
     src/lang/token.cc 
     src/lang/parser.cc
     src/lang/expr.cc
+    src/lang/interpreter.cc
 )
 
 TARGET_INCLUDE_DIRECTORIES(${APP_EXE} PRIVATE ${CMAKE_SOURCE_DIR}/include)
