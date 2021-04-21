@@ -2,6 +2,8 @@
 
 #include <memory>
 #include <utility>
+#include <string>
+
 #include <clean/lang/token.h>
 
 
@@ -31,6 +33,8 @@ enum class expr_result_type {
     RT_ERROR
 };
 
+std::string expr_result_type_str(expr_result_type type) noexcept;
+
 struct expr_result_t {
 
     // TODO: unionize these fields. Right now, getting implicitly deleted destructor error because of union
@@ -42,36 +46,10 @@ struct expr_result_t {
 
     expr_result_type type;
 
-    static expr_result_t nil() {
-        expr_result_t e;
-        e.type = expr_result_type::RT_NIL;
-
-        return e;
-    }
-
-    static expr_result_t num(number_t n) {
-        expr_result_t e;
-        e.type = expr_result_type::RT_NUMBER;
-        e.n  = n;
-
-        return e;
-    }
-
-    static expr_result_t stringe(std::string s) {
-        expr_result_t e;
-        e.type = expr_result_type::RT_STRING;
-        e.str  = std::move(s);
-
-        return e;
-    }
-
-    static expr_result_t e(std::string s) {
-        expr_result_t e;
-        e.type = expr_result_type::RT_ERROR;
-        e.err  = std::move(s);
-
-        return e;
-    }
+    static expr_result_t nil();
+    static expr_result_t num(number_t n);
+    static expr_result_t stringe(std::string s);
+    static expr_result_t e(std::string s);
 };
 
 struct expression_t {
