@@ -3,11 +3,11 @@ PROJECT(cleansh VERSION 1.0.0)
 
 SET(TEST_EXE cleantest)
 
-ADD_LIBRARY(catch STATIC ${CMAKE_SOURCE_DIR}/test/catch.cpp)
+ADD_LIBRARY(catch STATIC catch.cpp)
 
 ADD_EXECUTABLE(${TEST_EXE} 
-    ${CMAKE_SOURCE_DIR}/test/tests.cc
-    ${CMAKE_SOURCE_DIR}/test/lexer_tests.cc
+    tests.cc
+    lexer_tests.cc
 )
 
 TARGET_INCLUDE_DIRECTORIES(${TEST_EXE} PRIVATE ${CMAKE_SOURCE_DIR}/include)
