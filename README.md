@@ -1,6 +1,11 @@
 # cleanshell
 
-`cleanshell` is a simple shell with minimal syntax
+`clean` is a scripting language and shell with an emphasis on simplicity and readability. `clean` is a tentative name for the
+language and is bound to change at any time.
+
+### Running
+
+`cleansh` will execute a shell while `cleansh <script>` will run the provided script.
 
 ### Dependencies
 
@@ -20,9 +25,16 @@ cmake --build .
 
 This will build the `cleansh` binary in the `build` directory.
 
-### Running
+### Installing/Uninstalling
 
 TODO
+
+### Design Goals
+
+1. No third party dependencies
+2. Single binary deployment
+3. Only one obvious way of doing something
+4. No feature creep
 
 ### Limitations
 
