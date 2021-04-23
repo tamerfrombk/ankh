@@ -28,9 +28,30 @@ program_t parser_t::parse()
 {
     program_t stmts;
     while (!is_eof()) {
-        stmts.emplace_back(statement());    
+        stmts.emplace_back(declaration());    
     }
     return stmts;
+}
+
+statement_ptr parser_t::declaration()
+{
+    if (match({ token_type::IDENTIFIER })) {
+        return assignment();
+    }
+    return statement();
+}
+
+statement_ptr parser_t::assignment()
+{
+    token_t variable = prev();
+    if (match({ token_type::EQ })) {
+        return make_statement<assignment_statement_t>(variable, expression());
+    }
+    
+    error_handler_->report_error({"syntax error: '=' expected after identifier in assignment statement"});
+    
+    // TODO: what to do here??
+    return nullptr;
 }
 
 statement_ptr parser_t::statement()
@@ -41,13 +62,12 @@ statement_ptr parser_t::statement()
     return expression_statement();
 }
 
-statement_ptr  parser_t::print_statement()
+statement_ptr parser_t::print_statement()
 {
-    expression_ptr expr = expression();
-    return make_statement<print_statement_t>(std::move(expr));
+    return make_statement<print_statement_t>(expression());
 }
 
-statement_ptr  parser_t::expression_statement()
+statement_ptr parser_t::expression_statement()
 {
     return make_statement<expression_statement_t>(expression());
 }
@@ -141,9 +161,19 @@ expression_ptr parser_t::unary()
 expression_ptr parser_t::primary()
 {
     //debug("PARSER: parsing primary: '%s'\n", lexer_.rest().c_str());
-    if (match({ token_type::NUMBER, token_type::STRING, token_type::BTRUE, token_type::BFALSE, token_type::NIL })) {
+    if (match({ token_type::NUMBER
+            , token_type::STRING
+            , token_type::BTRUE
+            , token_type::BFALSE
+            , token_type::NIL
+        })) 
+    {
         return make_expression<literal_expression_t>(prev());
-    } 
+    }
+
+    if (match({ token_type::IDENTIFIER })) {
+        return make_expression<identifier_expression_t>(prev());
+    }
 
     if (match({ token_type::LPAREN })) {
         expression_ptr expr = expression();
@@ -156,6 +186,9 @@ expression_ptr parser_t::primary()
 
     // TODO: improve error message
     error_handler_->report_error({"expected expression"});
+
+    // TODO: what to do here?
+    return nullptr;
 }
 
 const token_t& parser_t::prev() const noexcept
@@ -173,7 +206,7 @@ const token_t& parser_t::advance() noexcept
     if (!is_eof()) {
         ++cursor_;
     }
-    
+
     return prev();
 }
 

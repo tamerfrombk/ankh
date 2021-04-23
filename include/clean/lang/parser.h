@@ -20,6 +20,9 @@ public:
     bool is_eof() const noexcept;
 
 private:
+    statement_ptr  declaration();
+    statement_ptr  assignment();
+    
     statement_ptr  statement();
     statement_ptr  print_statement();
     statement_ptr  expression_statement();

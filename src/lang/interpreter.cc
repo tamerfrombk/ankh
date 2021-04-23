@@ -190,6 +190,17 @@ expr_result_t interpreter_t::visit(paren_expression_t *expr)
     return evaluate(expr->expr);
 }
 
+expr_result_t interpreter_t::visit(identifier_expression_t *expr)
+{
+    // TODO: look up identifier in table and see if it exists
+    // otherwise, report error
+    auto it = variables_.find(expr->name.str);
+    if (it == variables_.end()) {
+        return expr_result_t::e("identifier " + expr->name.str + " is not defined in the current scope");
+    }
+    return it->second;
+}
+
 void interpreter_t::visit(print_statement_t *stmt)
 {
     const expr_result_t result = evaluate(stmt->expr);
@@ -218,6 +229,19 @@ void interpreter_t::visit(print_statement_t *stmt)
 void interpreter_t::visit(expression_statement_t *stmt)
 {
     evaluate(stmt->expr);
+}
+
+void interpreter_t::visit(assignment_statement_t *stmt)
+{
+    // TODO: add variable to a table of name -> result
+    // or throw error if it can't
+    const expr_result_t result = evaluate(stmt->initializer);
+    if (result.type == expr_result_type::RT_ERROR) {
+        error("error evaluating expression: '%s'\n", result.err.c_str());
+        return;
+    }
+
+    variables_.insert({stmt->name.str, result});
 }
 
 expr_result_t interpreter_t::evaluate(expression_ptr& expr) noexcept

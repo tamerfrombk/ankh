@@ -12,6 +12,7 @@ struct binary_expression_t;
 struct unary_expression_t;
 struct literal_expression_t;
 struct paren_expression_t;
+struct identifier_expression_t;
 
 template <class R>
 struct expression_visitor_t {
@@ -21,6 +22,7 @@ struct expression_visitor_t {
     virtual R visit(unary_expression_t *expr) = 0;
     virtual R visit(literal_expression_t *expr) = 0;
     virtual R visit(paren_expression_t *expr) = 0;
+    virtual R visit(identifier_expression_t *expr) = 0;
 };
 
 using number_t = double;
@@ -121,6 +123,20 @@ struct paren_expression_t
 
     paren_expression_t(expression_ptr expr)
         : expr(std::move(expr)) {}
+
+    virtual expr_result_t accept(expression_visitor_t<expr_result_t> *visitor) override
+    {
+        return visitor->visit(this);
+    }
+};
+
+struct identifier_expression_t 
+    : public expression_t 
+{
+    token_t name;
+
+    identifier_expression_t(token_t name)
+        : name(std::move(name)) {}
 
     virtual expr_result_t accept(expression_visitor_t<expr_result_t> *visitor) override
     {

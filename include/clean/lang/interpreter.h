@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_map>
+
 #include <clean/lang/expr.h>
 #include <clean/lang/statement.h>
 
@@ -14,10 +16,16 @@ public:
     virtual expr_result_t visit(unary_expression_t *expr) override;
     virtual expr_result_t visit(literal_expression_t *expr) override;
     virtual expr_result_t visit(paren_expression_t *expr) override;
+    virtual expr_result_t visit(identifier_expression_t *expr) override;
 
     virtual void visit(print_statement_t *stmt) override;
     virtual void visit(expression_statement_t *stmt) override;
+    virtual void visit(assignment_statement_t *stmt) override;
+
 private:
     expr_result_t evaluate(expression_ptr& expr) noexcept;
     void execute(const statement_ptr& stmt) noexcept;
+    
+private:
+    std::unordered_map<std::string, expr_result_t> variables_;
 };
