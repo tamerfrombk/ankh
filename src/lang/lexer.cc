@@ -10,6 +10,7 @@ static const std::unordered_map<std::string, token_type> KEYWORDS = {
       { "true", token_type::BTRUE }
     , { "false", token_type::BFALSE }
     , { "nil", token_type::NIL }
+    , { "print", token_type::PRINT }
 };
 
 lexer_t::lexer_t(std::string text, error_handler_t *error_handler)

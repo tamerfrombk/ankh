@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <clean/lang/expr.h>
+#include <clean/lang/statement.h>
 #include <clean/lang/token.h>
 
 // forward declarations
@@ -14,17 +15,22 @@ class parser_t
 public:
     explicit parser_t(std::string str, error_handler_t *error_handler);
 
-    expression_ptr parse_expression();
+    program_t parse();
 
     bool is_eof() const noexcept;
 
 private:
-    expression_ptr parse_equality();
-    expression_ptr parse_comparison();
-    expression_ptr parse_term();
-    expression_ptr parse_factor();
-    expression_ptr parse_unary();
-    expression_ptr parse_primary();
+    statement_ptr  statement();
+    statement_ptr  print_statement();
+    statement_ptr  expression_statement();
+    
+    expression_ptr expression();
+    expression_ptr equality();
+    expression_ptr comparison();
+    expression_ptr term();
+    expression_ptr factor();
+    expression_ptr unary();
+    expression_ptr primary();
 
     const token_t& prev() const noexcept;
     const token_t& curr() const noexcept;

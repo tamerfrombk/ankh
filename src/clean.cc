@@ -25,51 +25,23 @@
 #include <clean/lang/error_handler.h>
 #include <clean/lang/interpreter.h>
 
-static void print_result(const expr_result_t& result)
-{
-    switch (result.type) {
-    case expr_result_type::RT_ERROR:
-        error("error evaluating expression: '%s'\n", result.err.c_str());
-        break;
-    case expr_result_type::RT_STRING:
-        std::puts(result.str.c_str());
-        break;
-    case expr_result_type::RT_NUMBER:
-        std::printf("%f\n", result.n);
-        break;
-    case expr_result_type::RT_BOOL:
-        std::puts(result.b ? "true" : "false");
-        break;
-    case expr_result_type::RT_NIL:
-        std::puts("nil");
-        break;
-    default:
-        error("unhandled expression result type");
-        break;
-    }
-}
-
 static int interpret(const std::string& script)
 {
-    auto errh = std::make_unique<error_handler_t>();
-    parser_t parser(script, errh.get());
+    auto error_handler = std::make_unique<error_handler_t>();
+    parser_t parser(script, error_handler.get());
 
-    pretty_printer_t printer;
-    interpreter_t interpreter;
-    while (!parser.is_eof()) {
-        expression_ptr expr = parser.parse_expression();
-        if (errh->error_count() > 0) {
-            const auto& errors = errh->errors();
-            for (const auto& e :  errors) {
-                std::cerr << "ERROR! : " << e.msg << "\n";
-            }
-            return 1;
+    const program_t program = parser.parse();
+    if (error_handler->error_count() > 0) {
+        const auto& errors = error_handler->errors();
+        for (const auto& e :  errors) {
+            std::cerr << "ERROR! : " << e.msg << "\n";
         }
-        std::string pp = expr->accept(&printer).str;
-        expr_result_t result = expr->accept(&interpreter);
-        print_result(result);
+        return 1;
     }
-    
+
+    interpreter_t interpreter;
+    interpreter.interpret(program);
+
     return 0;
 }
 

@@ -40,6 +40,8 @@ std::string token_type_str(token_type type)
         return "BFALSE";
     case token_type::NIL:
         return "NIL";
+    case token_type::PRINT:
+        return "PRINT";
     case token_type::NUMBER:
         return "NUMBER";
     case token_type::STRING:

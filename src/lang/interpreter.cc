@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <cstdio>
 #include <algorithm>
 #include <initializer_list>
 #include <functional>
@@ -113,6 +114,13 @@ static expr_result_t compare(const expr_result_t& left, const expr_result_t& rig
     return expr_result_t::e("unknown overload for comparison operator");
 }
 
+void interpreter_t::interpret(const program_t& program)
+{
+    for (const auto& stmt : program) {
+        execute(stmt);
+    }
+}
+
 expr_result_t interpreter_t::visit(binary_expression_t *expr)
 {
     const expr_result_t left  = evaluate(expr->left);
@@ -182,7 +190,42 @@ expr_result_t interpreter_t::visit(paren_expression_t *expr)
     return evaluate(expr->expr);
 }
 
+void interpreter_t::visit(print_statement_t *stmt)
+{
+    const expr_result_t result = evaluate(stmt->expr);
+    switch (result.type) {
+    case expr_result_type::RT_ERROR:
+        error("error evaluating expression: '%s'\n", result.err.c_str());
+        break;
+    case expr_result_type::RT_STRING:
+        std::puts(result.str.c_str());
+        break;
+    case expr_result_type::RT_NUMBER:
+        std::printf("%f\n", result.n);
+        break;
+    case expr_result_type::RT_BOOL:
+        std::puts(result.b ? "true" : "false");
+        break;
+    case expr_result_type::RT_NIL:
+        std::puts("nil");
+        break;
+    default:
+        error("unhandled expression result type");
+        break;
+    }
+}
+
+void interpreter_t::visit(expression_statement_t *stmt)
+{
+    evaluate(stmt->expr);
+}
+
 expr_result_t interpreter_t::evaluate(expression_ptr& expr) noexcept
 {
     return expr->accept(this);
+}
+
+void interpreter_t::execute(const statement_ptr& stmt) noexcept
+{
+    stmt->accept(this);
 }

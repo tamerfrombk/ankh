@@ -1,3 +1,5 @@
+#include "clean/lang/expr.h"
+#include "clean/lang/statement.h"
 #include <algorithm>
 #include <initializer_list>
 
@@ -22,54 +24,82 @@ parser_t::parser_t(std::string str, error_handler_t *error_handler)
     }
 }
 
-expression_ptr parser_t::parse_expression()
+program_t parser_t::parse()
 {
-//    debug("PARSER: parsing expression: '%s'\n", lexer_.rest().c_str());
-    return parse_equality();
+    program_t stmts;
+    while (!is_eof()) {
+        stmts.emplace_back(statement());    
+    }
+    return stmts;
 }
 
-expression_ptr parser_t::parse_equality()
+statement_ptr parser_t::statement()
+{
+    if (match({ token_type::PRINT })) {
+        return print_statement();
+    }
+    return expression_statement();
+}
+
+statement_ptr  parser_t::print_statement()
+{
+    expression_ptr expr = expression();
+    return make_statement<print_statement_t>(std::move(expr));
+}
+
+statement_ptr  parser_t::expression_statement()
+{
+    return make_statement<expression_statement_t>(expression());
+}
+
+expression_ptr parser_t::expression()
+{
+//    debug("PARSER: parsing expression: '%s'\n", lexer_.rest().c_str());
+    return equality();
+}
+
+expression_ptr parser_t::equality()
 {
     static auto eq_ops = { token_type::EQEQ, token_type::NEQ };
 
 //    debug("PARSER: parsing equality: '%s'\n", lexer_.rest().c_str());
 
-    expression_ptr left = parse_comparison();
+    expression_ptr left = comparison();
     while (match(eq_ops)) {
         token_t op = prev();
-        expression_ptr right = parse_comparison();
+        expression_ptr right = comparison();
         left = make_expression<binary_expression_t>(std::move(left), op, std::move(right));
     }
 
     return left;
 }
 
-expression_ptr parser_t::parse_comparison()
+expression_ptr parser_t::comparison()
 {
     static auto comp_ops = { token_type::LT, token_type::LTE, token_type::GT, token_type::GTE };
 
     //debug("PARSER: parsing comparison: '%s'\n", lexer_.rest().c_str());
 
-    expression_ptr left = parse_term();
+    expression_ptr left = term();
     while (match(comp_ops)) {
         token_t op = prev();
-        expression_ptr right = parse_term();
+        expression_ptr right = term();
         left = make_expression<binary_expression_t>(std::move(left), op, std::move(right));
     }
 
     return left;
 }
 
-expression_ptr parser_t::parse_term()
+expression_ptr parser_t::term()
 {
     static auto term_ops = { token_type::MINUS, token_type::PLUS };
 
     //debug("PARSER: parsing term: '%s'\n", lexer_.rest().c_str());
 
-    expression_ptr left = parse_factor();
+    expression_ptr left = factor();
     while (match(term_ops)) {
         token_t op = prev();
-        expression_ptr right = parse_factor();
+        expression_ptr right = factor();
         //debug("PARSER: right hand side parsed with '%s' remaining\n", lexer_.rest().c_str());
         left = make_expression<binary_expression_t>(std::move(left), op, std::move(right));
     }
@@ -77,23 +107,23 @@ expression_ptr parser_t::parse_term()
     return left;
 }
 
-expression_ptr parser_t::parse_factor()
+expression_ptr parser_t::factor()
 {
     static auto factor_ops = { token_type::STAR, token_type::FSLASH };
 
     //debug("PARSER: parsing factpr: '%s'\n", lexer_.rest().c_str());
 
-    expression_ptr left = parse_unary();
+    expression_ptr left = unary();
     while (match(factor_ops)) {
         token_t op = prev();
-        expression_ptr right = parse_unary();
+        expression_ptr right = unary();
         left = make_expression<binary_expression_t>(std::move(left), op, std::move(right));
     }
 
     return left;
 }
 
-expression_ptr parser_t::parse_unary()
+expression_ptr parser_t::unary()
 {
     static auto unary_ops = { token_type::BANG, token_type::MINUS };
 
@@ -101,14 +131,14 @@ expression_ptr parser_t::parse_unary()
 
     if (match(unary_ops)) {
         token_t op = prev();
-        expression_ptr right = parse_unary();
+        expression_ptr right = unary();
         return make_expression<unary_expression_t>(op, std::move(right));
     }
 
-    return parse_primary();
+    return primary();
 }
 
-expression_ptr parser_t::parse_primary()
+expression_ptr parser_t::primary()
 {
     //debug("PARSER: parsing primary: '%s'\n", lexer_.rest().c_str());
     if (match({ token_type::NUMBER, token_type::STRING, token_type::BTRUE, token_type::BFALSE, token_type::NIL })) {
@@ -116,7 +146,7 @@ expression_ptr parser_t::parse_primary()
     } 
 
     if (match({ token_type::LPAREN })) {
-        expression_ptr expr = parse_expression();
+        expression_ptr expr = expression();
         token_t paren = advance();
         if (paren.type != token_type::RPAREN) {
             error_handler_->report_error({"terminating ')' not found"});

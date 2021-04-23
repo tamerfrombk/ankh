@@ -48,6 +48,7 @@ LEXER_TEST("scan all basic language lexemes")
             true
             false
             nil
+            print
 
             ""
             "non-empty string"
@@ -92,6 +93,9 @@ LEXER_TEST("scan all basic language lexemes")
 
         // nil
         REQUIRE((tokens[i].str == "nil" && tokens[i++].type == token_type::NIL));
+
+        // print
+        REQUIRE((tokens[i].str == "print" && tokens[i++].type == token_type::PRINT));
 
         // strings
         REQUIRE((tokens[i].str == "" && tokens[i++].type == token_type::STRING));

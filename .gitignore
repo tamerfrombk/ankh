@@ -63,3 +63,4 @@ build/
 .cache/
 compile_commands.json
 .vscode/
+examples/internal-testing.sh
