@@ -74,6 +74,10 @@ token_t lexer_t::next_token() noexcept
     } else if (c == '#') {
         skip_comment();
         return next_token();
+    } else if (c == '{') {
+        return { "{", token_type::LBRACE };
+    } else if (c == '}') {
+        return { "}", token_type::RBRACE };
     } else {
         error_handler_->report_error({"unknown token!"});
         return { "", token_type::UNKNOWN };

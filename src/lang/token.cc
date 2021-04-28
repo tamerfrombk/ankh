@@ -34,6 +34,10 @@ std::string token_type_str(token_type type)
         return "LPAREN";
     case token_type::RPAREN:
         return "RPAREN";
+    case token_type::LBRACE:
+        return "LBRACE";
+    case token_type::RBRACE:
+        return "RBRACE";
     case token_type::BTRUE:
         return "BTRUE";
     case token_type::BFALSE:

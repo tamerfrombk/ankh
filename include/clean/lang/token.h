@@ -18,6 +18,8 @@ enum class token_type {
     STAR,              // *
     LPAREN,            // (
     RPAREN,            // )
+    LBRACE,            // {
+    RBRACE,            // }
     // "B" for "bool" -- prepended to avoid clashing with TRUE/FALSE macros
     BTRUE,             // "true"
     BFALSE,            // "false"

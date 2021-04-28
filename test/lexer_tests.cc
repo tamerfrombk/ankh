@@ -44,6 +44,9 @@ LEXER_TEST("scan all basic language lexemes")
             (
             )
 
+            { 
+            }
+
             !
             true
             false
@@ -85,6 +88,10 @@ LEXER_TEST("scan all basic language lexemes")
         // parens
         REQUIRE((tokens[i].str == "(" && tokens[i++].type == token_type::LPAREN));
         REQUIRE((tokens[i].str == ")" && tokens[i++].type == token_type::RPAREN));
+
+        // braces
+        REQUIRE((tokens[i].str == "{" && tokens[i++].type == token_type::LBRACE));
+        REQUIRE((tokens[i].str == "}" && tokens[i++].type == token_type::RBRACE));
 
         // boolean
         REQUIRE((tokens[i].str == "!" && tokens[i++].type == token_type::BANG));
