@@ -26,10 +26,10 @@
 
 static int interpret(const std::string& script)
 {
-    auto error_handler = std::make_unique<fk::lang::error_handler_t>();
-    fk::lang::parser_t parser(script, error_handler.get());
+    auto error_handler = std::make_unique<fk::lang::error_handler>();
+    fk::lang::parser parser(script, error_handler.get());
 
-    const fk::lang::program_t program = parser.parse();
+    const fk::lang::program program = parser.parse();
     if (error_handler->error_count() > 0) {
         const auto& errors = error_handler->errors();
         for (const auto& e :  errors) {
@@ -38,7 +38,7 @@ static int interpret(const std::string& script)
         return 1;
     }
 
-    fk::lang::interpreter_t interpreter;
+    fk::lang::interpreter interpreter;
     interpreter.interpret(program);
 
     return 0;

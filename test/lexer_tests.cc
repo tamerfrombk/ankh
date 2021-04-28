@@ -9,10 +9,10 @@
 
 #define LEXER_TEST(description) TEST_CASE(description, "[lexer]")
 
-static std::vector<fk::lang::token_t> extract_all_tokens(fk::lang::lexer_t& lexer) noexcept
+static std::vector<fk::lang::token> extract_all_tokens(fk::lang::lexer& lexer) noexcept
 {
-    std::vector<fk::lang::token_t> tokens;
-    for (fk::lang::token_t token = lexer.next_token(); token.type != fk::lang::token_type::T_EOF; token = lexer.next_token()) {
+    std::vector<fk::lang::token> tokens;
+    for (fk::lang::token token = lexer.next_token(); token.type != fk::lang::token_type::T_EOF; token = lexer.next_token()) {
         tokens.push_back(token);
     }
     tokens.emplace_back("", fk::lang::token_type::T_EOF);
@@ -22,7 +22,7 @@ static std::vector<fk::lang::token_t> extract_all_tokens(fk::lang::lexer_t& lexe
 
 LEXER_TEST("scan all basic language lexemes")
 {
-    auto error_handler = std::make_unique<fk::lang::error_handler_t>();
+    auto error_handler = std::make_unique<fk::lang::error_handler>();
 
     SECTION("happy path")
     {
@@ -63,9 +63,9 @@ LEXER_TEST("scan all basic language lexemes")
             1.0
         )";
 
-        fk::lang::lexer_t lexer(all_tokens, error_handler.get());
+        fk::lang::lexer lexer(all_tokens, error_handler.get());
 
-        std::vector<fk::lang::token_t> tokens = extract_all_tokens(lexer);
+        std::vector<fk::lang::token> tokens = extract_all_tokens(lexer);
         
         int i = 0;
         // assignment
@@ -127,9 +127,9 @@ LEXER_TEST("scan all basic language lexemes")
             "notice the lack of the terminating double quotes
         )";
 
-        fk::lang::lexer_t lexer(stream, error_handler.get());
+        fk::lang::lexer lexer(stream, error_handler.get());
 
-        std::vector<fk::lang::token_t> tokens = extract_all_tokens(lexer);
+        std::vector<fk::lang::token> tokens = extract_all_tokens(lexer);
         
         REQUIRE(tokens[0].type == fk::lang::token_type::UNKNOWN);
 
@@ -142,9 +142,9 @@ LEXER_TEST("scan all basic language lexemes")
             123.45.67
         )";
 
-        fk::lang::lexer_t lexer(stream, error_handler.get());
+        fk::lang::lexer lexer(stream, error_handler.get());
 
-        std::vector<fk::lang::token_t> tokens = extract_all_tokens(lexer);
+        std::vector<fk::lang::token> tokens = extract_all_tokens(lexer);
         
         REQUIRE(tokens[0].type == fk::lang::token_type::UNKNOWN);
         REQUIRE(error_handler->error_count() > 0);
@@ -159,9 +159,9 @@ LEXER_TEST("scan all basic language lexemes")
             123.45
         )";
 
-        fk::lang::lexer_t lexer(stream, error_handler.get());
+        fk::lang::lexer lexer(stream, error_handler.get());
 
-        std::vector<fk::lang::token_t> tokens = extract_all_tokens(lexer);
+        std::vector<fk::lang::token> tokens = extract_all_tokens(lexer);
         
         REQUIRE(tokens.size() == 3);
         REQUIRE((tokens[0].str == "string" && tokens[0].type == fk::lang::token_type::STRING));

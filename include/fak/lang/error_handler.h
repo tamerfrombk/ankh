@@ -4,26 +4,26 @@
 #include <vector>
 
 namespace fk::lang {
-struct err_t 
+struct error 
 {
     std::string msg;
 
-    err_t(std::string msg)
+    error(std::string msg)
         : msg(std::move(msg)) {}
 
 };
 
-class error_handler_t 
+class error_handler 
 {
 public:
-    virtual ~error_handler_t() = default;
+    virtual ~error_handler() = default;
 
-    virtual void report_error(const err_t& err) 
+    virtual void report_error(const error& err) 
     {
         errors_.push_back(err);
     }
 
-    virtual void report_error(err_t&& err)
+    virtual void report_error(error&& err)
     {
         errors_.push_back(err);
     }
@@ -33,13 +33,13 @@ public:
         return errors_.size();
     }
 
-    const std::vector<err_t>& errors() const noexcept
+    const std::vector<error>& errors() const noexcept
     {
         return errors_;
     }
 
 private:
-    std::vector<err_t> errors_;
+    std::vector<error> errors_;
 };
 
 }

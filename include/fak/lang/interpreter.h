@@ -8,36 +8,36 @@
 
 namespace fk::lang {
 
-class interpreter_t
-    : public expression_visitor_t<expr_result_t>
-    , public statement_visitor_t<void>
+class interpreter
+    : public expression_visitor<expr_result>
+    , public statement_visitor<void>
 {
 public:
-    interpreter_t();
+    interpreter();
 
-    void interpret(const program_t& program);
+    void interpret(const program& program);
 
-    virtual expr_result_t visit(binary_expression_t *expr) override;
-    virtual expr_result_t visit(unary_expression_t *expr) override;
-    virtual expr_result_t visit(literal_expression_t *expr) override;
-    virtual expr_result_t visit(paren_expression_t *expr) override;
-    virtual expr_result_t visit(identifier_expression_t *expr) override;
+    virtual expr_result visit(binary_expression *expr) override;
+    virtual expr_result visit(unary_expression *expr) override;
+    virtual expr_result visit(literal_expression *expr) override;
+    virtual expr_result visit(paren_expression *expr) override;
+    virtual expr_result visit(identifier_expression *expr) override;
 
-    virtual void visit(print_statement_t *stmt) override;
-    virtual void visit(expression_statement_t *stmt) override;
-    virtual void visit(assignment_statement_t *stmt) override;
-    virtual void visit(block_statement_t *stmt) override;
+    virtual void visit(print_statement *stmt) override;
+    virtual void visit(expression_statement *stmt) override;
+    virtual void visit(assignment_statement *stmt) override;
+    virtual void visit(block_statement *stmt) override;
 
 private:
-    expr_result_t evaluate(expression_ptr& expr) noexcept;
+    expr_result evaluate(expression_ptr& expr) noexcept;
     void execute(const statement_ptr& stmt) noexcept;
 
     void enter_new_scope();
     void leave_current_scope();
-    fk::lang::environment_t& current_scope();
+    environment& current_scope();
     
 private:
-    std::vector<fk::lang::environment_t> env_;
+    std::vector<environment> env_;
 };
 
 }

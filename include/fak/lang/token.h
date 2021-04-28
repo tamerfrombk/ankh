@@ -35,11 +35,11 @@ enum class token_type {
 
 std::string token_type_str(token_type type);
 
-struct token_t {
+struct token {
     std::string str;
     token_type type;
 
-    token_t(std::string str, token_type type);
+    token(std::string str, token_type type);
 };
 
 }

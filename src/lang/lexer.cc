@@ -13,13 +13,13 @@ static const std::unordered_map<std::string, fk::lang::token_type> KEYWORDS = {
     , { "print", fk::lang::token_type::PRINT }
 };
 
-fk::lang::lexer_t::lexer_t(std::string text, fk::lang::error_handler_t *error_handler)
+fk::lang::lexer::lexer(std::string text, fk::lang::error_handler *error_handler)
     : text_(std::move(text))
     , cursor_(0)
     , error_handler_(error_handler)
 {}
 
-fk::lang::token_t fk::lang::lexer_t::next_token() noexcept
+fk::lang::token fk::lang::lexer::next_token() noexcept
 {
     skip_whitespace();
 
@@ -84,30 +84,30 @@ fk::lang::token_t fk::lang::lexer_t::next_token() noexcept
     }
 }
 
-fk::lang::token_t fk::lang::lexer_t::peek_token() noexcept
+fk::lang::token fk::lang::lexer::peek_token() noexcept
 {
     size_t old_cursor = cursor_;
     
-    fk::lang::token_t token = next_token();
+    fk::lang::token token = next_token();
 
     cursor_ = old_cursor;
 
     return token;
 }
 
-bool fk::lang::lexer_t::is_eof() const noexcept
+bool fk::lang::lexer::is_eof() const noexcept
 {
     return cursor_ >= text_.length();
 }
 
-std::string fk::lang::lexer_t::rest() const noexcept
+std::string fk::lang::lexer::rest() const noexcept
 {
     return is_eof()
         ? ""
         : text_.substr(cursor_);   
 }
 
-void fk::lang::lexer_t::skip_whitespace() noexcept
+void fk::lang::lexer::skip_whitespace() noexcept
 {
     fk::log::debug("LEXER: skipping whitespace\n");
     while (!is_eof() && std::isspace(text_[cursor_])) {
@@ -115,14 +115,14 @@ void fk::lang::lexer_t::skip_whitespace() noexcept
     }
 }
 
-void fk::lang::lexer_t::skip_comment() noexcept
+void fk::lang::lexer::skip_comment() noexcept
 {
     while (!is_eof() && curr() != '\n') {
         advance();
     }
 }
 
-fk::lang::token_t fk::lang::lexer_t::lex_alnum(char init) noexcept
+fk::lang::token fk::lang::lexer::lex_alnum(char init) noexcept
 {
     fk::log::debug("LEXER: lexing alnum token\n");
 
@@ -144,7 +144,7 @@ fk::lang::token_t fk::lang::lexer_t::lex_alnum(char init) noexcept
     return { token, type };
 }
 
-fk::lang::token_t fk::lang::lexer_t::lex_string() noexcept
+fk::lang::token fk::lang::lexer::lex_string() noexcept
 {
     std::string str;
     while (!is_eof()) {
@@ -162,7 +162,7 @@ fk::lang::token_t fk::lang::lexer_t::lex_string() noexcept
     return { str, fk::lang::token_type::STRING };
 }
 
-fk::lang::token_t fk::lang::lexer_t::lex_number(char init) noexcept
+fk::lang::token fk::lang::lexer::lex_number(char init) noexcept
 {
     std::string num(1, init);
 
@@ -188,22 +188,22 @@ fk::lang::token_t fk::lang::lexer_t::lex_number(char init) noexcept
     return { num, fk::lang::token_type::NUMBER };
 }
 
-char fk::lang::lexer_t::curr() const noexcept
+char fk::lang::lexer::curr() const noexcept
 {
     return text_[cursor_];
 }
 
-char fk::lang::lexer_t::peek() const noexcept
+char fk::lang::lexer::peek() const noexcept
 {
     return text_[cursor_ + 1];
 }
 
-char fk::lang::lexer_t::advance() noexcept
+char fk::lang::lexer::advance() noexcept
 {
     return text_[cursor_++];
 }
 
-bool fk::lang::lexer_t::is_keyword(const std::string& str) const noexcept
+bool fk::lang::lexer::is_keyword(const std::string& str) const noexcept
 {
     return KEYWORDS.find(str) != KEYWORDS.cend();
 }

@@ -9,32 +9,32 @@
 
 namespace fk::internal {
 
-class pretty_printer_t
-    : public fk::lang::expression_visitor_t<fk::lang::expr_result_t>
+class pretty_printer
+    : public fk::lang::expression_visitor<fk::lang::expr_result>
 {
 public:
-    inline virtual fk::lang::expr_result_t visit(fk::lang::binary_expression_t *expr) override
+    inline virtual fk::lang::expr_result visit(fk::lang::binary_expression *expr) override
     {
         return paren(expr->op.str, { expr->left.get(), expr->right.get() });
     }
 
-    inline virtual fk::lang::expr_result_t visit(fk::lang::unary_expression_t *expr) override
+    inline virtual fk::lang::expr_result visit(fk::lang::unary_expression *expr) override
     {
         return paren(expr->op.str, { expr->right.get() });
     }
 
-    inline virtual fk::lang::expr_result_t visit(fk::lang::literal_expression_t *expr) override
+    inline virtual fk::lang::expr_result visit(fk::lang::literal_expression *expr) override
     {
         return paren(expr->literal.str, {});
     }
 
-    inline virtual fk::lang::expr_result_t visit(fk::lang::paren_expression_t *expr) override
+    inline virtual fk::lang::expr_result visit(fk::lang::paren_expression *expr) override
     {
         return paren("paren", { expr->expr.get() });
     }
 
 private:
-    inline fk::lang::expr_result_t paren(const std::string& op, std::initializer_list<fk::lang::expression_t*> exprs)
+    inline fk::lang::expr_result paren(const std::string& op, std::initializer_list<fk::lang::expression*> exprs)
     {
         std::string result;
 
@@ -46,7 +46,7 @@ private:
         }
         result += " )";
 
-        fk::lang::expr_result_t expr;
+        fk::lang::expr_result expr;
         expr.type = fk::lang::expr_result_type::RT_STRING;
         expr.str  = result;
 

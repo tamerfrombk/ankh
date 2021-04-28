@@ -7,14 +7,14 @@
 namespace fk::lang {
 
 // forward declarations
-struct error_handler_t;
+struct error_handler;
 
-class lexer_t {
+class lexer {
 public:
-    lexer_t(std::string text, error_handler_t *error_handler);
+    lexer(std::string text, error_handler *error_handler);
 
-    token_t next_token() noexcept;
-    token_t peek_token() noexcept;
+    token next_token() noexcept;
+    token peek_token() noexcept;
 
     bool is_eof() const noexcept;
 
@@ -24,9 +24,9 @@ private:
     void skip_whitespace() noexcept;
     void skip_comment() noexcept;
     
-    token_t lex_alnum(char init) noexcept;
-    token_t lex_string() noexcept;
-    token_t lex_number(char init) noexcept;
+    token lex_alnum(char init) noexcept;
+    token lex_string() noexcept;
+    token lex_number(char init) noexcept;
 
     char curr() const noexcept;
     char peek() const noexcept;
@@ -38,7 +38,7 @@ private:
     const std::string text_;
     size_t cursor_;
 
-    fk::lang::error_handler_t *error_handler_;
+    error_handler *error_handler_;
 };
 
 }
