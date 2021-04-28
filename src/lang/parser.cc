@@ -1,13 +1,13 @@
-#include "clean/lang/expr.h"
-#include "clean/lang/statement.h"
+#include "fak/lang/expr.h"
+#include "fak/lang/statement.h"
 #include <algorithm>
 #include <initializer_list>
 
-#include <clean/lang/parser.h>
-#include <clean/lang/lexer.h>
-#include <clean/lang/token.h>
-#include <clean/lang/error_handler.h>
-#include <clean/log.h>
+#include <fak/lang/parser.h>
+#include <fak/lang/lexer.h>
+#include <fak/lang/token.h>
+#include <fak/lang/error_handler.h>
+#include <fak/log.h>
 
 parser_t::parser_t(std::string str, error_handler_t *error_handler)
     : cursor_(0)

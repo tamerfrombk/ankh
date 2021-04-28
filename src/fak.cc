@@ -14,16 +14,16 @@
 
 #include <readline/readline.h>
 
-#include <clean/def.h>
-#include <clean/log.h>
-#include <clean/clean.h>
-#include <clean/string.h>
-#include <clean/lang/lexer.h>
-#include <clean/lang/parser.h>
+#include <fak/def.h>
+#include <fak/log.h>
+#include <fak/fak.h>
+#include <fak/string.h>
+#include <fak/lang/lexer.h>
+#include <fak/lang/parser.h>
 
-#include <clean/internal/pretty_printer.h>
-#include <clean/lang/error_handler.h>
-#include <clean/lang/interpreter.h>
+#include <fak/internal/pretty_printer.h>
+#include <fak/lang/error_handler.h>
+#include <fak/lang/interpreter.h>
 
 static int interpret(const std::string& script)
 {

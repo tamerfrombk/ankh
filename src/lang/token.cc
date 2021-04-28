@@ -1,5 +1,5 @@
-#include <clean/lang/token.h>
-#include <clean/log.h>
+#include <fak/lang/token.h>
+#include <fak/log.h>
 
 std::string token_type_str(token_type type)
 {

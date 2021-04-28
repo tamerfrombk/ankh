@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include <clean/lang/token.h>
+#include <fak/lang/token.h>
 
 // forward declarations
 struct error_handler_t;

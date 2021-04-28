@@ -1,10 +1,10 @@
-#include "clean/lang/token.h"
+#include "fak/lang/token.h"
 #include <cctype>
 #include <unordered_map>
 
-#include <clean/log.h>
-#include <clean/lang/lexer.h>
-#include <clean/lang/error_handler.h>
+#include <fak/log.h>
+#include <fak/lang/lexer.h>
+#include <fak/lang/error_handler.h>
 
 static const std::unordered_map<std::string, token_type> KEYWORDS = {
       { "true", token_type::BTRUE }

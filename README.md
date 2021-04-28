@@ -1,11 +1,12 @@
-# cleanshell
+# fak
 
-`clean` is a scripting language and shell with an emphasis on simplicity and readability. `clean` is a tentative name for the
-language and is bound to change at any time.
+`fak` is a scripting language and REPL shell with an emphasis on simplicity and readability.
+
+Don't get frustrated; `fak` it!
 
 ### Running
 
-`cleansh` will execute a shell while `cleansh <script>` will run the provided script.
+`fak` will execute a shell while `fak <script>` will run the provided script.
 
 ### Dependencies
 
@@ -23,7 +24,7 @@ cmake -DCMAKE_BUILD_TYPE=release ..
 cmake --build .
 ```
 
-This will build the `cleansh` binary in the `build` directory.
+This will build the `fak` binary in the `build` directory.
 
 ### Installing/Uninstalling
 

@@ -1,14 +1,14 @@
-#include "clean/lang/env.h"
+#include "fak/lang/env.h"
 #include <cstdlib>
 #include <cstdio>
 #include <algorithm>
 #include <initializer_list>
 #include <functional>
 
-#include <clean/lang/interpreter.h>
-#include <clean/lang/token.h>
-#include <clean/lang/expr.h>
-#include <clean/log.h>
+#include <fak/lang/interpreter.h>
+#include <fak/lang/token.h>
+#include <fak/lang/expr.h>
+#include <fak/log.h>
 
 static bool operands_are(expr_result_type type, std::initializer_list<expr_result_t> elems)
 {

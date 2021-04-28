@@ -1,7 +1,7 @@
-#include <clean/lang/expr.h>
-#include <clean/lang/token.h>
+#include <fak/lang/expr.h>
+#include <fak/lang/token.h>
 
-#include <clean/log.h>
+#include <fak/log.h>
 
 std::string expr_result_type_str(expr_result_type type) noexcept
 {

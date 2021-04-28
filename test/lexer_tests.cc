@@ -3,9 +3,9 @@
 #include <string>
 #include <vector>
 
-#include <clean/lang/token.h>
-#include <clean/lang/lexer.h>
-#include <clean/lang/error_handler.h>
+#include <fak/lang/token.h>
+#include <fak/lang/lexer.h>
+#include <fak/lang/error_handler.h>
 
 #define LEXER_TEST(description) TEST_CASE(description, "[lexer]")
 
