@@ -24,7 +24,7 @@ fk::lang::token_t fk::lang::lexer_t::next_token() noexcept
     skip_whitespace();
 
     if (is_eof()) {
-        debug("EOF reached\n");
+        fk::log::debug("EOF reached\n");
         return { "", fk::lang::token_type::T_EOF };
     }
 
@@ -109,7 +109,7 @@ std::string fk::lang::lexer_t::rest() const noexcept
 
 void fk::lang::lexer_t::skip_whitespace() noexcept
 {
-    debug("LEXER: skipping whitespace\n");
+    fk::log::debug("LEXER: skipping whitespace\n");
     while (!is_eof() && std::isspace(text_[cursor_])) {
         advance();
     }
@@ -124,7 +124,7 @@ void fk::lang::lexer_t::skip_comment() noexcept
 
 fk::lang::token_t fk::lang::lexer_t::lex_alnum(char init) noexcept
 {
-    debug("LEXER: lexing alnum token\n");
+    fk::log::debug("LEXER: lexing alnum token\n");
 
     std::string token(1, init);
     while (!is_eof()) {

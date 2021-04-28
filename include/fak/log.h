@@ -1,26 +1,37 @@
 #pragma once
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <string>
+#include <cstdio>
+#include <cstdlib>
 
-// These macros where created with the help of this answer from Stack Overflow
-// https://stackoverflow.com/a/1644898
 
-#ifdef NDEBUG
-    #define debug(str, ...)
-#else
-    #define debug(fmt, ...) \
-            do { fprintf(stderr, "DEBUG: [ %s:%d | %s() ]: " fmt, __FILE__, __LINE__, __func__,##__VA_ARGS__); } while (0)
+namespace fk::log {
+
+template <class... Args>
+void debug(const char *fmt, Args&&... args)
+{
+#ifndef NDEBUG
+        std::fprintf(stderr, fmt, std::forward<Args>(args)...);
 #endif
+}
 
-#define info(fmt, ...) \
-        do { fprintf(stdout, "INFO: " fmt,##__VA_ARGS__); } while (0)
+template <class... Args>
+void info(const char *fmt, Args&&... args)
+{
+        std::fprintf(stdout, fmt, std::forward<Args>(args)...);
+}
 
-#define error(fmt, ...) \
-        do { fprintf(stderr, "ERROR: " fmt,##__VA_ARGS__); } while (0)
+template <class... Args>
+void error(const char *fmt, Args&&... args)
+{
+        std::fprintf(stderr, fmt, std::forward<Args>(args)...);
+}
 
-#define fatal(fmt, ...) \
-        do { fprintf(stderr, "FATAL: " fmt,##__VA_ARGS__); exit(EXIT_FAILURE); } while (0)
+template <class... Args>
+void fatal(const char *fmt, Args&&... args)
+{
+        std::fprintf(stderr, fmt, std::forward<Args>(args)...);
+        std::exit(1);
+}
 
-#define ASSERT_NOT_NULL(ptr) \
-    if ((ptr) == NULL) { fprintf(stderr, "NULLPTR @ [ %s:%d | %s() ]", __FILE__, __LINE__, __func__); exit(EXIT_FAILURE); }
+}

@@ -55,7 +55,7 @@ std::string fk::lang::token_type_str(fk::lang::token_type type)
     case fk::lang::token_type::UNKNOWN:
         return "UNKNOWN";
     default:
-        fatal("shouldn't happen");
+        fk::log::fatal("shouldn't happen");
     }
 }
 

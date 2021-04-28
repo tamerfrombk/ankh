@@ -20,7 +20,7 @@ fk::lang::parser_t::parser_t(std::string str, error_handler_t *error_handler)
     tokens_.emplace_back("", fk::lang::token_type::T_EOF);
 
     for (const auto& tok : tokens_) {
-        debug("('%s':'%s')\n", fk::lang::token_type_str(tok.type).c_str(), tok.str.c_str());
+        fk::log::debug("('%s':'%s')\n", fk::lang::token_type_str(tok.type).c_str(), tok.str.c_str());
     }
 }
 

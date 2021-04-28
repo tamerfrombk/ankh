@@ -12,7 +12,7 @@ std::string expr_result_type_str(fk::lang::expr_result_type type) noexcept
     case fk::lang::expr_result_type::RT_BOOL:      return "RT_BOOL";
     case fk::lang::expr_result_type::RT_NIL:       return "RT_NIL";
     case fk::lang::expr_result_type::RT_ERROR:     return "RT_ERROR";
-    default:                             fatal("expr_result_type_str(): unknown expression result type!\n");
+    default:                             fk::log::fatal("expr_result_type_str(): unknown expression result type!\n");
     }
 }
 

@@ -158,7 +158,7 @@ fk::lang::expr_result_t fk::lang::interpreter_t::visit(binary_expression_t *expr
         // TODO: right now, dividing by 0 yields 'inf' revisit this and make sure that's the behavior we want for the language
         return arithmetic(left, right, std::divides<>{});
     default:
-        fatal("unimplemented binary operator '%s'\n", expr->op.str.c_str());
+        fk::log::fatal("unimplemented binary operator '%s'\n", expr->op.str.c_str());
     }
 }
 
@@ -216,7 +216,7 @@ void fk::lang::interpreter_t::visit(print_statement_t *stmt)
     const expr_result_t result = evaluate(stmt->expr);
     switch (result.type) {
     case expr_result_type::RT_ERROR:
-        error("error evaluating expression: '%s'\n", result.err.c_str());
+        fk::log::error("error evaluating expression: '%s'\n", result.err.c_str());
         break;
     case expr_result_type::RT_STRING:
         std::puts(result.str.c_str());
@@ -231,7 +231,7 @@ void fk::lang::interpreter_t::visit(print_statement_t *stmt)
         std::puts("nil");
         break;
     default:
-        error("unhandled expression result type");
+        fk::log::error("unhandled expression result type");
         break;
     }
 }
@@ -245,7 +245,7 @@ void fk::lang::interpreter_t::visit(assignment_statement_t *stmt)
 {
     const expr_result_t result = evaluate(stmt->initializer);
     if (result.type == expr_result_type::RT_ERROR) {
-        error("error evaluating expression: '%s'\n", result.err.c_str());
+        fk::log::error("error evaluating expression: '%s'\n", result.err.c_str());
         return;
     }
 

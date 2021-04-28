@@ -70,7 +70,7 @@ int fk::shell_loop(int argc, char **argv)
             return interpret(possible_script.value());
         }
         
-        error("could not open script '%s'\n", argv[1]);
+        fk::log::error("could not open script '%s'\n", argv[1]);
 
         return EXIT_FAILURE;
     }
@@ -82,14 +82,14 @@ int fk::shell_loop(int argc, char **argv)
         char *line = readline("> ");
         if (line == nullptr) {
             // EOF encountered on empty line
-            debug("EOF\n");
+            fk::log::debug("EOF\n");
             exit(EXIT_SUCCESS);
         } else if (*line == '\0') {
             // empty line
-            debug("empty line\n");
+            fk::log::debug("empty line\n");
             free(line);
         } else {
-            debug("read line: '%s'\n", line);
+            fk::log::debug("read line: '%s'\n", line);
             prev_process_exit_code = interpret(line);
             free(line);
         }
