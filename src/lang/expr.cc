@@ -24,7 +24,7 @@ fk::lang::expr_result fk::lang::expr_result::nil()
     return e;
 }
 
-fk::lang::expr_result fk::lang::expr_result::number(number_t n) 
+fk::lang::expr_result fk::lang::expr_result::num(number n) 
 {
     expr_result e;
     e.type = expr_result_type::RT_NUMBER;

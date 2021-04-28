@@ -26,7 +26,7 @@ struct expression_visitor {
     virtual R visit(identifier_expression *expr) = 0;
 };
 
-using number_t = double;
+using number = double;
 
 enum class expr_result_type {
     RT_EXIT_CODE,
@@ -45,14 +45,14 @@ struct expr_result {
     // and I don't want to block myself figuring it out right now.
     std::string str;
     std::string err;
-    number_t    n;
+    number    n;
     bool        b;
     int         exit_code;
 
     expr_result_type type;
 
     static expr_result nil();
-    static expr_result number(number_t n);
+    static expr_result num(number n);
     static expr_result string(std::string s);
     static expr_result error(std::string s);
     static expr_result boolean(bool b);
