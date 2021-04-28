@@ -6,26 +6,26 @@
 #include <fak/lang/lexer.h>
 #include <fak/lang/error_handler.h>
 
-static const std::unordered_map<std::string, token_type> KEYWORDS = {
-      { "true", token_type::BTRUE }
-    , { "false", token_type::BFALSE }
-    , { "nil", token_type::NIL }
-    , { "print", token_type::PRINT }
+static const std::unordered_map<std::string, fk::lang::token_type> KEYWORDS = {
+      { "true", fk::lang::token_type::BTRUE }
+    , { "false", fk::lang::token_type::BFALSE }
+    , { "nil", fk::lang::token_type::NIL }
+    , { "print", fk::lang::token_type::PRINT }
 };
 
-lexer_t::lexer_t(std::string text, error_handler_t *error_handler)
+fk::lang::lexer_t::lexer_t(std::string text, fk::lang::error_handler_t *error_handler)
     : text_(std::move(text))
     , cursor_(0)
     , error_handler_(error_handler)
 {}
 
-token_t lexer_t::next_token() noexcept
+fk::lang::token_t fk::lang::lexer_t::next_token() noexcept
 {
     skip_whitespace();
 
     if (is_eof()) {
         debug("EOF reached\n");
-        return { "", token_type::T_EOF };
+        return { "", fk::lang::token_type::T_EOF };
     }
 
     char c = advance();
@@ -34,80 +34,80 @@ token_t lexer_t::next_token() noexcept
     } else if (std::isdigit(c)) {
         return lex_number(c);  
     } else if (c == '+') {
-        return { "+", token_type::PLUS };
+        return { "+", fk::lang::token_type::PLUS };
     } else if (c == '-') {
-        return { "-", token_type::MINUS };
+        return { "-", fk::lang::token_type::MINUS };
     } else if (c == '*') {
-        return { "*", token_type::STAR };
+        return { "*", fk::lang::token_type::STAR };
     } else if (c == '/') {
-        return { "/", token_type::FSLASH };
+        return { "/", fk::lang::token_type::FSLASH };
     } else if (c == '(') {
-        return { "(", token_type::LPAREN };  
+        return { "(", fk::lang::token_type::LPAREN };  
     } else if (c == ')') {
-        return { ")", token_type::RPAREN };
+        return { ")", fk::lang::token_type::RPAREN };
     } else if (c == '<') {
         if (curr() == '=') {
             advance(); // eat the '='
-            return {"<=", token_type::LTE};
+            return {"<=", fk::lang::token_type::LTE};
         }
-        return {"<", token_type::LT};
+        return {"<", fk::lang::token_type::LT};
     } else if (c == '>') {
         if (curr() == '=') {
             advance(); // eat the '='
-            return {">=", token_type::GTE};
+            return {">=", fk::lang::token_type::GTE};
         }
-        return {">", token_type::GT};
+        return {">", fk::lang::token_type::GT};
     } else if (c == '=') {
         if (curr() == '=') {
             advance(); // eat the other equal
-            return {"==", token_type::EQEQ};
+            return {"==", fk::lang::token_type::EQEQ};
         }
-        return {"=", token_type::EQ};
+        return {"=", fk::lang::token_type::EQ};
     } else if (c == '!') {
         if (curr() == '=') {
             advance(); // eat the '='
-            return {"!=", token_type::NEQ};
+            return {"!=", fk::lang::token_type::NEQ};
         }
-        return {"!", token_type::BANG};
+        return {"!", fk::lang::token_type::BANG};
     } else if (c == '"') {
         return lex_string();
     } else if (c == '#') {
         skip_comment();
         return next_token();
     } else if (c == '{') {
-        return { "{", token_type::LBRACE };
+        return { "{", fk::lang::token_type::LBRACE };
     } else if (c == '}') {
-        return { "}", token_type::RBRACE };
+        return { "}", fk::lang::token_type::RBRACE };
     } else {
         error_handler_->report_error({"unknown token!"});
-        return { "", token_type::UNKNOWN };
+        return { "", fk::lang::token_type::UNKNOWN };
     }
 }
 
-token_t lexer_t::peek_token() noexcept
+fk::lang::token_t fk::lang::lexer_t::peek_token() noexcept
 {
     size_t old_cursor = cursor_;
     
-    token_t token = next_token();
+    fk::lang::token_t token = next_token();
 
     cursor_ = old_cursor;
 
     return token;
 }
 
-bool lexer_t::is_eof() const noexcept
+bool fk::lang::lexer_t::is_eof() const noexcept
 {
     return cursor_ >= text_.length();
 }
 
-std::string lexer_t::rest() const noexcept
+std::string fk::lang::lexer_t::rest() const noexcept
 {
     return is_eof()
         ? ""
         : text_.substr(cursor_);   
 }
 
-void lexer_t::skip_whitespace() noexcept
+void fk::lang::lexer_t::skip_whitespace() noexcept
 {
     debug("LEXER: skipping whitespace\n");
     while (!is_eof() && std::isspace(text_[cursor_])) {
@@ -115,14 +115,14 @@ void lexer_t::skip_whitespace() noexcept
     }
 }
 
-void lexer_t::skip_comment() noexcept
+void fk::lang::lexer_t::skip_comment() noexcept
 {
     while (!is_eof() && curr() != '\n') {
         advance();
     }
 }
 
-token_t lexer_t::lex_alnum(char init) noexcept
+fk::lang::token_t fk::lang::lexer_t::lex_alnum(char init) noexcept
 {
     debug("LEXER: lexing alnum token\n");
 
@@ -137,14 +137,14 @@ token_t lexer_t::lex_alnum(char init) noexcept
         }
     }
 
-    token_type type = is_keyword(token)
+    fk::lang::token_type type = is_keyword(token)
         ? KEYWORDS.at(token)
-        : token_type::IDENTIFIER;
+        : fk::lang::token_type::IDENTIFIER;
 
     return { token, type };
 }
 
-token_t lexer_t::lex_string() noexcept
+fk::lang::token_t fk::lang::lexer_t::lex_string() noexcept
 {
     std::string str;
     while (!is_eof()) {
@@ -153,16 +153,16 @@ token_t lexer_t::lex_string() noexcept
             break;
         } else if (is_eof()) {
             error_handler_->report_error({"terminal \" not found"});
-            return { str, token_type::UNKNOWN };
+            return { str, fk::lang::token_type::UNKNOWN };
         } else {
             str += c;
         }
     }
 
-    return { str, token_type::STRING };
+    return { str, fk::lang::token_type::STRING };
 }
 
-token_t lexer_t::lex_number(char init) noexcept
+fk::lang::token_t fk::lang::lexer_t::lex_number(char init) noexcept
 {
     std::string num(1, init);
 
@@ -175,7 +175,7 @@ token_t lexer_t::lex_number(char init) noexcept
         } else if (c == '.') {
             if (decimal_found) {
                 error_handler_->report_error({"'.' lexeme not expected"});
-                return { ".", token_type::UNKNOWN };
+                return { ".", fk::lang::token_type::UNKNOWN };
             }
             num += c;
             decimal_found = true;
@@ -185,25 +185,25 @@ token_t lexer_t::lex_number(char init) noexcept
         }
     }
 
-    return { num, token_type::NUMBER };
+    return { num, fk::lang::token_type::NUMBER };
 }
 
-char lexer_t::curr() const noexcept
+char fk::lang::lexer_t::curr() const noexcept
 {
     return text_[cursor_];
 }
 
-char lexer_t::peek() const noexcept
+char fk::lang::lexer_t::peek() const noexcept
 {
     return text_[cursor_ + 1];
 }
 
-char lexer_t::advance() noexcept
+char fk::lang::lexer_t::advance() noexcept
 {
     return text_[cursor_++];
 }
 
-bool lexer_t::is_keyword(const std::string& str) const noexcept
+bool fk::lang::lexer_t::is_keyword(const std::string& str) const noexcept
 {
     return KEYWORDS.find(str) != KEYWORDS.cend();
 }

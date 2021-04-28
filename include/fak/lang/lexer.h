@@ -4,6 +4,8 @@
 
 #include <fak/lang/token.h>
 
+namespace fk::lang {
+
 // forward declarations
 struct error_handler_t;
 
@@ -36,5 +38,7 @@ private:
     const std::string text_;
     size_t cursor_;
 
-    error_handler_t *error_handler_;
+    fk::lang::error_handler_t *error_handler_;
 };
+
+}

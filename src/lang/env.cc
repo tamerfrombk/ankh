@@ -4,7 +4,7 @@
 
 #include <fak/lang/env.h>
 
-bool environment_t::assign(const std::string &name, const expr_result_t &result) noexcept
+bool fk::lang::environment_t::assign(const std::string &name, const expr_result_t &result) noexcept
 {
     // TODO: implement a shadowing warning
     auto it = values_.insert({name, result});
@@ -12,7 +12,7 @@ bool environment_t::assign(const std::string &name, const expr_result_t &result)
     return it.second;
 }
 
-std::optional<expr_result_t> environment_t::value(const std::string& name) const noexcept
+std::optional<fk::lang::expr_result_t> fk::lang::environment_t::value(const std::string& name) const noexcept
 {
     const auto it = values_.find(name);
 

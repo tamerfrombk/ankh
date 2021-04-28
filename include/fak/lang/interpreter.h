@@ -6,6 +6,8 @@
 #include <fak/lang/statement.h>
 #include <fak/lang/env.h>
 
+namespace fk::lang {
+
 class interpreter_t
     : public expression_visitor_t<expr_result_t>
     , public statement_visitor_t<void>
@@ -32,8 +34,11 @@ private:
 
     void enter_new_scope();
     void leave_current_scope();
-    environment_t& current_scope();
+    fk::lang::environment_t& current_scope();
     
 private:
-    std::vector<environment_t> env_;
+    std::vector<fk::lang::environment_t> env_;
 };
+
+}
+

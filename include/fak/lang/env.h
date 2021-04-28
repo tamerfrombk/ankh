@@ -6,6 +6,7 @@
 
 #include <fak/lang/expr.h>
 
+namespace fk::lang {
 class environment_t
 {
 public:
@@ -16,3 +17,5 @@ public:
 private:
     std::unordered_map<std::string, expr_result_t> values_;
 };
+
+}

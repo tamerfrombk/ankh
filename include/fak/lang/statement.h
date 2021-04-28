@@ -7,6 +7,9 @@
 #include <fak/lang/expr.h>
 #include <fak/lang/token.h>
 
+namespace fk::lang {
+
+
 // forward declare statement types for visitor
 struct print_statement_t;
 struct expression_statement_t;
@@ -95,3 +98,5 @@ struct block_statement_t
         visitor->visit(this);
     }
 };
+
+}

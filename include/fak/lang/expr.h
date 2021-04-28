@@ -6,6 +6,7 @@
 
 #include <fak/lang/token.h>
 
+namespace fk::lang {
 
 // forward declare our expression types for the visitor
 struct binary_expression_t;
@@ -143,3 +144,5 @@ struct identifier_expression_t
         return visitor->visit(this);
     }
 };
+
+}

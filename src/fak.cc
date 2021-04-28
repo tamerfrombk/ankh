@@ -17,7 +17,6 @@
 #include <fak/def.h>
 #include <fak/log.h>
 #include <fak/fak.h>
-#include <fak/string.h>
 #include <fak/lang/lexer.h>
 #include <fak/lang/parser.h>
 
@@ -27,10 +26,10 @@
 
 static int interpret(const std::string& script)
 {
-    auto error_handler = std::make_unique<error_handler_t>();
-    parser_t parser(script, error_handler.get());
+    auto error_handler = std::make_unique<fk::lang::error_handler_t>();
+    fk::lang::parser_t parser(script, error_handler.get());
 
-    const program_t program = parser.parse();
+    const fk::lang::program_t program = parser.parse();
     if (error_handler->error_count() > 0) {
         const auto& errors = error_handler->errors();
         for (const auto& e :  errors) {
@@ -39,7 +38,7 @@ static int interpret(const std::string& script)
         return 1;
     }
 
-    interpreter_t interpreter;
+    fk::lang::interpreter_t interpreter;
     interpreter.interpret(program);
 
     return 0;
@@ -64,7 +63,7 @@ static std::optional<std::string> read_file(const std::string& path) noexcept
     return { result };
 }
 
-int shell_loop(int argc, char **argv)
+int fk::shell_loop(int argc, char **argv)
 {
     if (argc > 1) {
         if (auto possible_script = read_file(argv[1]); possible_script) {

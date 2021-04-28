@@ -7,6 +7,8 @@
 #include <fak/lang/statement.h>
 #include <fak/lang/token.h>
 
+namespace fk::lang {
+
 // forward declarations
 struct error_handler_t;
 
@@ -49,3 +51,5 @@ private:
 
     error_handler_t *error_handler_;
 };
+
+}

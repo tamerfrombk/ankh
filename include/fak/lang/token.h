@@ -2,6 +2,8 @@
 
 #include <string>
 
+namespace fk::lang {
+
 enum class token_type {
     IDENTIFIER,
     EQ,                // =
@@ -39,3 +41,5 @@ struct token_t {
 
     token_t(std::string str, token_type type);
 };
+
+}

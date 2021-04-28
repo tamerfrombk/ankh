@@ -9,22 +9,22 @@
 #include <fak/lang/error_handler.h>
 #include <fak/log.h>
 
-parser_t::parser_t(std::string str, error_handler_t *error_handler)
+fk::lang::parser_t::parser_t(std::string str, error_handler_t *error_handler)
     : cursor_(0)
     , error_handler_(error_handler)
 {
     lexer_t lexer(str, error_handler_);
-    for (token_t tok = lexer.next_token(); tok.type != token_type::T_EOF; tok = lexer.next_token()) {
+    for (token_t tok = lexer.next_token(); tok.type != fk::lang::token_type::T_EOF; tok = lexer.next_token()) {
         tokens_.push_back(tok);
     }
-    tokens_.emplace_back("", token_type::T_EOF);
+    tokens_.emplace_back("", fk::lang::token_type::T_EOF);
 
     for (const auto& tok : tokens_) {
-        debug("('%s':'%s')\n", token_type_str(tok.type).c_str(), tok.str.c_str());
+        debug("('%s':'%s')\n", fk::lang::token_type_str(tok.type).c_str(), tok.str.c_str());
     }
 }
 
-program_t parser_t::parse()
+fk::lang::program_t fk::lang::parser_t::parse()
 {
     program_t stmts;
     while (!is_eof()) {
@@ -33,18 +33,18 @@ program_t parser_t::parse()
     return stmts;
 }
 
-statement_ptr parser_t::declaration()
+fk::lang::statement_ptr fk::lang::parser_t::declaration()
 {
-    if (match({ token_type::IDENTIFIER })) {
+    if (match({ fk::lang::token_type::IDENTIFIER })) {
         return assignment();
     }
     return statement();
 }
 
-statement_ptr parser_t::assignment()
+fk::lang::statement_ptr fk::lang::parser_t::assignment()
 {
     token_t variable = prev();
-    if (match({ token_type::EQ })) {
+    if (match({ fk::lang::token_type::EQ })) {
         return make_statement<assignment_statement_t>(variable, expression());
     }
     
@@ -54,37 +54,37 @@ statement_ptr parser_t::assignment()
     return nullptr;
 }
 
-statement_ptr parser_t::statement()
+fk::lang::statement_ptr fk::lang::parser_t::statement()
 {
-    if (match({ token_type::PRINT })) {
+    if (match({ fk::lang::token_type::PRINT })) {
         return print_statement();
     }
-    if (match({ token_type::LBRACE })) {
+    if (match({ fk::lang::token_type::LBRACE })) {
         return block();
     }
 
     return expression_statement();
 }
 
-statement_ptr parser_t::print_statement()
+fk::lang::statement_ptr fk::lang::parser_t::print_statement()
 {
     return make_statement<print_statement_t>(expression());
 }
 
-statement_ptr parser_t::expression_statement()
+fk::lang::statement_ptr fk::lang::parser_t::expression_statement()
 {
     return make_statement<expression_statement_t>(expression());
 }
 
-statement_ptr parser_t::block()
+fk::lang::statement_ptr fk::lang::parser_t::block()
 {
     // TODO: reserve some room ahead of time for the statements
-    std::vector<statement_ptr> statements;
-    while (!check(token_type::RBRACE) && !is_eof()) {
+    std::vector<fk::lang::statement_ptr> statements;
+    while (!check(fk::lang::token_type::RBRACE) && !is_eof()) {
         statements.emplace_back(declaration());
     }
 
-    if (!match({ token_type::RBRACE })) {
+    if (!match({ fk::lang::token_type::RBRACE })) {
         error_handler_->report_error({"expect '}' to terminate block"});
         // TODO: handle error
         return nullptr;
@@ -93,54 +93,54 @@ statement_ptr parser_t::block()
     return make_statement<block_statement_t>(std::move(statements));
 }
 
-expression_ptr parser_t::expression()
+fk::lang::expression_ptr fk::lang::parser_t::expression()
 {
 //    debug("PARSER: parsing expression: '%s'\n", lexer_.rest().c_str());
     return equality();
 }
 
-expression_ptr parser_t::equality()
+fk::lang::expression_ptr fk::lang::parser_t::equality()
 {
-    static auto eq_ops = { token_type::EQEQ, token_type::NEQ };
+    static auto eq_ops = { fk::lang::token_type::EQEQ, fk::lang::token_type::NEQ };
 
 //    debug("PARSER: parsing equality: '%s'\n", lexer_.rest().c_str());
 
-    expression_ptr left = comparison();
+    fk::lang::expression_ptr left = comparison();
     while (match(eq_ops)) {
         token_t op = prev();
-        expression_ptr right = comparison();
+        fk::lang::expression_ptr right = comparison();
         left = make_expression<binary_expression_t>(std::move(left), op, std::move(right));
     }
 
     return left;
 }
 
-expression_ptr parser_t::comparison()
+fk::lang::expression_ptr fk::lang::parser_t::comparison()
 {
-    static auto comp_ops = { token_type::LT, token_type::LTE, token_type::GT, token_type::GTE };
+    static auto comp_ops = { fk::lang::token_type::LT, fk::lang::token_type::LTE, fk::lang::token_type::GT, fk::lang::token_type::GTE };
 
     //debug("PARSER: parsing comparison: '%s'\n", lexer_.rest().c_str());
 
-    expression_ptr left = term();
+    fk::lang::expression_ptr left = term();
     while (match(comp_ops)) {
         token_t op = prev();
-        expression_ptr right = term();
+        fk::lang::expression_ptr right = term();
         left = make_expression<binary_expression_t>(std::move(left), op, std::move(right));
     }
 
     return left;
 }
 
-expression_ptr parser_t::term()
+fk::lang::expression_ptr fk::lang::parser_t::term()
 {
-    static auto term_ops = { token_type::MINUS, token_type::PLUS };
+    static auto term_ops = { fk::lang::token_type::MINUS, fk::lang::token_type::PLUS };
 
     //debug("PARSER: parsing term: '%s'\n", lexer_.rest().c_str());
 
-    expression_ptr left = factor();
+    fk::lang::expression_ptr left = factor();
     while (match(term_ops)) {
         token_t op = prev();
-        expression_ptr right = factor();
+        fk::lang::expression_ptr right = factor();
         //debug("PARSER: right hand side parsed with '%s' remaining\n", lexer_.rest().c_str());
         left = make_expression<binary_expression_t>(std::move(left), op, std::move(right));
     }
@@ -148,58 +148,58 @@ expression_ptr parser_t::term()
     return left;
 }
 
-expression_ptr parser_t::factor()
+fk::lang::expression_ptr fk::lang::parser_t::factor()
 {
-    static auto factor_ops = { token_type::STAR, token_type::FSLASH };
+    static auto factor_ops = { fk::lang::token_type::STAR, fk::lang::token_type::FSLASH };
 
     //debug("PARSER: parsing factpr: '%s'\n", lexer_.rest().c_str());
 
-    expression_ptr left = unary();
+    fk::lang::expression_ptr left = unary();
     while (match(factor_ops)) {
         token_t op = prev();
-        expression_ptr right = unary();
+        fk::lang::expression_ptr right = unary();
         left = make_expression<binary_expression_t>(std::move(left), op, std::move(right));
     }
 
     return left;
 }
 
-expression_ptr parser_t::unary()
+fk::lang::expression_ptr fk::lang::parser_t::unary()
 {
-    static auto unary_ops = { token_type::BANG, token_type::MINUS };
+    static auto unary_ops = { fk::lang::token_type::BANG, fk::lang::token_type::MINUS };
 
 //    debug("PARSER: parsing unary: '%s'\n", lexer_.rest().c_str());
 
     if (match(unary_ops)) {
         token_t op = prev();
-        expression_ptr right = unary();
+        fk::lang::expression_ptr right = unary();
         return make_expression<unary_expression_t>(op, std::move(right));
     }
 
     return primary();
 }
 
-expression_ptr parser_t::primary()
+fk::lang::expression_ptr fk::lang::parser_t::primary()
 {
     //debug("PARSER: parsing primary: '%s'\n", lexer_.rest().c_str());
-    if (match({ token_type::NUMBER
-            , token_type::STRING
-            , token_type::BTRUE
-            , token_type::BFALSE
-            , token_type::NIL
+    if (match({ fk::lang::token_type::NUMBER
+            , fk::lang::token_type::STRING
+            , fk::lang::token_type::BTRUE
+            , fk::lang::token_type::BFALSE
+            , fk::lang::token_type::NIL
         })) 
     {
         return make_expression<literal_expression_t>(prev());
     }
 
-    if (match({ token_type::IDENTIFIER })) {
+    if (match({ fk::lang::token_type::IDENTIFIER })) {
         return make_expression<identifier_expression_t>(prev());
     }
 
-    if (match({ token_type::LPAREN })) {
-        expression_ptr expr = expression();
+    if (match({ fk::lang::token_type::LPAREN })) {
+        fk::lang::expression_ptr expr = expression();
         token_t paren = advance();
-        if (paren.type != token_type::RPAREN) {
+        if (paren.type != fk::lang::token_type::RPAREN) {
             error_handler_->report_error({"terminating ')' not found"});
         }
         return make_expression<paren_expression_t>(std::move(expr));
@@ -212,17 +212,17 @@ expression_ptr parser_t::primary()
     return nullptr;
 }
 
-const token_t& parser_t::prev() const noexcept
+const fk::lang::token_t& fk::lang::parser_t::prev() const noexcept
 {
     return tokens_[cursor_ - 1];
 }
 
-const token_t& parser_t::curr() const noexcept
+const fk::lang::token_t& fk::lang::parser_t::curr() const noexcept
 {
     return tokens_[cursor_];
 }
 
-const token_t& parser_t::advance() noexcept
+const fk::lang::token_t& fk::lang::parser_t::advance() noexcept
 {
     if (!is_eof()) {
         ++cursor_;
@@ -231,14 +231,14 @@ const token_t& parser_t::advance() noexcept
     return prev();
 }
 
-bool parser_t::is_eof() const noexcept
+bool fk::lang::parser_t::is_eof() const noexcept
 {
-    return curr().type == token_type::T_EOF;
+    return curr().type == fk::lang::token_type::T_EOF;
 }
 
-bool parser_t::match(std::initializer_list<token_type> types) noexcept
+bool fk::lang::parser_t::match(std::initializer_list<fk::lang::token_type> types) noexcept
 {
-    for (token_type type : types) {
+    for (fk::lang::token_type type : types) {
         if (check(type)) {
             advance();
             return true;
@@ -248,7 +248,7 @@ bool parser_t::match(std::initializer_list<token_type> types) noexcept
     return false;
 }
 
-bool parser_t::check(token_type type) const noexcept
+bool fk::lang::parser_t::check(fk::lang::token_type type) const noexcept
 {
     if (is_eof()) {
         return false;

@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+namespace fk::lang {
 struct err_t 
 {
     std::string msg;
@@ -40,3 +41,5 @@ public:
 private:
     std::vector<err_t> errors_;
 };
+
+}
