@@ -1,3 +1,4 @@
+#include "clean/lang/env.h"
 #include <cstdlib>
 #include <cstdio>
 #include <algorithm>
@@ -114,6 +115,12 @@ static expr_result_t compare(const expr_result_t& left, const expr_result_t& rig
     return expr_result_t::e("unknown overload for comparison operator");
 }
 
+interpreter_t::interpreter_t()
+{
+    // initialize the global scope
+    enter_new_scope();
+}
+
 void interpreter_t::interpret(const program_t& program)
 {
     for (const auto& stmt : program) {
@@ -192,9 +199,11 @@ expr_result_t interpreter_t::visit(paren_expression_t *expr)
 
 expr_result_t interpreter_t::visit(identifier_expression_t *expr)
 {
-    auto possible_value = env_.value(expr->name.str); 
-    if (possible_value.has_value()) {
-        return possible_value.value();
+    for (auto it = env_.rbegin(); it != env_.rend(); ++it) {
+        auto possible_value = it->value(expr->name.str); 
+        if (possible_value.has_value()) {
+            return possible_value.value();
+        }
     }
 
     return expr_result_t::e("identifier " + expr->name.str + " is not defined in the current scope");
@@ -238,7 +247,19 @@ void interpreter_t::visit(assignment_statement_t *stmt)
         return;
     }
 
-    env_.assign(stmt->name.str, result);
+    current_scope().assign(stmt->name.str, result);
+}
+
+void interpreter_t::visit(block_statement_t *stmt)
+{
+    try {
+        enter_new_scope();
+        for (const statement_ptr& statement : stmt->statements) {
+            execute(statement);
+        }
+    } catch (...) {
+        leave_current_scope();
+    }
 }
 
 expr_result_t interpreter_t::evaluate(expression_ptr& expr) noexcept
@@ -249,4 +270,19 @@ expr_result_t interpreter_t::evaluate(expression_ptr& expr) noexcept
 void interpreter_t::execute(const statement_ptr& stmt) noexcept
 {
     stmt->accept(this);
+}
+
+void interpreter_t::enter_new_scope()
+{
+    env_.emplace_back();
+}
+
+void interpreter_t::leave_current_scope()
+{
+    env_.pop_back();
+}
+
+environment_t& interpreter_t::current_scope()
+{
+    return env_.back();
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include <clean/lang/expr.h>
 #include <clean/lang/statement.h>
 #include <clean/lang/env.h>
@@ -9,6 +11,8 @@ class interpreter_t
     , public statement_visitor_t<void>
 {
 public:
+    interpreter_t();
+
     void interpret(const program_t& program);
 
     virtual expr_result_t visit(binary_expression_t *expr) override;
@@ -20,11 +24,16 @@ public:
     virtual void visit(print_statement_t *stmt) override;
     virtual void visit(expression_statement_t *stmt) override;
     virtual void visit(assignment_statement_t *stmt) override;
+    virtual void visit(block_statement_t *stmt) override;
 
 private:
     expr_result_t evaluate(expression_ptr& expr) noexcept;
     void execute(const statement_ptr& stmt) noexcept;
+
+    void enter_new_scope();
+    void leave_current_scope();
+    environment_t& current_scope();
     
 private:
-    environment_t env_;
+    std::vector<environment_t> env_;
 };

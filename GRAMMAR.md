@@ -6,9 +6,10 @@ program               → declaration* EOF
 declaration           → assignment | statement
 assignment            → identifier "=" expression newline
 
-statement             → expression_statement | print_statement
+statement             → expression_statement | print_statement | block
 expression_statement  → expression newline
 print_statement       → "print" expression newline
+block                 → "{" declaration* "}"
 
 expression            → equality 
 equality              → comparison ( ( "!=" | "==" ) comparison )* 

@@ -10,7 +10,7 @@ class environment_t
 {
 public:
     bool assign(const std::string& name, const expr_result_t& result) noexcept;
-    
+
     std::optional<expr_result_t> value(const std::string& name) const noexcept;
 
 private:

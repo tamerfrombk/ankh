@@ -11,6 +11,7 @@
 struct print_statement_t;
 struct expression_statement_t;
 struct assignment_statement_t;
+struct block_statement_t;
 
 template <class R>
 struct statement_visitor_t {
@@ -19,6 +20,7 @@ struct statement_visitor_t {
     virtual R visit(print_statement_t *stmt) = 0;
     virtual R visit(expression_statement_t *stmt) = 0;
     virtual R visit(assignment_statement_t *stmt) = 0;
+    virtual R visit(block_statement_t *stmt) = 0;
 };
 
 struct statement_t
@@ -73,6 +75,20 @@ struct assignment_statement_t
 
     assignment_statement_t(token_t name, expression_ptr initializer)
         : name(std::move(name)), initializer(std::move(initializer)) {}
+
+    virtual void accept(statement_visitor_t<void> *visitor) override
+    {
+        visitor->visit(this);
+    }
+};
+
+struct block_statement_t
+    : public statement_t
+{
+    std::vector<statement_ptr> statements;
+
+    block_statement_t(std::vector<statement_ptr> statements)
+        : statements(std::move(statements)) {}
 
     virtual void accept(statement_visitor_t<void> *visitor) override
     {

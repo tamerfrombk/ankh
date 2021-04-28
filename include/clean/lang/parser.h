@@ -24,8 +24,9 @@ private:
     statement_ptr  assignment();
     
     statement_ptr  statement();
-    statement_ptr  print_statement();
     statement_ptr  expression_statement();
+    statement_ptr  print_statement();
+    statement_ptr  block();
     
     expression_ptr expression();
     expression_ptr equality();

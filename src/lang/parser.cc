@@ -59,6 +59,10 @@ statement_ptr parser_t::statement()
     if (match({ token_type::PRINT })) {
         return print_statement();
     }
+    if (match({ token_type::LBRACE })) {
+        return block();
+    }
+
     return expression_statement();
 }
 
@@ -70,6 +74,23 @@ statement_ptr parser_t::print_statement()
 statement_ptr parser_t::expression_statement()
 {
     return make_statement<expression_statement_t>(expression());
+}
+
+statement_ptr parser_t::block()
+{
+    // TODO: reserve some room ahead of time for the statements
+    std::vector<statement_ptr> statements;
+    while (!check(token_type::RBRACE) && !is_eof()) {
+        statements.emplace_back(declaration());
+    }
+
+    if (!match({ token_type::RBRACE })) {
+        error_handler_->report_error({"expect '}' to terminate block"});
+        // TODO: handle error
+        return nullptr;
+    }
+
+    return make_statement<block_statement_t>(std::move(statements));
 }
 
 expression_ptr parser_t::expression()
