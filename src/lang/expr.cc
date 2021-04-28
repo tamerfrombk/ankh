@@ -24,7 +24,7 @@ fk::lang::expr_result fk::lang::expr_result::nil()
     return e;
 }
 
-fk::lang::expr_result fk::lang::expr_result::num(number_t n) 
+fk::lang::expr_result fk::lang::expr_result::number(number_t n) 
 {
     expr_result e;
     e.type = expr_result_type::RT_NUMBER;
@@ -33,7 +33,7 @@ fk::lang::expr_result fk::lang::expr_result::num(number_t n)
     return e;
 }
 
-fk::lang::expr_result fk::lang::expr_result::stringe(std::string s) 
+fk::lang::expr_result fk::lang::expr_result::string(std::string s) 
 {
     expr_result e;
     e.type = expr_result_type::RT_STRING;
@@ -42,7 +42,7 @@ fk::lang::expr_result fk::lang::expr_result::stringe(std::string s)
     return e;
 }
 
-fk::lang::expr_result fk::lang::expr_result::e(std::string s) 
+fk::lang::expr_result fk::lang::expr_result::error(std::string s) 
 {
     expr_result e;
     e.type = expr_result_type::RT_ERROR;

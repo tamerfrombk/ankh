@@ -52,9 +52,9 @@ struct expr_result {
     expr_result_type type;
 
     static expr_result nil();
-    static expr_result num(number_t n);
-    static expr_result stringe(std::string s);
-    static expr_result e(std::string s);
+    static expr_result number(number_t n);
+    static expr_result string(std::string s);
+    static expr_result error(std::string s);
     static expr_result boolean(bool b);
 };
 

@@ -33,11 +33,11 @@ static fk::lang::number_t to_num(const std::string& s) noexcept
 static fk::lang::expr_result negate(const fk::lang::expr_result& result) noexcept
 {
     if (result.type == fk::lang::expr_result_type::RT_NUMBER) {
-        return fk::lang::expr_result::num(-1 * result.n);
+        return fk::lang::expr_result::number(-1 * result.n);
     }
     
     // TODO: improve the error message
-    return fk::lang::expr_result::e("- operator expects a number expression");
+    return fk::lang::expr_result::error("- operator expects a number expression");
 }
 
 static fk::lang::expr_result invert(const fk::lang::expr_result& result) noexcept
@@ -47,7 +47,7 @@ static fk::lang::expr_result invert(const fk::lang::expr_result& result) noexcep
     }
 
     // TODO: improve the error message
-    return fk::lang::expr_result::e("! operator expects a boolean expression");
+    return fk::lang::expr_result::error("! operator expects a boolean expression");
 }
 
 static fk::lang::expr_result eqeq(const fk::lang::expr_result& left, const fk::lang::expr_result& right) noexcept
@@ -69,7 +69,7 @@ static fk::lang::expr_result eqeq(const fk::lang::expr_result& left, const fk::l
     }
 
     // TODO: improve error message
-    return fk::lang::expr_result::e("unknown overload for (!=) operator");
+    return fk::lang::expr_result::error("unknown overload for (!=) operator");
 }
 
 template <class BinaryOperation>
@@ -77,11 +77,11 @@ static fk::lang::expr_result
 arithmetic(const fk::lang::expr_result& left, const fk::lang::expr_result& right, BinaryOperation op) noexcept
 {
     if (operands_are(fk::lang::expr_result_type::RT_NUMBER, {left, right})) {
-        return fk::lang::expr_result::num(op(left.n, right.n));
+        return fk::lang::expr_result::number(op(left.n, right.n));
     }
 
     // TODO: improve error message
-    return fk::lang::expr_result::e("unknown overload for arithmetic operator");
+    return fk::lang::expr_result::error("unknown overload for arithmetic operator");
 }
 
 // We handle + separately as it has two overloads for numbers and strings
@@ -90,15 +90,15 @@ arithmetic(const fk::lang::expr_result& left, const fk::lang::expr_result& right
 static fk::lang::expr_result plus(const fk::lang::expr_result& left, const fk::lang::expr_result& right)
 {
     if (operands_are(fk::lang::expr_result_type::RT_NUMBER, {left, right})) {
-        return fk::lang::expr_result::num(left.n + right.n);
+        return fk::lang::expr_result::number(left.n + right.n);
     }
 
     if (operands_are(fk::lang::expr_result_type::RT_STRING, {left, right})) {
-        return fk::lang::expr_result::stringe(left.str + right.str);
+        return fk::lang::expr_result::string(left.str + right.str);
     }
 
     // TODO: improve error message
-    return fk::lang::expr_result::e("unknown overload for (+) operator");
+    return fk::lang::expr_result::error("unknown overload for (+) operator");
 }
 
 template <class Compare>
@@ -114,7 +114,7 @@ compare(const fk::lang::expr_result& left, const fk::lang::expr_result& right, C
     }
 
     // TODO: improve error message
-    return fk::lang::expr_result::e("unknown overload for comparison operator");
+    return fk::lang::expr_result::error("unknown overload for comparison operator");
 }
 
 fk::lang::interpreter::interpreter()
@@ -171,7 +171,7 @@ fk::lang::expr_result fk::lang::interpreter::visit(unary_expression *expr)
     case token_type::BANG:
         return invert(result);
     default:
-        return expr_result::e("unknown unary operator " + expr->op.str);
+        return expr_result::error("unknown unary operator " + expr->op.str);
     }
 }
 
@@ -179,9 +179,9 @@ fk::lang::expr_result fk::lang::interpreter::visit(literal_expression *expr)
 {
     switch (expr->literal.type) {
     case token_type::NUMBER:
-        return expr_result::num(to_num(expr->literal.str));
+        return expr_result::number(to_num(expr->literal.str));
     case token_type::STRING:
-        return expr_result::stringe(expr->literal.str);
+        return expr_result::string(expr->literal.str);
     case token_type::BTRUE:
         return expr_result::boolean(true);
     case token_type::BFALSE:
@@ -190,7 +190,7 @@ fk::lang::expr_result fk::lang::interpreter::visit(literal_expression *expr)
         return expr_result::nil();
     default:
         // TODO: handle error better than this
-        return expr_result::e("unknown literal type");
+        return expr_result::error("unknown literal type");
     }
 }
 
@@ -208,7 +208,7 @@ fk::lang::expr_result fk::lang::interpreter::visit(identifier_expression *expr)
         }
     }
 
-    return expr_result::e("identifier " + expr->name.str + " is not defined in the current scope");
+    return expr_result::error("identifier " + expr->name.str + " is not defined in the current scope");
 }
 
 void fk::lang::interpreter::visit(print_statement *stmt)
