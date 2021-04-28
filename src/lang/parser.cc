@@ -95,15 +95,12 @@ fk::lang::statement_ptr fk::lang::parser_t::block()
 
 fk::lang::expression_ptr fk::lang::parser_t::expression()
 {
-//    debug("PARSER: parsing expression: '%s'\n", lexer_.rest().c_str());
     return equality();
 }
 
 fk::lang::expression_ptr fk::lang::parser_t::equality()
 {
     static auto eq_ops = { fk::lang::token_type::EQEQ, fk::lang::token_type::NEQ };
-
-//    debug("PARSER: parsing equality: '%s'\n", lexer_.rest().c_str());
 
     fk::lang::expression_ptr left = comparison();
     while (match(eq_ops)) {
@@ -119,8 +116,6 @@ fk::lang::expression_ptr fk::lang::parser_t::comparison()
 {
     static auto comp_ops = { fk::lang::token_type::LT, fk::lang::token_type::LTE, fk::lang::token_type::GT, fk::lang::token_type::GTE };
 
-    //debug("PARSER: parsing comparison: '%s'\n", lexer_.rest().c_str());
-
     fk::lang::expression_ptr left = term();
     while (match(comp_ops)) {
         token_t op = prev();
@@ -135,13 +130,10 @@ fk::lang::expression_ptr fk::lang::parser_t::term()
 {
     static auto term_ops = { fk::lang::token_type::MINUS, fk::lang::token_type::PLUS };
 
-    //debug("PARSER: parsing term: '%s'\n", lexer_.rest().c_str());
-
     fk::lang::expression_ptr left = factor();
     while (match(term_ops)) {
         token_t op = prev();
         fk::lang::expression_ptr right = factor();
-        //debug("PARSER: right hand side parsed with '%s' remaining\n", lexer_.rest().c_str());
         left = make_expression<binary_expression_t>(std::move(left), op, std::move(right));
     }
 
@@ -151,8 +143,6 @@ fk::lang::expression_ptr fk::lang::parser_t::term()
 fk::lang::expression_ptr fk::lang::parser_t::factor()
 {
     static auto factor_ops = { fk::lang::token_type::STAR, fk::lang::token_type::FSLASH };
-
-    //debug("PARSER: parsing factpr: '%s'\n", lexer_.rest().c_str());
 
     fk::lang::expression_ptr left = unary();
     while (match(factor_ops)) {
@@ -168,8 +158,6 @@ fk::lang::expression_ptr fk::lang::parser_t::unary()
 {
     static auto unary_ops = { fk::lang::token_type::BANG, fk::lang::token_type::MINUS };
 
-//    debug("PARSER: parsing unary: '%s'\n", lexer_.rest().c_str());
-
     if (match(unary_ops)) {
         token_t op = prev();
         fk::lang::expression_ptr right = unary();
@@ -181,7 +169,6 @@ fk::lang::expression_ptr fk::lang::parser_t::unary()
 
 fk::lang::expression_ptr fk::lang::parser_t::primary()
 {
-    //debug("PARSER: parsing primary: '%s'\n", lexer_.rest().c_str());
     if (match({ fk::lang::token_type::NUMBER
             , fk::lang::token_type::STRING
             , fk::lang::token_type::BTRUE
