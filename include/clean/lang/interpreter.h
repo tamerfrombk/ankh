@@ -1,9 +1,8 @@
 #pragma once
 
-#include <unordered_map>
-
 #include <clean/lang/expr.h>
 #include <clean/lang/statement.h>
+#include <clean/lang/env.h>
 
 class interpreter_t
     : public expression_visitor_t<expr_result_t>
@@ -27,5 +26,5 @@ private:
     void execute(const statement_ptr& stmt) noexcept;
     
 private:
-    std::unordered_map<std::string, expr_result_t> variables_;
+    environment_t env_;
 };

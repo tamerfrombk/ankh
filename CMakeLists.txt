@@ -20,6 +20,7 @@ SET(SOURCES
     src/lang/parser.cc
     src/lang/expr.cc
     src/lang/interpreter.cc
+    src/lang/env.cc
 )
 
 ADD_LIBRARY(${APP_LIB} STATIC ${SOURCES})
