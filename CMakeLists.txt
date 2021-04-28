@@ -14,7 +14,6 @@ SET(APP_LIB fakapi)
 
 SET(SOURCES 
     src/fak.cc 
-    src/string.cc 
     src/lang/lexer.cc 
     src/lang/token.cc 
     src/lang/parser.cc
