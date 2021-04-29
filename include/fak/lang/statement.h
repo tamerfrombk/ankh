@@ -15,6 +15,7 @@ struct print_statement;
 struct expression_statement;
 struct assignment_statement;
 struct block_statement;
+struct if_statement;
 
 template <class R>
 struct statement_visitor {
@@ -24,6 +25,7 @@ struct statement_visitor {
     virtual R visit(expression_statement *stmt) = 0;
     virtual R visit(assignment_statement *stmt) = 0;
     virtual R visit(block_statement *stmt) = 0;
+    virtual R visit(if_statement *stmt) = 0;
 };
 
 struct statement
@@ -92,6 +94,22 @@ struct block_statement
 
     block_statement(std::vector<statement_ptr> statements)
         : statements(std::move(statements)) {}
+
+    virtual void accept(statement_visitor<void> *visitor) override
+    {
+        visitor->visit(this);
+    }
+};
+
+struct if_statement
+    : public statement
+{
+    expression_ptr condition;
+    statement_ptr then_block;
+    statement_ptr else_block;
+
+    if_statement(expression_ptr condition, statement_ptr then_block, statement_ptr else_block)
+        : condition(std::move(condition)), then_block(std::move(then_block)), else_block(std::move(else_block)) {}
 
     virtual void accept(statement_visitor<void> *visitor) override
     {

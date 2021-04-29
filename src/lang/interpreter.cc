@@ -117,6 +117,15 @@ compare(const fk::lang::expr_result& left, const fk::lang::expr_result& right, C
     return fk::lang::expr_result::error("unknown overload for comparison operator");
 }
 
+static bool truthy(const fk::lang::expr_result& result) noexcept
+{
+    if (result.type == fk::lang::expr_result_type::RT_BOOL) {
+        return result.b;
+    }
+
+    return false;
+}
+
 fk::lang::interpreter::interpreter()
 {
     // initialize the global scope
@@ -263,6 +272,16 @@ void fk::lang::interpreter::visit(block_statement *stmt)
         }
     } catch (...) {
         leave_current_scope();
+    }
+}
+
+void fk::lang::interpreter::visit(if_statement *stmt)
+{
+    const expr_result result = evaluate(stmt->condition);
+    if (truthy(result)) {
+        execute(stmt->then_block);
+    } else if (stmt->else_block != nullptr) {
+        execute(stmt->else_block);
     }
 }
 

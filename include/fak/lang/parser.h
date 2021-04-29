@@ -27,6 +27,9 @@ private:
     
     statement_ptr  statement();
     statement_ptr  block();
+
+    // I use stmt here to avoid conflicting with the type name 'if_statement'
+    statement_ptr  if_stmt();
     
     expression_ptr expression();
     expression_ptr equality();

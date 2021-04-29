@@ -59,8 +59,11 @@ fk::lang::statement_ptr fk::lang::parser::statement()
     if (match({ fk::lang::token_type::PRINT })) {
         return make_statement<print_statement>(expression());
     }
-    if (match({ fk::lang::token_type::LBRACE })) {
+    if (check(fk::lang::token_type::LBRACE)) {
         return block();
+    }
+    if (match({ fk::lang::token_type::IF })) {
+        return if_stmt();
     }
 
     return make_statement<expression_statement>(expression());
@@ -68,6 +71,11 @@ fk::lang::statement_ptr fk::lang::parser::statement()
 
 fk::lang::statement_ptr fk::lang::parser::block()
 {
+    if (!match({ fk::lang::token_type::LBRACE })) {
+        error_handler_->report_error({"expect '{' to start block"});
+        return nullptr;
+    }
+
     // TODO: reserve some room ahead of time for the statements
     std::vector<fk::lang::statement_ptr> statements;
     while (!check(fk::lang::token_type::RBRACE) && !is_eof()) {
@@ -81,6 +89,19 @@ fk::lang::statement_ptr fk::lang::parser::block()
     }
 
     return make_statement<block_statement>(std::move(statements));
+}
+
+fk::lang::statement_ptr fk::lang::parser::if_stmt()
+{
+    expression_ptr condition = expression();
+    statement_ptr then_block = block();
+
+    statement_ptr else_block = nullptr;
+    if (match({ fk::lang::token_type::ELSE })) {
+        else_block = block();
+    }
+
+    return make_statement<if_statement>(std::move(condition), std::move(then_block), std::move(else_block));
 }
 
 fk::lang::expression_ptr fk::lang::parser::expression()
