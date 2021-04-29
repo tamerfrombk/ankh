@@ -50,6 +50,10 @@ std::string fk::lang::token_type_str(fk::lang::token_type type)
         return "IF";
     case fk::lang::token_type::ELSE:
         return "ELSE";
+    case fk::lang::token_type::AND:
+        return "AND";
+    case fk::lang::token_type::OR:
+        return "OR";
     case fk::lang::token_type::NUMBER:
         return "NUMBER";
     case fk::lang::token_type::STRING:

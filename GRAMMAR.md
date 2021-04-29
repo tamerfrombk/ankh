@@ -16,7 +16,9 @@ print_statement       → "print" expression newline
 block                 → "{" declaration* "}"
 if_statement          → "if" expression block ( "else" block )?
 
-expression            → equality 
+expression            → equality | or_expression
+or_expression         → and_expression ( "||" and_expression )*
+and_expression        → equality ( "&&" equality )*
 equality              → comparison ( ( "!=" | "==" ) comparison )* 
 comparison            → term ( ( ">" | ">=" | "<" | "<=" ) term )* 
 term                  → factor ( ( "-" | "+" ) factor )* 

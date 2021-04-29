@@ -54,6 +54,8 @@ LEXER_TEST("scan all basic language lexemes")
             print
             if
             else
+            &&
+            ||
 
             ""
             "non-empty string"
@@ -109,6 +111,8 @@ LEXER_TEST("scan all basic language lexemes")
         // conditionals
         REQUIRE((tokens[i].str == "if" && tokens[i++].type == fk::lang::token_type::IF));
         REQUIRE((tokens[i].str == "else" && tokens[i++].type == fk::lang::token_type::ELSE));
+        REQUIRE((tokens[i].str == "&&" && tokens[i++].type == fk::lang::token_type::AND));
+        REQUIRE((tokens[i].str == "||" && tokens[i++].type == fk::lang::token_type::OR));
 
         // strings
         REQUIRE((tokens[i].str == "" && tokens[i++].type == fk::lang::token_type::STRING));
@@ -174,5 +178,37 @@ LEXER_TEST("scan all basic language lexemes")
         REQUIRE((tokens[1].str == "123.45" && tokens[1].type == fk::lang::token_type::NUMBER));
 
         REQUIRE(error_handler->error_count() == 0);
+    }
+
+    SECTION("lex unary &") 
+    {
+        const std::string stream = R"(
+            &
+        )";
+
+        fk::lang::lexer lexer(stream, error_handler.get());
+
+        std::vector<fk::lang::token> tokens = extract_all_tokens(lexer);
+        
+        REQUIRE(tokens.size() == 2);
+        REQUIRE((tokens[0].str == "&" && tokens[0].type == fk::lang::token_type::UNKNOWN));
+
+        REQUIRE(error_handler->error_count() == 1);
+    }
+
+    SECTION("lex unary |") 
+    {
+        const std::string stream = R"(
+            |
+        )";
+
+        fk::lang::lexer lexer(stream, error_handler.get());
+
+        std::vector<fk::lang::token> tokens = extract_all_tokens(lexer);
+        
+        REQUIRE(tokens.size() == 2);
+        REQUIRE((tokens[0].str == "|" && tokens[0].type == fk::lang::token_type::UNKNOWN));
+
+        REQUIRE(error_handler->error_count() == 1);
     }
 }

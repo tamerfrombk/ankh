@@ -29,6 +29,8 @@ enum class token_type {
     PRINT,             // "print"
     IF,                // "if"
     ELSE,              // "else"
+    AND,               // &&
+    OR,                // ||
     NUMBER,
     STRING,
     T_EOF,

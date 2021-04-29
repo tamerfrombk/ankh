@@ -80,6 +80,20 @@ fk::lang::token fk::lang::lexer::next_token() noexcept
         return { "{", fk::lang::token_type::LBRACE };
     } else if (c == '}') {
         return { "}", fk::lang::token_type::RBRACE };
+    } else if (c == '&') {
+        if (curr() == '&') {
+            advance(); // eat the '&'
+            return { "&&", fk::lang::token_type::AND };
+        }
+        error_handler_->report_error({"'&' is not a valid token; did you mean '&&'?"});
+        return { "&", fk::lang::token_type::UNKNOWN };
+    } else if (c == '|') {
+        if (curr() == '|') {
+            advance(); // eat the '|'
+            return { "||", fk::lang::token_type::OR };
+        }
+        error_handler_->report_error({"'|' is not a valid token; did you mean '||'?"});
+        return { "|", fk::lang::token_type::UNKNOWN };
     } else {
         error_handler_->report_error({"unknown token!"});
         return { "", fk::lang::token_type::UNKNOWN };
