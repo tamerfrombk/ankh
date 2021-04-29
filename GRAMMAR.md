@@ -6,10 +6,15 @@ program               → declaration* EOF
 declaration           → assignment | statement
 assignment            → identifier "=" expression newline
 
-statement             → expression_statement | print_statement | block
+statement             → expression_statement 
+                        | print_statement
+                        | block
+                        | if_statement
+
 expression_statement  → expression newline
 print_statement       → "print" expression newline
 block                 → "{" declaration* "}"
+if_statement          → "if" expression block ( "else" block )?
 
 expression            → equality 
 equality              → comparison ( ( "!=" | "==" ) comparison )* 

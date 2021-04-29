@@ -11,6 +11,8 @@ static const std::unordered_map<std::string, fk::lang::token_type> KEYWORDS = {
     , { "false", fk::lang::token_type::BFALSE }
     , { "nil", fk::lang::token_type::NIL }
     , { "print", fk::lang::token_type::PRINT }
+    , { "if", fk::lang::token_type::IF }
+    , { "else", fk::lang::token_type::ELSE }
 };
 
 fk::lang::lexer::lexer(std::string text, fk::lang::error_handler *error_handler)

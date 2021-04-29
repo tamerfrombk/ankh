@@ -27,6 +27,8 @@ enum class token_type {
     BFALSE,            // "false"
     NIL,               // "nil"
     PRINT,             // "print"
+    IF,                // "if"
+    ELSE,              // "else"
     NUMBER,
     STRING,
     T_EOF,
