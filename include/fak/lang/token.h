@@ -31,6 +31,7 @@ enum class token_type {
     ELSE,              // "else"
     AND,               // &&
     OR,                // ||
+    WHILE,             // "while"
     NUMBER,
     STRING,
     T_EOF,

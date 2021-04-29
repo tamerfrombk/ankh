@@ -13,6 +13,7 @@ static const std::unordered_map<std::string, fk::lang::token_type> KEYWORDS = {
     , { "print", fk::lang::token_type::PRINT }
     , { "if", fk::lang::token_type::IF }
     , { "else", fk::lang::token_type::ELSE }
+    , { "while", fk::lang::token_type::WHILE }
 };
 
 fk::lang::lexer::lexer(std::string text, fk::lang::error_handler *error_handler)

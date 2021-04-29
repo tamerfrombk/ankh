@@ -54,6 +54,8 @@ std::string fk::lang::token_type_str(fk::lang::token_type type)
         return "AND";
     case fk::lang::token_type::OR:
         return "OR";
+    case fk::lang::token_type::WHILE:
+        return "WHILE";
     case fk::lang::token_type::NUMBER:
         return "NUMBER";
     case fk::lang::token_type::STRING:
