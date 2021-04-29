@@ -29,6 +29,7 @@ private:
     statement_ptr  block();
 
     statement_ptr  parse_if();
+    statement_ptr  parse_while();
     
     expression_ptr expression();
     expression_ptr parse_or();

@@ -9,13 +9,13 @@
 
 namespace fk::lang {
 
-
 // forward declare statement types for visitor
 struct print_statement;
 struct expression_statement;
 struct assignment_statement;
 struct block_statement;
 struct if_statement;
+struct while_statement;
 
 template <class R>
 struct statement_visitor {
@@ -26,6 +26,7 @@ struct statement_visitor {
     virtual R visit(assignment_statement *stmt) = 0;
     virtual R visit(block_statement *stmt) = 0;
     virtual R visit(if_statement *stmt) = 0;
+    virtual R visit(while_statement *stmt) = 0;
 };
 
 struct statement
@@ -110,6 +111,21 @@ struct if_statement
 
     if_statement(expression_ptr condition, statement_ptr then_block, statement_ptr else_block)
         : condition(std::move(condition)), then_block(std::move(then_block)), else_block(std::move(else_block)) {}
+
+    virtual void accept(statement_visitor<void> *visitor) override
+    {
+        visitor->visit(this);
+    }
+};
+
+struct while_statement
+    : public statement
+{
+    expression_ptr condition;
+    statement_ptr body;
+
+    while_statement(expression_ptr condition, statement_ptr body)
+        : condition(std::move(condition)), body(std::move(body)) {}
 
     virtual void accept(statement_visitor<void> *visitor) override
     {

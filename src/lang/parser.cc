@@ -65,6 +65,9 @@ fk::lang::statement_ptr fk::lang::parser::statement()
     if (match({ fk::lang::token_type::IF })) {
         return parse_if();
     }
+    if (match({ fk::lang::token_type::WHILE })) {
+        return parse_while();
+    }
 
     return make_statement<expression_statement>(expression());
 }
@@ -102,6 +105,14 @@ fk::lang::statement_ptr fk::lang::parser::parse_if()
     }
 
     return make_statement<if_statement>(std::move(condition), std::move(then_block), std::move(else_block));
+}
+
+fk::lang::statement_ptr fk::lang::parser::parse_while()
+{
+    expression_ptr condition = expression();
+    statement_ptr body = block();
+
+    return make_statement<while_statement>(std::move(condition), std::move(body));
 }
 
 fk::lang::expression_ptr fk::lang::parser::expression()

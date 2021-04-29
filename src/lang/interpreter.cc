@@ -306,6 +306,13 @@ void fk::lang::interpreter::visit(if_statement *stmt)
     }
 }
 
+void fk::lang::interpreter::visit(while_statement *stmt)
+{
+    for (expr_result result = evaluate(stmt->condition); truthy(result); result = evaluate(stmt->condition)) {
+        execute(stmt->body);
+    }
+}
+
 fk::lang::expr_result fk::lang::interpreter::evaluate(expression_ptr& expr) noexcept
 {
     return expr->accept(this);
