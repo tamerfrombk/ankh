@@ -30,7 +30,8 @@ private:
 
     statement_ptr  parse_if();
     statement_ptr  parse_while();
-    
+    statement_ptr  parse_for();
+
     expression_ptr expression();
     expression_ptr parse_or();
     expression_ptr parse_and();
@@ -47,6 +48,8 @@ private:
 
     bool match(std::initializer_list<token_type> types) noexcept;
     bool check(token_type type) const noexcept;
+
+    statement_ptr desugar_for_into_while(statement_ptr init, expression_ptr condition, statement_ptr mutator,statement_ptr body);
 
 private:
     std::vector<token> tokens_;

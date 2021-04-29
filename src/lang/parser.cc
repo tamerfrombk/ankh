@@ -1,5 +1,3 @@
-#include "fak/lang/expr.h"
-#include "fak/lang/statement.h"
 #include <algorithm>
 #include <initializer_list>
 
@@ -35,7 +33,7 @@ fk::lang::program fk::lang::parser::parse()
 
 fk::lang::statement_ptr fk::lang::parser::declaration()
 {
-    if (match({ fk::lang::token_type::IDENTIFIER })) {
+    if (check(fk::lang::token_type::IDENTIFIER)) {
         return assignment();
     }
     return statement();
@@ -43,15 +41,20 @@ fk::lang::statement_ptr fk::lang::parser::declaration()
 
 fk::lang::statement_ptr fk::lang::parser::assignment()
 {
-    token variable = prev();
-    if (match({ fk::lang::token_type::EQ })) {
-        return make_statement<assignment_statement>(variable, expression());
+    if (!match({fk::lang::token_type::IDENTIFIER})) {
+        // TODO: handle error better
+        error_handler_->report_error({"identifier expected"});
+        return nullptr;
+    }
+
+    token identifier = prev();
+    if (!match({ fk::lang::token_type::EQ })) {
+        error_handler_->report_error({"syntax error: '=' expected after identifier in assignment statement"});
+        // TODO: what to do here??
+        return nullptr;
     }
     
-    error_handler_->report_error({"syntax error: '=' expected after identifier in assignment statement"});
-    
-    // TODO: what to do here??
-    return nullptr;
+    return make_statement<assignment_statement>(identifier, expression());   
 }
 
 fk::lang::statement_ptr fk::lang::parser::statement()
@@ -59,14 +62,21 @@ fk::lang::statement_ptr fk::lang::parser::statement()
     if (match({ fk::lang::token_type::PRINT })) {
         return make_statement<print_statement>(expression());
     }
+
+    // NOTE: we check instead of matching here so we can consume the left brace __in__ block()
+    // This allows us to simply call block() whenever we need to parse a block e.g. in while statements
     if (check(fk::lang::token_type::LBRACE)) {
         return block();
     }
+
     if (match({ fk::lang::token_type::IF })) {
         return parse_if();
     }
     if (match({ fk::lang::token_type::WHILE })) {
         return parse_while();
+    }
+    if (match({ fk::lang::token_type::FOR })) {
+        return parse_for();
     }
 
     return make_statement<expression_statement>(expression());
@@ -82,7 +92,7 @@ fk::lang::statement_ptr fk::lang::parser::block()
     // TODO: reserve some room ahead of time for the statements
     std::vector<fk::lang::statement_ptr> statements;
     while (!check(fk::lang::token_type::RBRACE) && !is_eof()) {
-        statements.emplace_back(declaration());
+        statements.emplace_back(declaration()); 
     }
 
     if (!match({ fk::lang::token_type::RBRACE })) {
@@ -113,6 +123,42 @@ fk::lang::statement_ptr fk::lang::parser::parse_while()
     statement_ptr body = block();
 
     return make_statement<while_statement>(std::move(condition), std::move(body));
+}
+
+fk::lang::statement_ptr fk::lang::parser::parse_for()
+{
+    statement_ptr init;    
+    if (match({ fk::lang::token_type::SEMICOLON })) {
+        init = nullptr;
+    } else {
+        init = assignment();
+        if (!match({ fk::lang::token_type::SEMICOLON })) {
+            // TODO: handle error better
+            error_handler_->report_error({"';' required after for initializer statement"});
+            return nullptr;
+        }
+    }
+
+    expression_ptr condition;
+    if (match({ fk::lang::token_type::SEMICOLON })) {
+        // if there is no condition, we borrow from C and assume the condition is always true
+        condition = make_expression<literal_expression>(token{"true", fk::lang::token_type::BTRUE});
+    } else {
+        condition = expression();
+        if (!match({ fk::lang::token_type::SEMICOLON })) {
+            // TODO: handle error better
+            error_handler_->report_error({"';' required after for condition expression"});
+            return nullptr;
+        }
+    }
+
+    statement_ptr mutator = check(fk::lang::token_type::LBRACE)
+        ? nullptr
+        : assignment();
+
+    statement_ptr body = block();
+
+    return desugar_for_into_while(std::move(init), std::move(condition), std::move(mutator), std::move(body));
 }
 
 fk::lang::expression_ptr fk::lang::parser::expression()
@@ -286,4 +332,44 @@ bool fk::lang::parser::check(fk::lang::token_type type) const noexcept
     }
 
     return curr().type == type;
+}
+
+// desugar for loop into while loop
+// basically, this turns something like:
+// for i = 0; i < 10; i = i + 1 { 
+// /* for-loop-body */
+// }
+// into:
+// {
+//      i = 0
+//      while i < 10 {
+//      {
+//       /* for-loop-body */
+//      }
+//      i = i + 1
+//      }
+// }
+fk::lang::statement_ptr fk::lang::parser::desugar_for_into_while(
+    fk::lang::statement_ptr init
+    , fk::lang::expression_ptr condition
+    , fk::lang::statement_ptr mutator
+    , fk::lang::statement_ptr body
+    )
+{
+    std::vector<statement_ptr> while_body_statements;
+    while_body_statements.push_back(std::move(body));
+    if (mutator != nullptr) {
+        while_body_statements.push_back(std::move(mutator));
+    }
+
+    auto while_body = make_statement<block_statement>(std::move(while_body_statements));
+    auto while_stmt = make_statement<while_statement>(std::move(condition), std::move(while_body)); 
+
+    std::vector<statement_ptr> statements;
+    if (init != nullptr) {
+        statements.push_back(std::move(init));
+    }
+    statements.push_back(std::move(while_stmt));
+    
+    return make_statement<block_statement>(std::move(statements));
 }
