@@ -56,6 +56,10 @@ std::string fk::lang::token_type_str(fk::lang::token_type type)
         return "OR";
     case fk::lang::token_type::WHILE:
         return "WHILE";
+    case fk::lang::token_type::FOR:
+        return "FOR";
+    case fk::lang::token_type::SEMICOLON:
+        return "SEMICOLON";
     case fk::lang::token_type::NUMBER:
         return "NUMBER";
     case fk::lang::token_type::STRING:

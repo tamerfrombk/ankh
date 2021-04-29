@@ -57,6 +57,9 @@ LEXER_TEST("scan all basic language lexemes")
             &&
             ||
             while
+            for
+            
+            ;
 
             ""
             "non-empty string"
@@ -115,6 +118,10 @@ LEXER_TEST("scan all basic language lexemes")
         REQUIRE((tokens[i].str == "&&" && tokens[i++].type == fk::lang::token_type::AND));
         REQUIRE((tokens[i].str == "||" && tokens[i++].type == fk::lang::token_type::OR));
         REQUIRE((tokens[i].str == "while" && tokens[i++].type == fk::lang::token_type::WHILE));
+        REQUIRE((tokens[i].str == "for" && tokens[i++].type == fk::lang::token_type::FOR));
+
+        // semicolon
+        REQUIRE((tokens[i].str == ";" && tokens[i++].type == fk::lang::token_type::SEMICOLON));
 
         // strings
         REQUIRE((tokens[i].str == "" && tokens[i++].type == fk::lang::token_type::STRING));

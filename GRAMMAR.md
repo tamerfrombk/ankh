@@ -11,12 +11,14 @@ statement             → expression_statement
                         | block
                         | if_statement
                         | while_statement
+                        | for_statement
 
 expression_statement  → expression newline
 print_statement       → "print" expression newline
 block                 → "{" declaration* "}"
 if_statement          → "if" expression block ( "else" block )?
 while_statement       → "while" expression block
+for_statement         → "for" assignment? ";" expression? ";" expression? block
 
 expression            → or_expression
 or_expression         → and_expression ( "||" and_expression )*

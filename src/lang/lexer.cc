@@ -14,6 +14,7 @@ static const std::unordered_map<std::string, fk::lang::token_type> KEYWORDS = {
     , { "if", fk::lang::token_type::IF }
     , { "else", fk::lang::token_type::ELSE }
     , { "while", fk::lang::token_type::WHILE }
+    , { "for", fk::lang::token_type::FOR }
 };
 
 fk::lang::lexer::lexer(std::string text, fk::lang::error_handler *error_handler)
@@ -95,6 +96,8 @@ fk::lang::token fk::lang::lexer::next_token() noexcept
         }
         error_handler_->report_error({"'|' is not a valid token; did you mean '||'?"});
         return { "|", fk::lang::token_type::UNKNOWN };
+    } else if (c == ';') {
+        return { ";", fk::lang::token_type::SEMICOLON };
     } else {
         error_handler_->report_error({"unknown token!"});
         return { "", fk::lang::token_type::UNKNOWN };
