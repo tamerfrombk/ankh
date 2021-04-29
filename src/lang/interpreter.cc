@@ -249,6 +249,8 @@ void fk::lang::interpreter::visit(assignment_statement *stmt)
         return;
     }
 
+    // TODO: think about adding scope specifiers (export, local, global) to allow the user
+    // to mutate global variables with the same name or to add variables to the environment
     current_scope().assign(stmt->name.str, result);
 }
 
