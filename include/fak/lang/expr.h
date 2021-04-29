@@ -14,6 +14,8 @@ struct unary_expression;
 struct literal_expression;
 struct paren_expression;
 struct identifier_expression;
+struct and_expression;
+struct or_expression;
 
 template <class R>
 struct expression_visitor {
@@ -24,6 +26,8 @@ struct expression_visitor {
     virtual R visit(literal_expression *expr) = 0;
     virtual R visit(paren_expression *expr) = 0;
     virtual R visit(identifier_expression *expr) = 0;
+    virtual R visit(and_expression *expr) = 0;
+    virtual R visit(or_expression *expr) = 0;
 };
 
 using number = double;
@@ -138,6 +142,34 @@ struct identifier_expression
 
     identifier_expression(token name)
         : name(std::move(name)) {}
+
+    virtual expr_result accept(expression_visitor<expr_result> *visitor) override
+    {
+        return visitor->visit(this);
+    }
+};
+
+struct and_expression 
+    : public expression 
+{
+    expression_ptr left, right;
+
+    and_expression(expression_ptr left, expression_ptr right)
+        : left(std::move(left)), right(std::move(right)) {}
+
+    virtual expr_result accept(expression_visitor<expr_result> *visitor) override
+    {
+        return visitor->visit(this);
+    }
+};
+
+struct or_expression 
+    : public expression 
+{
+    expression_ptr left, right;
+
+    or_expression(expression_ptr left, expression_ptr right)
+        : left(std::move(left)), right(std::move(right)) {}
 
     virtual expr_result accept(expression_visitor<expr_result> *visitor) override
     {

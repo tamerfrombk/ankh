@@ -63,7 +63,7 @@ fk::lang::statement_ptr fk::lang::parser::statement()
         return block();
     }
     if (match({ fk::lang::token_type::IF })) {
-        return if_stmt();
+        return parse_if();
     }
 
     return make_statement<expression_statement>(expression());
@@ -91,7 +91,7 @@ fk::lang::statement_ptr fk::lang::parser::block()
     return make_statement<block_statement>(std::move(statements));
 }
 
-fk::lang::statement_ptr fk::lang::parser::if_stmt()
+fk::lang::statement_ptr fk::lang::parser::parse_if()
 {
     expression_ptr condition = expression();
     statement_ptr then_block = block();
@@ -106,7 +106,29 @@ fk::lang::statement_ptr fk::lang::parser::if_stmt()
 
 fk::lang::expression_ptr fk::lang::parser::expression()
 {
-    return equality();
+    return parse_or();
+}
+
+fk::lang::expression_ptr fk::lang::parser::parse_or()
+{
+    fk::lang::expression_ptr left = parse_and();
+    while (match({ fk::lang::token_type::OR })) {
+        fk::lang::expression_ptr right = parse_and();
+        left = make_expression<fk::lang::or_expression>(std::move(left), std::move(right));
+    }
+
+    return left;
+}
+
+fk::lang::expression_ptr fk::lang::parser::parse_and()
+{
+    fk::lang::expression_ptr left = equality();
+    while (match({ fk::lang::token_type::AND })) {
+        fk::lang::expression_ptr right = equality();
+        left = make_expression<fk::lang::or_expression>(std::move(left), std::move(right));
+    }
+
+    return left;
 }
 
 fk::lang::expression_ptr fk::lang::parser::equality()

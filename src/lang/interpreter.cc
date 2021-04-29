@@ -221,6 +221,26 @@ fk::lang::expr_result fk::lang::interpreter::visit(identifier_expression *expr)
     return expr_result::error("identifier " + expr->name.str + " is not defined in the current scope");
 }
 
+fk::lang::expr_result fk::lang::interpreter::visit(and_expression *expr)
+{
+    const expr_result left = evaluate(expr->left);
+    if (!truthy(left)) {
+        return left;
+    }
+
+    return evaluate(expr->right);
+}
+
+fk::lang::expr_result fk::lang::interpreter::visit(or_expression *expr)
+{
+    const expr_result left = evaluate(expr->left);
+    if (truthy(left)) {
+        return left;
+    }
+
+    return evaluate(expr->right);
+}
+
 void fk::lang::interpreter::visit(print_statement *stmt)
 {
     const expr_result result = evaluate(stmt->expr);

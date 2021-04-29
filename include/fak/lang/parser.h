@@ -28,10 +28,11 @@ private:
     statement_ptr  statement();
     statement_ptr  block();
 
-    // I use stmt here to avoid conflicting with the type name 'if_statement'
-    statement_ptr  if_stmt();
+    statement_ptr  parse_if();
     
     expression_ptr expression();
+    expression_ptr parse_or();
+    expression_ptr parse_and();
     expression_ptr equality();
     expression_ptr comparison();
     expression_ptr term();
