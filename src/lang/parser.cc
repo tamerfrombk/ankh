@@ -125,7 +125,7 @@ fk::lang::expression_ptr fk::lang::parser::parse_and()
     fk::lang::expression_ptr left = equality();
     while (match({ fk::lang::token_type::AND })) {
         fk::lang::expression_ptr right = equality();
-        left = make_expression<fk::lang::or_expression>(std::move(left), std::move(right));
+        left = make_expression<fk::lang::and_expression>(std::move(left), std::move(right));
     }
 
     return left;
