@@ -1,4 +1,3 @@
-#include "fak/lang/env.h"
 #include <cstdlib>
 #include <cstdio>
 #include <algorithm>
@@ -9,6 +8,8 @@
 #include <fak/lang/token.h>
 #include <fak/lang/expr.h>
 #include <fak/log.h>
+
+#include <fak/internal/pretty_printer.h>
 
 static bool operands_are(fk::lang::expr_result_type type, std::initializer_list<fk::lang::expr_result> elems)
 {
@@ -160,6 +161,11 @@ fk::lang::interpreter::interpreter()
 void fk::lang::interpreter::interpret(const program& program)
 {
     for (const auto& stmt : program) {
+#ifndef NDEBUG
+        fk::internal::pretty_printer printer;
+        const std::string pretty = stmt->accept(&printer);
+        fk::log::debug("%s\n", pretty.c_str());
+#endif
         execute(stmt);
     }
 }

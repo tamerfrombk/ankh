@@ -34,6 +34,7 @@ struct statement
     virtual ~statement() = default;
 
     virtual void accept(statement_visitor<void> *visitor) = 0;
+    virtual std::string accept(statement_visitor<std::string>  *visitor) = 0;
 };
 
 using statement_ptr = std::unique_ptr<statement>;
@@ -57,6 +58,11 @@ struct print_statement
     {
         visitor->visit(this);
     }
+
+    virtual std::string accept(statement_visitor<std::string> *visitor) override
+    {
+        return visitor->visit(this);
+    }
 };
 
 struct expression_statement
@@ -70,6 +76,11 @@ struct expression_statement
     virtual void accept(statement_visitor<void> *visitor) override
     {
         visitor->visit(this);
+    }
+
+    virtual std::string accept(statement_visitor<std::string> *visitor) override
+    {
+        return visitor->visit(this);
     }
 };
 
@@ -86,6 +97,11 @@ struct assignment_statement
     {
         visitor->visit(this);
     }
+
+    virtual std::string accept(statement_visitor<std::string> *visitor) override
+    {
+        return visitor->visit(this);
+    }
 };
 
 struct block_statement
@@ -99,6 +115,11 @@ struct block_statement
     virtual void accept(statement_visitor<void> *visitor) override
     {
         visitor->visit(this);
+    }
+
+    virtual std::string accept(statement_visitor<std::string> *visitor) override
+    {
+        return visitor->visit(this);
     }
 };
 
@@ -116,6 +137,11 @@ struct if_statement
     {
         visitor->visit(this);
     }
+
+    virtual std::string accept(statement_visitor<std::string> *visitor) override
+    {
+        return visitor->visit(this);
+    }
 };
 
 struct while_statement
@@ -130,6 +156,11 @@ struct while_statement
     virtual void accept(statement_visitor<void> *visitor) override
     {
         visitor->visit(this);
+    }
+
+    virtual std::string accept(statement_visitor<std::string> *visitor) override
+    {
+        return visitor->visit(this);
     }
 };
 
