@@ -127,6 +127,30 @@ static bool truthy(const fk::lang::expr_result& result) noexcept
     return false;
 }
 
+static void print(const fk::lang::expr_result& result) noexcept
+{
+    switch (result.type) {
+    case fk::lang::expr_result_type::RT_ERROR:
+        fk::log::error("error evaluating expression: '%s'\n", result.err.c_str());
+        break;
+    case fk::lang::expr_result_type::RT_STRING:
+        std::puts(result.str.c_str());
+        break;
+    case fk::lang::expr_result_type::RT_NUMBER:
+        std::printf("%f\n", result.n);
+        break;
+    case fk::lang::expr_result_type::RT_BOOL:
+        std::puts(result.b ? "true" : "false");
+        break;
+    case fk::lang::expr_result_type::RT_NIL:
+        std::puts("nil");
+        break;
+    default:
+        fk::log::error("unhandled expression result type");
+        break;
+    }
+}
+
 fk::lang::interpreter::interpreter()
 {
     // initialize the global scope
@@ -244,26 +268,7 @@ fk::lang::expr_result fk::lang::interpreter::visit(or_expression *expr)
 void fk::lang::interpreter::visit(print_statement *stmt)
 {
     const expr_result result = evaluate(stmt->expr);
-    switch (result.type) {
-    case expr_result_type::RT_ERROR:
-        fk::log::error("error evaluating expression: '%s'\n", result.err.c_str());
-        break;
-    case expr_result_type::RT_STRING:
-        std::puts(result.str.c_str());
-        break;
-    case expr_result_type::RT_NUMBER:
-        std::printf("%f\n", result.n);
-        break;
-    case expr_result_type::RT_BOOL:
-        std::puts(result.b ? "true" : "false");
-        break;
-    case expr_result_type::RT_NIL:
-        std::puts("nil");
-        break;
-    default:
-        fk::log::error("unhandled expression result type");
-        break;
-    }
+    print(result);
 }
 
 void fk::lang::interpreter::visit(expression_statement *stmt)
