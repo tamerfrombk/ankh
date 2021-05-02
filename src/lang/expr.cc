@@ -3,7 +3,7 @@
 
 #include <fak/log.h>
 
-std::string expr_result_type_str(fk::lang::expr_result_type type) noexcept
+std::string fk::lang::expr_result_type_str(fk::lang::expr_result_type type) noexcept
 {
     switch (type) {
     case fk::lang::expr_result_type::RT_EXIT_CODE: return "RT_EXIT_CODE";
