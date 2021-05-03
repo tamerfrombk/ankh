@@ -17,7 +17,7 @@ class parser
 public:
     explicit parser(std::string str, error_handler *error_handler);
 
-    program parse();
+    program parse() noexcept;
 
     bool is_eof() const noexcept;
 
@@ -50,9 +50,9 @@ private:
     bool check(token_type type) const noexcept;
     token consume(token_type type, const std::string& msg);
 
-    void synchronize_next_statement();
+    void synchronize_next_statement() noexcept;
 
-    statement_ptr desugar_for_into_while(statement_ptr init, expression_ptr condition, statement_ptr mutator,statement_ptr body);
+    statement_ptr desugar_for_into_while(statement_ptr init, expression_ptr condition, statement_ptr mutator,statement_ptr body) noexcept;
 
 private:
     std::vector<token> tokens_;

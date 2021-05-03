@@ -23,7 +23,7 @@ fk::lang::parser::parser(std::string str, error_handler *error_handler)
     }
 }
 
-fk::lang::program fk::lang::parser::parse()
+fk::lang::program fk::lang::parser::parse() noexcept
 {
     program stmts;
     while (!is_eof()) {
@@ -326,7 +326,7 @@ fk::lang::token fk::lang::parser::consume(token_type type, const std::string& ms
     return prev();
 }
 
-void fk::lang::parser::synchronize_next_statement()
+void fk::lang::parser::synchronize_next_statement() noexcept
 {
     // TODO: actually synchronize to the next statement
     advance();
@@ -352,7 +352,7 @@ fk::lang::statement_ptr fk::lang::parser::desugar_for_into_while(
     , fk::lang::expression_ptr condition
     , fk::lang::statement_ptr mutator
     , fk::lang::statement_ptr body
-    )
+    ) noexcept
 {
     std::vector<statement_ptr> while_body_statements;
     while_body_statements.push_back(std::move(body));
