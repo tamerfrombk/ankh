@@ -302,6 +302,7 @@ void fk::lang::interpreter::visit(block_statement *stmt)
         for (const statement_ptr& statement : stmt->statements) {
             execute(statement);
         }
+        leave_current_scope();
     } catch (...) {
         leave_current_scope();
     }
