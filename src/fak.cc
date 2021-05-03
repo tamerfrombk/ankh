@@ -1,27 +1,16 @@
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/wait.h>
-
-#include <cstddef>
 #include <cstdlib>
 #include <cstdio>
-#include <cctype>
-#include <algorithm>
-#include <memory>
-#include <utility>
-#include <optional>
 
 #include <readline/readline.h>
 
-#include <fak/def.h>
 #include <fak/log.h>
 #include <fak/fak.h>
-#include <fak/lang/lexer.h>
-#include <fak/lang/parser.h>
 
-#include <fak/internal/pretty_printer.h>
+#include <fak/lang/parser.h>
 #include <fak/lang/error_handler.h>
 #include <fak/lang/interpreter.h>
+
+#include <fak/internal/pretty_printer.h>
 
 static int interpret(const std::string& script)
 {
