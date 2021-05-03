@@ -47,8 +47,7 @@ struct expr_result {
     // TODO: unionize these fields. Right now, getting implicitly deleted destructor error because of union
     // and I don't want to block myself figuring it out right now.
     std::string str;
-    std::string err;
-    number    n;
+    number      n;
     bool        b;
     int         exit_code;
 
@@ -57,7 +56,6 @@ struct expr_result {
     static expr_result nil();
     static expr_result num(number n);
     static expr_result string(std::string s);
-    static expr_result error(std::string s);
     static expr_result boolean(bool b);
 };
 
