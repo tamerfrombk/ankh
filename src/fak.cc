@@ -68,24 +68,29 @@ int fk::shell_loop(int argc, char **argv)
     // with an exit code equivalent to its last process
     int prev_process_exit_code = EXIT_SUCCESS;
     while (true) {
+        // TODO: remove dependency on libreadline
         char *line = readline("> ");
         if (line == nullptr) {
             // EOF encountered on empty line
             fk::log::debug("EOF\n");
             exit(EXIT_SUCCESS);
-        } else if (*line == '\0') {
+        }
+        
+        if (*line == '\0') {
             // empty line
             fk::log::debug("empty line\n");
             free(line);
-        } else {
-            fk::log::debug("read line: '%s'\n", line);
-            try {
-                prev_process_exit_code = interpret(line);
-            } catch (const fk::lang::interpretation_exception& e) {
-                std::fprintf(stderr, "%s\n", e.what());
-                return EXIT_FAILURE;
-            }
+            continue;
+        }
+
+        fk::log::debug("read line: '%s'\n", line);
+        try {
+            prev_process_exit_code = interpret(line);
             free(line);
+        } catch (const fk::lang::interpretation_exception& e) {
+            std::fprintf(stderr, "%s\n", e.what());
+            free(line);
+            return EXIT_FAILURE;
         }
     }
 
