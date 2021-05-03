@@ -29,7 +29,7 @@ fk::lang::token fk::lang::lexer::next_token() noexcept
 
     if (is_eof()) {
         fk::log::debug("EOF reached\n");
-        return { "", fk::lang::token_type::T_EOF };
+        return { "EOF", fk::lang::token_type::T_EOF };
     }
 
     char c = advance();
@@ -100,7 +100,7 @@ fk::lang::token fk::lang::lexer::next_token() noexcept
         return { ";", fk::lang::token_type::SEMICOLON };
     } else {
         error_handler_->report_error({"unknown token!"});
-        return { "", fk::lang::token_type::UNKNOWN };
+        return { std::string{c}, fk::lang::token_type::UNKNOWN };
     }
 }
 

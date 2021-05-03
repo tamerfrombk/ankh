@@ -9,7 +9,6 @@
 #include <algorithm>
 #include <memory>
 #include <utility>
-#include <iostream>
 #include <optional>
 
 #include <readline/readline.h>
@@ -32,8 +31,8 @@ static int interpret(const std::string& script)
     const fk::lang::program program = parser.parse();
     if (error_handler->error_count() > 0) {
         const auto& errors = error_handler->errors();
-        for (const auto& e :  errors) {
-            std::cerr << "ERROR! : " << e.msg << "\n";
+        for (const auto& e : errors) {
+            std::fprintf(stderr, "%s\n", e.msg.c_str());
         }
         return 1;
     }

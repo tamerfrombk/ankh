@@ -48,6 +48,9 @@ private:
 
     bool match(std::initializer_list<token_type> types) noexcept;
     bool check(token_type type) const noexcept;
+    token consume(token_type type, const std::string& msg);
+
+    void synchronize_next_statement();
 
     statement_ptr desugar_for_into_while(statement_ptr init, expression_ptr condition, statement_ptr mutator,statement_ptr body);
 

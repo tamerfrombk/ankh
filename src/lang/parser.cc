@@ -5,6 +5,7 @@
 #include <fak/lang/lexer.h>
 #include <fak/lang/token.h>
 #include <fak/lang/error_handler.h>
+#include <fak/lang/parse_exception.h>
 #include <fak/log.h>
 
 fk::lang::parser::parser(std::string str, error_handler *error_handler)
@@ -15,7 +16,7 @@ fk::lang::parser::parser(std::string str, error_handler *error_handler)
     for (token tok = lexer.next_token(); tok.type != fk::lang::token_type::T_EOF; tok = lexer.next_token()) {
         tokens_.push_back(tok);
     }
-    tokens_.emplace_back("", fk::lang::token_type::T_EOF);
+    tokens_.push_back(lexer.next_token());
 
     for (const auto& tok : tokens_) {
         fk::log::debug("('%s':'%s')\n", fk::lang::token_type_str(tok.type).c_str(), tok.str.c_str());
@@ -26,8 +27,14 @@ fk::lang::program fk::lang::parser::parse()
 {
     program stmts;
     while (!is_eof()) {
-        stmts.emplace_back(declaration());    
+        try {
+            stmts.emplace_back(declaration());    
+        } catch (const fk::lang::parse_exception& e) {
+            error_handler_->report_error({e.what()});
+            synchronize_next_statement();
+        }
     }
+
     return stmts;
 }
 
@@ -36,24 +43,18 @@ fk::lang::statement_ptr fk::lang::parser::declaration()
     if (check(fk::lang::token_type::IDENTIFIER)) {
         return assignment();
     }
+
     return statement();
 }
 
 fk::lang::statement_ptr fk::lang::parser::assignment()
 {
-    if (!match({fk::lang::token_type::IDENTIFIER})) {
-        // TODO: handle error better
-        error_handler_->report_error({"identifier expected"});
-        return nullptr;
-    }
+    consume(fk::lang::token_type::IDENTIFIER, "identifier expected");
 
     token identifier = prev();
-    if (!match({ fk::lang::token_type::EQ })) {
-        error_handler_->report_error({"syntax error: '=' expected after identifier in assignment statement"});
-        // TODO: what to do here??
-        return nullptr;
-    }
-    
+
+    consume(fk::lang::token_type::EQ, "'=' expected");
+
     return make_statement<assignment_statement>(identifier, expression());   
 }
 
@@ -84,10 +85,7 @@ fk::lang::statement_ptr fk::lang::parser::statement()
 
 fk::lang::statement_ptr fk::lang::parser::block()
 {
-    if (!match({ fk::lang::token_type::LBRACE })) {
-        error_handler_->report_error({"expect '{' to start block"});
-        return nullptr;
-    }
+    consume(fk::lang::token_type::LBRACE, "'{' expected to start block");
 
     // TODO: reserve some room ahead of time for the statements
     std::vector<fk::lang::statement_ptr> statements;
@@ -95,11 +93,7 @@ fk::lang::statement_ptr fk::lang::parser::block()
         statements.emplace_back(declaration()); 
     }
 
-    if (!match({ fk::lang::token_type::RBRACE })) {
-        error_handler_->report_error({"expect '}' to terminate block"});
-        // TODO: handle error
-        return nullptr;
-    }
+    consume(fk::lang::token_type::RBRACE, "'}' expected to terminate block");
 
     return make_statement<block_statement>(std::move(statements));
 }
@@ -132,11 +126,7 @@ fk::lang::statement_ptr fk::lang::parser::parse_for()
         init = nullptr;
     } else {
         init = assignment();
-        if (!match({ fk::lang::token_type::SEMICOLON })) {
-            // TODO: handle error better
-            error_handler_->report_error({"';' required after for initializer statement"});
-            return nullptr;
-        }
+        consume(fk::lang::token_type::SEMICOLON, "';' expected after initializer statement");
     }
 
     expression_ptr condition;
@@ -145,11 +135,7 @@ fk::lang::statement_ptr fk::lang::parser::parse_for()
         condition = make_expression<literal_expression>(token{"true", fk::lang::token_type::BTRUE});
     } else {
         condition = expression();
-        if (!match({ fk::lang::token_type::SEMICOLON })) {
-            // TODO: handle error better
-            error_handler_->report_error({"';' required after for condition expression"});
-            return nullptr;
-        }
+        consume(fk::lang::token_type::SEMICOLON, "';' expected after condition expression");
     }
 
     statement_ptr mutator = check(fk::lang::token_type::LBRACE)
@@ -275,18 +261,13 @@ fk::lang::expression_ptr fk::lang::parser::primary()
 
     if (match({ fk::lang::token_type::LPAREN })) {
         fk::lang::expression_ptr expr = expression();
-        token paren = advance();
-        if (paren.type != fk::lang::token_type::RPAREN) {
-            error_handler_->report_error({"terminating ')' not found"});
-        }
+        
+        consume(fk::lang::token_type::RPAREN, "terminating ')' in parenthetic expression expected");
+
         return make_expression<paren_expression>(std::move(expr));
     }
 
-    // TODO: improve error message
-    error_handler_->report_error({"expected expression"});
-
-    // TODO: what to do here?
-    return nullptr;
+    throw parse_exception("primary expression expected");
 }
 
 const fk::lang::token& fk::lang::parser::prev() const noexcept
@@ -332,6 +313,23 @@ bool fk::lang::parser::check(fk::lang::token_type type) const noexcept
     }
 
     return curr().type == type;
+}
+
+fk::lang::token fk::lang::parser::consume(token_type type, const std::string& msg)
+{
+    if (!match({ type })) {
+        const token& current = curr();
+        std::string error_message("syntax error: " + msg + " instead of '" + current.str + "'");
+        throw fk::lang::parse_exception(error_message);
+    }
+
+    return prev();
+}
+
+void fk::lang::parser::synchronize_next_statement()
+{
+    // TODO: actually synchronize to the next statement
+    advance();
 }
 
 // desugar for loop into while loop

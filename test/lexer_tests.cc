@@ -12,10 +12,13 @@
 static std::vector<fk::lang::token> extract_all_tokens(fk::lang::lexer& lexer) noexcept
 {
     std::vector<fk::lang::token> tokens;
-    for (fk::lang::token token = lexer.next_token(); token.type != fk::lang::token_type::T_EOF; token = lexer.next_token()) {
+    for (fk::lang::token token = lexer.next_token(); 
+        token.type != fk::lang::token_type::T_EOF; 
+        token = lexer.next_token()) 
+    {
         tokens.push_back(token);
     }
-    tokens.emplace_back("", fk::lang::token_type::T_EOF);
+    tokens.push_back(lexer.next_token());
 
     return tokens;
 }
@@ -135,7 +138,7 @@ LEXER_TEST("scan all basic language lexemes")
         REQUIRE((tokens[i].str == "1.0" && tokens[i++].type == fk::lang::token_type::NUMBER));
 
         // EOF -- make sure this is LAST
-        REQUIRE(tokens[i++].type == fk::lang::token_type::T_EOF);
+        REQUIRE((tokens[i].str == "EOF" && tokens[i++].type == fk::lang::token_type::T_EOF));
 
         REQUIRE(error_handler->error_count() == 0);
     }
