@@ -3,22 +3,46 @@
 #include <algorithm>
 #include <initializer_list>
 #include <functional>
+#include <cerrno>
+#include <cstring>
 
 #include <fak/lang/interpreter.h>
 #include <fak/lang/token.h>
 #include <fak/lang/expr.h>
 #include <fak/log.h>
+#include <fak/lang/interpretation_exception.h>
 
 #include <fak/internal/pretty_printer.h>
 
-static bool operands_are(fk::lang::expr_result_type type, std::initializer_list<fk::lang::expr_result> elems)
+static void panic(const std::string& msg)
+{
+    throw fk::lang::interpretation_exception("runtime error: " + msg);
+}
+
+static void panic(const fk::lang::expr_result& result, const std::string& msg)
+{
+    const std::string typestr = fk::lang::expr_result_type_str(result.type);
+
+    throw fk::lang::interpretation_exception("runtime error: " + msg + " instead of '" + typestr + "'");
+}
+
+static void panic(const fk::lang::expr_result& left, const fk::lang::expr_result& right, const std::string& msg)
+{
+    const std::string ltypestr = fk::lang::expr_result_type_str(left.type);
+    const std::string rtypestr = fk::lang::expr_result_type_str(right.type);
+
+    throw fk::lang::interpretation_exception("runtime error: " + msg 
+        + " with LHS '" + ltypestr + "', RHS '" + rtypestr + "'");
+}
+
+static bool operands_are(fk::lang::expr_result_type type, std::initializer_list<fk::lang::expr_result> elems) noexcept
 {
     return std::all_of(elems.begin(), elems.end(), [=](const fk::lang::expr_result& result) {
         return type == result.type;
     });
 }
 
-static fk::lang::number to_num(const std::string& s) noexcept
+static fk::lang::number to_num(const std::string& s)
 {
     char *end;
 
@@ -27,31 +51,30 @@ static fk::lang::number to_num(const std::string& s) noexcept
         return n;
     }
 
-    // TODO: properly handle error
-    return -1;
+    const std::string errno_msg(std::strerror(errno));
+
+    panic("'" + s + "' could not be turned into a number due to " + errno_msg);
 }
 
-static fk::lang::expr_result negate(const fk::lang::expr_result& result) noexcept
+static fk::lang::expr_result negate(const fk::lang::expr_result& result)
 {
     if (result.type == fk::lang::expr_result_type::RT_NUMBER) {
         return fk::lang::expr_result::num(-1 * result.n);
     }
-    
-    // TODO: improve the error message
-    return fk::lang::expr_result::error("- operator expects a number expression");
+
+    panic(result, "unary (-) operator expects a number expression");
 }
 
-static fk::lang::expr_result invert(const fk::lang::expr_result& result) noexcept
+static fk::lang::expr_result invert(const fk::lang::expr_result& result)
 {
     if (result.type == fk::lang::expr_result_type::RT_BOOL) {
         return fk::lang::expr_result::boolean(!(result.b));
     }
 
-    // TODO: improve the error message
-    return fk::lang::expr_result::error("! operator expects a boolean expression");
+    panic(result, "(!) operator expects a boolean expression");
 }
 
-static fk::lang::expr_result eqeq(const fk::lang::expr_result& left, const fk::lang::expr_result& right) noexcept
+static fk::lang::expr_result eqeq(const fk::lang::expr_result& left, const fk::lang::expr_result& right)
 {
     if (operands_are(fk::lang::expr_result_type::RT_NUMBER, {left, right})) {
         return fk::lang::expr_result::boolean(left.n == right.n);
@@ -69,20 +92,18 @@ static fk::lang::expr_result eqeq(const fk::lang::expr_result& left, const fk::l
         return fk::lang::expr_result::boolean(true);
     }
 
-    // TODO: improve error message
-    return fk::lang::expr_result::error("unknown overload for (!=) operator");
+    panic(left, right, "unknown overload of (==) operator");
 }
 
 template <class BinaryOperation>
 static fk::lang::expr_result 
-arithmetic(const fk::lang::expr_result& left, const fk::lang::expr_result& right, BinaryOperation op) noexcept
+arithmetic(const fk::lang::expr_result& left, const fk::lang::expr_result& right, BinaryOperation op)
 {
     if (operands_are(fk::lang::expr_result_type::RT_NUMBER, {left, right})) {
         return fk::lang::expr_result::num(op(left.n, right.n));
     }
 
-    // TODO: improve error message
-    return fk::lang::expr_result::error("unknown overload for arithmetic operator");
+    panic(left, right, "unknown overload of arithmetic operator");
 }
 
 // We handle + separately as it has two overloads for numbers and strings
@@ -98,13 +119,11 @@ static fk::lang::expr_result plus(const fk::lang::expr_result& left, const fk::l
         return fk::lang::expr_result::string(left.str + right.str);
     }
 
-    // TODO: improve error message
-    return fk::lang::expr_result::error("unknown overload for (+) operator");
+    panic(left, right, "unknown overload of (+) operator");
 }
 
 template <class Compare>
-static fk::lang::expr_result 
-compare(const fk::lang::expr_result& left, const fk::lang::expr_result& right, Compare cmp) noexcept
+static fk::lang::expr_result compare(const fk::lang::expr_result& left, const fk::lang::expr_result& right, Compare cmp)
 {
     if (operands_are(fk::lang::expr_result_type::RT_NUMBER, {left, right})) {
         return fk::lang::expr_result::boolean(cmp(left.n, right.n));
@@ -114,8 +133,7 @@ compare(const fk::lang::expr_result& left, const fk::lang::expr_result& right, C
         return fk::lang::expr_result::boolean(cmp(left.str, right.str));
     }
 
-    // TODO: improve error message
-    return fk::lang::expr_result::error("unknown overload for comparison operator");
+    panic(left, right, "unknown overload of comparison operator");
 }
 
 // TODO: rethink truthiness -- do we really only want boolean expressions?
@@ -211,7 +229,7 @@ fk::lang::expr_result fk::lang::interpreter::visit(unary_expression *expr)
     case token_type::BANG:
         return invert(result);
     default:
-        return expr_result::error("unknown unary operator " + expr->op.str);
+        panic(result, "unknown unary (" + expr->op.str + ") operator");
     }
 }
 
@@ -229,8 +247,7 @@ fk::lang::expr_result fk::lang::interpreter::visit(literal_expression *expr)
     case token_type::NIL:
         return expr_result::nil();
     default:
-        // TODO: handle error better than this
-        return expr_result::error("unknown literal type");
+        panic("unkown literal expression: '" + expr->literal.str + "'");
     }
 }
 
@@ -248,7 +265,7 @@ fk::lang::expr_result fk::lang::interpreter::visit(identifier_expression *expr)
         }
     }
 
-    return expr_result::error("identifier " + expr->name.str + " is not defined in the current scope");
+    panic("identifier " + expr->name.str + " is not defined in the current scope");
 }
 
 fk::lang::expr_result fk::lang::interpreter::visit(and_expression *expr)
@@ -285,10 +302,6 @@ void fk::lang::interpreter::visit(expression_statement *stmt)
 void fk::lang::interpreter::visit(assignment_statement *stmt)
 {
     const expr_result result = evaluate(stmt->initializer);
-    if (result.type == expr_result_type::RT_ERROR) {
-        fk::log::error("error evaluating expression: '%s'\n", result.err.c_str());
-        return;
-    }
 
     // TODO: think about adding scope specifiers (export, local, global) to allow the user
     // to mutate global variables with the same name or to add variables to the environment
@@ -336,27 +349,27 @@ void fk::lang::interpreter::visit(while_statement *stmt)
     }
 }
 
-fk::lang::expr_result fk::lang::interpreter::evaluate(expression_ptr& expr) noexcept
+fk::lang::expr_result fk::lang::interpreter::evaluate(expression_ptr& expr)
 {
     return expr->accept(this);
 }
 
-void fk::lang::interpreter::execute(const statement_ptr& stmt) noexcept
+void fk::lang::interpreter::execute(const statement_ptr& stmt)
 {
     stmt->accept(this);
 }
 
-void fk::lang::interpreter::enter_new_scope()
+void fk::lang::interpreter::enter_new_scope() noexcept
 {
     env_.emplace_back();
 }
 
-void fk::lang::interpreter::leave_current_scope()
+void fk::lang::interpreter::leave_current_scope() noexcept
 {
     env_.pop_back();
 }
 
-fk::lang::environment& fk::lang::interpreter::current_scope()
+fk::lang::environment& fk::lang::interpreter::current_scope() noexcept
 {
     return env_.back();
 }

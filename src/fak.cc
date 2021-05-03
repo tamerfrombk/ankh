@@ -9,6 +9,7 @@
 #include <fak/lang/parser.h>
 #include <fak/lang/error_handler.h>
 #include <fak/lang/interpreter.h>
+#include <fak/lang/interpretation_exception.h>
 
 #include <fak/internal/pretty_printer.h>
 
@@ -23,13 +24,13 @@ static int interpret(const std::string& script)
         for (const auto& e : errors) {
             std::fprintf(stderr, "%s\n", e.msg.c_str());
         }
-        return 1;
+        return EXIT_FAILURE;
     }
 
     fk::lang::interpreter interpreter;
     interpreter.interpret(program);
 
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 static std::optional<std::string> read_file(const std::string& path) noexcept
@@ -78,7 +79,12 @@ int fk::shell_loop(int argc, char **argv)
             free(line);
         } else {
             fk::log::debug("read line: '%s'\n", line);
-            prev_process_exit_code = interpret(line);
+            try {
+                prev_process_exit_code = interpret(line);
+            } catch (const fk::lang::interpretation_exception& e) {
+                std::fprintf(stderr, "%s\n", e.what());
+                return EXIT_FAILURE;
+            }
             free(line);
         }
     }

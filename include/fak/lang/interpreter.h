@@ -33,12 +33,12 @@ public:
     virtual void visit(while_statement *stmt) override;
 
 private:
-    expr_result evaluate(expression_ptr& expr) noexcept;
-    void execute(const statement_ptr& stmt) noexcept;
+    expr_result evaluate(expression_ptr& expr);
+    void execute(const statement_ptr& stmt);
 
-    void enter_new_scope();
-    void leave_current_scope();
-    environment& current_scope();
+    void enter_new_scope() noexcept;
+    void leave_current_scope() noexcept;
+    environment& current_scope() noexcept;
     
 private:
     std::vector<environment> env_;
