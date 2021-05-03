@@ -14,6 +14,8 @@ public:
 
     std::optional<expr_result> value(const std::string& name) const noexcept;
 
+    bool contains(const std::string& key) const noexcept;
+
 private:
     std::unordered_map<std::string, expr_result> values_;
 };

@@ -292,6 +292,15 @@ void fk::lang::interpreter::visit(assignment_statement *stmt)
 
     // TODO: think about adding scope specifiers (export, local, global) to allow the user
     // to mutate global variables with the same name or to add variables to the environment
+    for (size_t i = 0; i < env_.size(); ++i) {
+        auto& env = env_[i];
+        if (env.contains(stmt->name.str)) {
+            env.assign(stmt->name.str, result);
+            fk::log::debug("'%s' found at scope '%d' with value ('%s, '%f')\n"
+                , stmt->name.str.c_str(), i, fk::lang::expr_result_type_str(result.type).c_str(), result.n);
+            return;
+        }
+    }
     current_scope().assign(stmt->name.str, result);
 }
 

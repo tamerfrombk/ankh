@@ -7,9 +7,9 @@
 bool fk::lang::environment::assign(const std::string &name, const expr_result &result) noexcept
 {
     // TODO: implement a shadowing warning
-    auto it = values_.insert({name, result});
+    values_[name] = result;
 
-    return it.second;
+    return true;
 }
 
 std::optional<fk::lang::expr_result> fk::lang::environment::value(const std::string& name) const noexcept
@@ -19,4 +19,9 @@ std::optional<fk::lang::expr_result> fk::lang::environment::value(const std::str
     return it == values_.end()
         ? std::nullopt
         : std::optional<expr_result>(it->second);
+}
+
+bool fk::lang::environment::contains(const std::string &key) const noexcept
+{ 
+    return values_.count(key) > 0; 
 }
