@@ -37,8 +37,7 @@ enum class expr_result_type {
     RT_STRING,
     RT_NUMBER,
     RT_BOOL,
-    RT_NIL,
-    RT_ERROR
+    RT_NIL
 };
 
 std::string expr_result_type_str(expr_result_type type) noexcept;

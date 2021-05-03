@@ -70,6 +70,8 @@ std::string fk::lang::token_type_str(fk::lang::token_type type)
         return "UNKNOWN";
     default:
         fk::log::fatal("shouldn't happen");
+        // again, unnecessary but we'll silence the compiler
+        return "";
     }
 }
 

@@ -148,12 +148,9 @@ static bool truthy(const fk::lang::expr_result& result) noexcept
     return false;
 }
 
-static void print(const fk::lang::expr_result& result) noexcept
+static void print(const fk::lang::expr_result& result)
 {
     switch (result.type) {
-    case fk::lang::expr_result_type::RT_ERROR:
-        fk::log::error("error evaluating expression: '%s'\n", result.err.c_str());
-        break;
     case fk::lang::expr_result_type::RT_STRING:
         std::puts(result.str.c_str());
         break;
@@ -167,8 +164,7 @@ static void print(const fk::lang::expr_result& result) noexcept
         std::puts("nil");
         break;
     default:
-        fk::log::error("unhandled expression result type");
-        break;
+        panic("unhandled expression result type");
     }
 }
 
