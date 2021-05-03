@@ -1,3 +1,5 @@
 #pragma once
 
-#define CLEAN_UNUSED(x) ((void) x)
+#define FK_UNUSED(x) ((void) x)
+
+#define FK_NO_RETURN [[ noreturn ]]

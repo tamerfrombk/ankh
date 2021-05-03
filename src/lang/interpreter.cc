@@ -6,27 +6,29 @@
 #include <cerrno>
 #include <cstring>
 
+#include <fak/def.h>
+#include <fak/log.h>
+
 #include <fak/lang/interpreter.h>
 #include <fak/lang/token.h>
 #include <fak/lang/expr.h>
-#include <fak/log.h>
 #include <fak/lang/interpretation_exception.h>
 
 #include <fak/internal/pretty_printer.h>
 
-static void panic(const std::string& msg)
+FK_NO_RETURN static void panic(const std::string& msg)
 {
     throw fk::lang::interpretation_exception("runtime error: " + msg);
 }
 
-static void panic(const fk::lang::expr_result& result, const std::string& msg)
+FK_NO_RETURN static void panic(const fk::lang::expr_result& result, const std::string& msg)
 {
     const std::string typestr = fk::lang::expr_result_type_str(result.type);
 
     throw fk::lang::interpretation_exception("runtime error: " + msg + " instead of '" + typestr + "'");
 }
 
-static void panic(const fk::lang::expr_result& left, const fk::lang::expr_result& right, const std::string& msg)
+FK_NO_RETURN static void panic(const fk::lang::expr_result& left, const fk::lang::expr_result& right, const std::string& msg)
 {
     const std::string ltypestr = fk::lang::expr_result_type_str(left.type);
     const std::string rtypestr = fk::lang::expr_result_type_str(right.type);
@@ -216,7 +218,7 @@ fk::lang::expr_result fk::lang::interpreter::visit(binary_expression *expr)
         // TODO: right now, dividing by 0 yields 'inf' revisit this and make sure that's the behavior we want for the language
         return arithmetic(left, right, std::divides<>{});
     default:
-        fk::log::fatal("unimplemented binary operator '%s'\n", expr->op.str.c_str());
+        panic(left, right, "unknown binary operator (" + expr->op.str + ")");
     }
 }
 
