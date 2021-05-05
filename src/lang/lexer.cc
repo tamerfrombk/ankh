@@ -14,6 +14,7 @@ static const std::unordered_map<std::string, fk::lang::token_type> KEYWORDS = {
     , { "while", fk::lang::token_type::WHILE }
     , { "for", fk::lang::token_type::FOR }
     , { "let", fk::lang::token_type::LET }
+    , { "def", fk::lang::token_type::DEF }
 };
 
 fk::lang::lexer::lexer(std::string text, fk::lang::error_handler *error_handler)

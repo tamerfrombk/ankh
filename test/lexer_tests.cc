@@ -63,6 +63,7 @@ LEXER_TEST("scan all basic language lexemes")
         while
         for
         let
+        def
         
         ;
 
@@ -133,11 +134,14 @@ LEXER_TEST("scan all basic language lexemes")
         // declaration
         REQUIRE(token_stream[i++] == fk::lang::token{ "let", fk::lang::token_type::LET, 35, 0 });
 
+        // def
+        REQUIRE(token_stream[i++] == fk::lang::token{ "def", fk::lang::token_type::DEF, 36, 0 });
+
         // semicolon
-        REQUIRE(token_stream[i++] == fk::lang::token{ ";", fk::lang::token_type::SEMICOLON, 37, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ ";", fk::lang::token_type::SEMICOLON, 38, 0 });
 
         // comma
-        REQUIRE((token_stream[i].str == "," && token_stream[i++].type == fk::lang::token_type::COMMA));
+        REQUIRE(token_stream[i++] == fk::lang::token{ ",", fk::lang::token_type::COMMA, 39, 0 });
 
         // strings
         REQUIRE(token_stream[i++] == fk::lang::token{ "", fk::lang::token_type::STRING, 39, 0 });

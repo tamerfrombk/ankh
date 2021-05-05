@@ -64,6 +64,8 @@ std::string fk::lang::token_type_str(fk::lang::token_type type)
         return "LET";
     case fk::lang::token_type::COMMA:
         return "COMMA";
+    case fk::lang::token_type::DEF:
+        return "DEF";
     case fk::lang::token_type::NUMBER:
         return "NUMBER";
     case fk::lang::token_type::STRING:
