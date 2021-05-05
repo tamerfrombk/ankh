@@ -13,7 +13,7 @@
 
 #include <fak/internal/pretty_printer.h>
 
-static int interpret(const std::string& script)
+static int execute(fk::lang::interpreter& interpreter, const std::string& script) noexcept
 {
     auto error_handler = std::make_unique<fk::lang::error_handler>();
     fk::lang::parser parser(script, error_handler.get());
@@ -27,8 +27,12 @@ static int interpret(const std::string& script)
         return EXIT_FAILURE;
     }
 
-    fk::lang::interpreter interpreter;
-    interpreter.interpret(program);
+    try {
+        interpreter.interpret(program);
+    } catch (const fk::lang::interpretation_exception& e) {
+        std::fprintf(stderr, "%s\n", e.what());
+        return EXIT_FAILURE;
+    }
 
     return EXIT_SUCCESS;
 }
@@ -54,9 +58,11 @@ static std::optional<std::string> read_file(const std::string& path) noexcept
 
 int fk::shell_loop(int argc, char **argv)
 {
+    fk::lang::interpreter interpreter;
+
     if (argc > 1) {
         if (auto possible_script = read_file(argv[1]); possible_script) {
-            return interpret(possible_script.value());
+            return execute(interpreter, possible_script.value());
         }
         
         fk::log::error("could not open script '%s'\n", argv[1]);
@@ -71,27 +77,15 @@ int fk::shell_loop(int argc, char **argv)
         // TODO: remove dependency on libreadline
         char *line = readline("> ");
         if (line == nullptr) {
-            // EOF encountered on empty line
             fk::log::debug("EOF\n");
-            exit(EXIT_SUCCESS);
-        }
-        
-        if (*line == '\0') {
-            // empty line
+            return EXIT_SUCCESS;
+        } else if (*line == '\0') {
             fk::log::debug("empty line\n");
-            free(line);
-            continue;
+        } else {
+            fk::log::debug("read line: '%s'\n", line);
+            prev_process_exit_code = execute(interpreter, line);
         }
-
-        fk::log::debug("read line: '%s'\n", line);
-        try {
-            prev_process_exit_code = interpret(line);
-            free(line);
-        } catch (const fk::lang::interpretation_exception& e) {
-            std::fprintf(stderr, "%s\n", e.what());
-            free(line);
-            return EXIT_FAILURE;
-        }
+        free(line);
     }
 
     return prev_process_exit_code;
