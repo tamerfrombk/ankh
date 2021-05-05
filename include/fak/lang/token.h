@@ -35,6 +35,7 @@ enum class token_type {
     FOR,               // "for"
     SEMICOLON,         // ;
     LET,               // "let"
+    COMMA,             // ,
     NUMBER,
     STRING,
     T_EOF,

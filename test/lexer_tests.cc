@@ -136,6 +136,9 @@ LEXER_TEST("scan all basic language lexemes")
         // semicolon
         REQUIRE(token_stream[i++] == fk::lang::token{ ";", fk::lang::token_type::SEMICOLON, 37, 0 });
 
+        // comma
+        REQUIRE((token_stream[i].str == "," && token_stream[i++].type == fk::lang::token_type::COMMA));
+
         // strings
         REQUIRE(token_stream[i++] == fk::lang::token{ "", fk::lang::token_type::STRING, 39, 0 });
         REQUIRE(token_stream[i++] == fk::lang::token{ "non-empty string", fk::lang::token_type::STRING, 40, 0 });
