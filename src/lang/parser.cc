@@ -40,10 +40,6 @@ fk::lang::program fk::lang::parser::parse() noexcept
 
 fk::lang::statement_ptr fk::lang::parser::declaration()
 {
-    if (check(fk::lang::token_type::IDENTIFIER)) {
-        return assignment();
-    }
-
     return statement();
 }
 
@@ -78,6 +74,10 @@ fk::lang::statement_ptr fk::lang::parser::statement()
     }
     if (match({ fk::lang::token_type::FOR })) {
         return parse_for();
+    }
+
+    if (check(fk::lang::token_type::IDENTIFIER)) {
+        return assignment();
     }
 
     return make_statement<expression_statement>(expression());

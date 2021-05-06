@@ -3,16 +3,17 @@
 ```
 program               → declaration* EOF
 
-declaration           → assignment | statement
-assignment            → identifier "=" expression newline
+declaration           → statement
 
 statement             → expression_statement 
+                        | assignment
                         | print_statement
                         | block
                         | if_statement
                         | while_statement
                         | for_statement
 
+assignment            → identifier "=" expression newline
 expression_statement  → expression newline
 print_statement       → "print" expression newline
 block                 → "{" declaration* "}"
