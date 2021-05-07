@@ -43,6 +43,7 @@ private:
     expression_ptr term();
     expression_ptr factor();
     expression_ptr unary();
+    expression_ptr call();
     expression_ptr primary();
 
     const token& prev() const noexcept;

@@ -272,6 +272,13 @@ fk::lang::expr_result fk::lang::interpreter::visit(or_expression *expr)
     return evaluate(expr->right);
 }
 
+fk::lang::expr_result fk::lang::interpreter::visit(call_expression *expr)
+{
+    FK_UNUSED(expr);
+
+    panic("call_expression visit() unimplemented");
+}
+
 void fk::lang::interpreter::visit(print_statement *stmt)
 {
     const expr_result result = evaluate(stmt->expr);

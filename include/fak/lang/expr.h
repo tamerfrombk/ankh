@@ -3,6 +3,7 @@
 #include <memory>
 #include <utility>
 #include <string>
+#include <vector>
 
 #include <fak/lang/token.h>
 
@@ -16,6 +17,7 @@ struct paren_expression;
 struct identifier_expression;
 struct and_expression;
 struct or_expression;
+struct call_expression;
 
 template <class R>
 struct expression_visitor {
@@ -28,6 +30,7 @@ struct expression_visitor {
     virtual R visit(identifier_expression *expr) = 0;
     virtual R visit(and_expression *expr) = 0;
     virtual R visit(or_expression *expr) = 0;
+    virtual R visit(call_expression *expr) = 0;
 };
 
 using number = double;
@@ -169,6 +172,21 @@ struct or_expression
 
     or_expression(expression_ptr left, expression_ptr right)
         : left(std::move(left)), right(std::move(right)) {}
+
+    virtual expr_result accept(expression_visitor<expr_result> *visitor) override
+    {
+        return visitor->visit(this);
+    }
+};
+
+struct call_expression 
+    : public expression 
+{
+    expression_ptr name;
+    std::vector<expression_ptr> args;
+
+    call_expression(expression_ptr name, std::vector<expression_ptr> args)
+        : name(std::move(name)), args(std::move(args)) {}
 
     virtual expr_result accept(expression_visitor<expr_result> *visitor) override
     {

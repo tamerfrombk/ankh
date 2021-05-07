@@ -24,6 +24,7 @@ public:
     virtual expr_result visit(identifier_expression *expr) override;
     virtual expr_result visit(and_expression *expr) override;
     virtual expr_result visit(or_expression *expr) override;
+    virtual expr_result visit(call_expression *expr) override;
 
     virtual void visit(print_statement *stmt) override;
     virtual void visit(expression_statement *stmt) override;

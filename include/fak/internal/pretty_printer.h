@@ -51,6 +51,25 @@ public:
         return fk::lang::expr_result::string(binary(expr->left, "||", expr->right));
     }
 
+    inline virtual fk::lang::expr_result visit(fk::lang::call_expression *expr) override
+    {
+        std::string result = stringify(expr->name);
+        
+        result += "(";
+        for (const auto& arg : expr->args) {
+            result += stringify(arg);
+            result += ", ";
+        }
+
+        if (expr->args.size() > 0) {
+            result.pop_back(); // remove the extra space
+            result.pop_back(); // remove the extra comma
+        }
+        result += ")";
+
+        return fk::lang::expr_result::string(result);
+    }
+
     inline virtual std::string visit(fk::lang::print_statement *stmt) override
     {
         return "print " + stringify(stmt->expr);

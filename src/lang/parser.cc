@@ -283,7 +283,34 @@ fk::lang::expression_ptr fk::lang::parser::unary()
         return make_expression<unary_expression>(op, std::move(right));
     }
 
-    return primary();
+    return call();
+}
+
+fk::lang::expression_ptr fk::lang::parser::call()
+{
+    expression_ptr expr = primary();
+
+    if (!check(token_type::LPAREN)) {
+        return expr;
+    }
+
+    // TODO: find a better way to check this
+    if (!dynamic_cast<identifier_expression*>(expr.get())) {
+        throw parse_exception("<identifier> expected as function name");
+    }
+
+    consume(token_type::LPAREN, "'(' expected to start function call arguments");
+    
+    std::vector<expression_ptr> args;
+    if (!check(token_type::RPAREN)) {
+        do {
+            args.push_back(expression());
+        } while (match({ token_type::COMMA }));
+    }
+
+    consume(token_type::RPAREN, "')' expected to terminate function call arguments");
+
+    return make_expression<call_expression>(std::move(expr), std::move(args));
 }
 
 fk::lang::expression_ptr fk::lang::parser::primary()
