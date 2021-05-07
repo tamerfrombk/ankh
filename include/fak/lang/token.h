@@ -37,6 +37,9 @@ enum class token_type {
     LET,               // "let"
     COMMA,             // ,
     DEF,               // "def"
+    // prepended FK because RETURN is a macro in libreadline
+    // TODO: once we remove libreadline, we can rename this back to just RETURN
+    FK_RETURN,         // "return"
     NUMBER,
     STRING,
     T_EOF,

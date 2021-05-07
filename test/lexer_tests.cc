@@ -137,6 +137,9 @@ LEXER_TEST("scan all basic language lexemes")
         // def
         REQUIRE(token_stream[i++] == fk::lang::token{ "def", fk::lang::token_type::DEF, 36, 0 });
 
+        // return
+        REQUIRE((token_stream[i].str == "return" && token_stream[i++].type == fk::lang::token_type::FK_RETURN));
+
         // semicolon
         REQUIRE(token_stream[i++] == fk::lang::token{ ";", fk::lang::token_type::SEMICOLON, 38, 0 });
 
