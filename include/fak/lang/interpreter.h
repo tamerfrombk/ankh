@@ -32,6 +32,7 @@ public:
     virtual void visit(block_statement *stmt) override;
     virtual void visit(if_statement *stmt) override;
     virtual void visit(while_statement *stmt) override;
+    virtual void visit(function_declaration *stmt) override;
 
 private:
     expr_result evaluate(expression_ptr& expr);

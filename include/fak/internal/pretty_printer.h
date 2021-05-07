@@ -123,6 +123,30 @@ public:
 
         return result;
     }
+
+    inline virtual std::string visit(fk::lang::function_declaration *stmt) override
+    {
+        std::string result("def ");
+
+        result += stringify(stmt->name);
+        
+        result += "(";
+        for (const auto& param : stmt->params) {
+            result += stringify(param);
+            result += ",";
+        }
+
+        if (stmt->params.size() > 0) {
+            result.pop_back(); // remove the extra comma
+        }
+        result += ") ";
+
+        result += stringify(stmt->body);
+        result += "\n";
+
+        return result;
+    }
+
 private:
     inline std::string stringify(const fk::lang::expression_ptr& expr)
     {
@@ -132,6 +156,11 @@ private:
     inline std::string stringify(const fk::lang::statement_ptr& expr)
     {
         return expr->accept(this);
+    }
+
+    inline std::string stringify(const fk::lang::token& token)
+    {
+        return token.str;
     }
 
     inline std::string binary(const fk::lang::expression_ptr& left, const std::string& op, const fk::lang::expression_ptr& right)

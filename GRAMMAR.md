@@ -3,7 +3,9 @@
 ```
 program               → declaration* EOF
 
-declaration           → statement
+declaration           → statement | function_declaration
+function_declaration  → "def" identifier "(" params? ")" block
+params                → identifier ( "," identifier )*
 
 statement             → expression_statement
                         | variable_declaration 

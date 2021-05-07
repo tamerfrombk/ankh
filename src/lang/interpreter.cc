@@ -337,6 +337,11 @@ void fk::lang::interpreter::visit(while_statement *stmt)
     }
 }
 
+void fk::lang::interpreter::visit(fk::lang::function_declaration *stmt)
+{
+    FK_UNUSED(stmt);
+}
+
 fk::lang::expr_result fk::lang::interpreter::evaluate(expression_ptr& expr)
 {
     return expr->accept(this);

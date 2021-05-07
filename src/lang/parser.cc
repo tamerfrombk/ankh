@@ -41,6 +41,10 @@ fk::lang::program fk::lang::parser::parse() noexcept
 
 fk::lang::statement_ptr fk::lang::parser::declaration()
 {
+    if (match({ fk::lang::token_type::DEF })) {
+        return parse_function_declaration();
+    }
+
     return statement();
 }
 
@@ -53,7 +57,28 @@ fk::lang::statement_ptr fk::lang::parser::parse_variable_declaration()
 
     consume(token_type::EQ, "'=' expected");
 
-    return make_statement<variable_declaration>(identifier, expression());   
+    return make_statement<variable_declaration>(identifier, expression());  
+} 
+
+fk::lang::statement_ptr fk::lang::parser::parse_function_declaration()
+{
+    const token name = consume(token_type::IDENTIFIER, "<identifier> expected as function name");
+
+    consume(token_type::LPAREN, "'(' expected to start function declaration parameters");
+
+    std::vector<token> params;
+    if (!check(token_type::RPAREN)) {
+        do {
+            token param = consume(token_type::IDENTIFIER, "<identifier> expected in function parameters");
+            params.push_back(std::move(param));        
+        } while (match({ token_type::COMMA }));
+    }
+
+    consume(token_type::RPAREN, "')' expected to terminate function declaration parameters");
+
+    statement_ptr body = block();
+
+    return make_statement<function_declaration>(std::move(name), std::move(params), std::move(body));
 }
 
 fk::lang::statement_ptr fk::lang::parser::assignment()
