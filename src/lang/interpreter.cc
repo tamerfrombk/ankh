@@ -274,9 +274,41 @@ fk::lang::expr_result fk::lang::interpreter::visit(or_expression *expr)
 
 fk::lang::expr_result fk::lang::interpreter::visit(call_expression *expr)
 {
-    FK_UNUSED(expr);
+    // TODO: ugh, fix this again
+    if (!dynamic_cast<identifier_expression*>(expr->name.get())) {
+        panic("<identifier> expected as function call name");
+    }
 
-    panic("call_expression visit() unimplemented");
+    const std::string name = static_cast<identifier_expression*>(expr->name.get())->name.str;
+    if (functions_.count(name) == 0) {
+        panic(name + " is not a function defined in this scope");
+    }
+
+    function_declaration *declaration = functions_[name];
+    if (expr->args.size() != declaration->params.size()) {
+        panic("expected " + std::to_string(declaration->params.size()) + " arguments to function " + name + " instead of " + std::to_string(expr->args.size()));
+    }
+
+    fk::log::debug("function '%s' with matching arity '%d' found in the current scope\n", name.c_str(), expr->args.size());
+
+    try {
+        enter_new_scope();
+        
+        for (size_t i = 0; i < expr->args.size(); ++i) {
+            const expr_result arg = evaluate(expr->args[i]);
+            current_scope().assign(declaration->params[i].str, arg);
+        }
+
+        execute(declaration->body);
+        
+        leave_current_scope();
+    } catch (const interpretation_exception& e) {
+        leave_current_scope();
+        throw e;
+    }
+
+    // TODO: implement return statement
+    return expr_result::nil();
 }
 
 void fk::lang::interpreter::visit(print_statement *stmt)
@@ -346,10 +378,16 @@ void fk::lang::interpreter::visit(while_statement *stmt)
 
 void fk::lang::interpreter::visit(fk::lang::function_declaration *stmt)
 {
-    FK_UNUSED(stmt);
+    if (functions_.count(stmt->name.str) > 0) {
+        panic("function " + stmt->name.str + " is already declared in this scope");
+    }
+
+    functions_[stmt->name.str] = stmt;
+
+    fk::log::debug("function '%s' added to current scope\n", stmt->name.str.c_str());
 }
 
-fk::lang::expr_result fk::lang::interpreter::evaluate(expression_ptr& expr)
+fk::lang::expr_result fk::lang::interpreter::evaluate(const expression_ptr& expr)
 {
     return expr->accept(this);
 }

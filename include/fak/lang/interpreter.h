@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <unordered_map>
+#include <string>
 
 #include <fak/lang/expr.h>
 #include <fak/lang/statement.h>
@@ -36,15 +38,20 @@ public:
     virtual void visit(function_declaration *stmt) override;
 
 private:
-    expr_result evaluate(expression_ptr& expr);
+    expr_result evaluate(const expression_ptr& expr);
     void execute(const statement_ptr& stmt);
 
     void enter_new_scope() noexcept;
     void leave_current_scope() noexcept;
     environment& current_scope() noexcept;
-    
+
 private:
     std::vector<environment> env_;
+
+    // TODO: this assumes all functions are in global namespace
+    // That's OK for now but needs to be revisited when implementing modules
+    std::unordered_map<std::string, function_declaration*> functions_;
+
 };
 
 }
