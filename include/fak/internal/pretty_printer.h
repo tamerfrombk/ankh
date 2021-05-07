@@ -168,7 +168,7 @@ public:
 
     inline virtual std::string visit(fk::lang::return_statement *stmt) override
     {
-        return "return " + stringify(stmt->stmt);
+        return "return " + stringify(stmt->expr);
     }
 
 private:

@@ -214,10 +214,10 @@ struct function_declaration
 struct return_statement
     : public statement
 {
-    expression_ptr stmt;
+    expression_ptr expr;
 
-    return_statement(expression_ptr stmt)
-        : stmt(std::move(stmt)) {}
+    return_statement(expression_ptr expr)
+        : expr(std::move(expr)) {}
 
     virtual void accept(statement_visitor<void> *visitor) override
     {
