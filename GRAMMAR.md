@@ -15,6 +15,7 @@ statement             → expression_statement
                         | if_statement
                         | while_statement
                         | for_statement
+                        | return_statement
 
 variable_declaration  → "let" assignment
 assignment            → identifier "=" expression newline
@@ -24,6 +25,7 @@ block                 → "{" declaration* "}"
 if_statement          → "if" expression block ( "else" block )?
 while_statement       → "while" expression block
 for_statement         → "for" variable_declaration? ";" expression? ";" assignment? block
+return_statement      → "return" expression?
 
 expression            → or_expression
 or_expression         → and_expression ( "||" and_expression )*

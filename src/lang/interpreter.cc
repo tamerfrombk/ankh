@@ -387,6 +387,13 @@ void fk::lang::interpreter::visit(fk::lang::function_declaration *stmt)
     fk::log::debug("function '%s' added to current scope\n", stmt->name.str.c_str());
 }
 
+void fk::lang::interpreter::visit(return_statement *stmt)
+{
+    FK_UNUSED(stmt);
+
+    fk::log::debug("return_statement visit()\n");
+}
+
 fk::lang::expr_result fk::lang::interpreter::evaluate(const expression_ptr& expr)
 {
     return expr->accept(this);

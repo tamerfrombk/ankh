@@ -113,6 +113,9 @@ fk::lang::statement_ptr fk::lang::parser::statement()
     if (match({ fk::lang::token_type::FOR })) {
         return parse_for();
     }
+    if (match({ fk::lang::token_type::FK_RETURN })) {
+        return parse_return();
+    }
 
     if (check(fk::lang::token_type::LET)) {
         return parse_variable_declaration();
@@ -188,6 +191,16 @@ fk::lang::statement_ptr fk::lang::parser::parse_for()
     statement_ptr body = block();
 
     return desugar_for_into_while(std::move(init), std::move(condition), std::move(mutator), std::move(body));
+}
+
+fk::lang::statement_ptr fk::lang::parser::parse_return()
+{
+    // if there is no expression, we return nil
+    expression_ptr expr = check(token_type::RBRACE)
+        ? make_expression<literal_expression>(token{"nil", token_type::NIL})
+        : expression();
+
+    return make_statement<return_statement>(std::move(expr));
 }
 
 fk::lang::expression_ptr fk::lang::parser::expression()

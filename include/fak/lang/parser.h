@@ -34,6 +34,7 @@ private:
     statement_ptr  parse_if();
     statement_ptr  parse_while();
     statement_ptr  parse_for();
+    statement_ptr  parse_return();
 
     expression_ptr expression();
     expression_ptr parse_or();

@@ -36,6 +36,7 @@ public:
     virtual void visit(if_statement *stmt) override;
     virtual void visit(while_statement *stmt) override;
     virtual void visit(function_declaration *stmt) override;
+    virtual void visit(return_statement *stmt) override;
 
 private:
     expr_result evaluate(const expression_ptr& expr);

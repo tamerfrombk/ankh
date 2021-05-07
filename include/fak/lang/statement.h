@@ -18,6 +18,7 @@ struct block_statement;
 struct if_statement;
 struct while_statement;
 struct function_declaration;
+struct return_statement;
 
 template <class R>
 struct statement_visitor {
@@ -31,6 +32,7 @@ struct statement_visitor {
     virtual R visit(if_statement *stmt) = 0;
     virtual R visit(while_statement *stmt) = 0;
     virtual R visit(function_declaration *stmt) = 0;
+    virtual R visit(return_statement *stmt) = 0;
 };
 
 struct statement
@@ -197,6 +199,25 @@ struct function_declaration
 
     function_declaration(token name, std::vector<token> params, statement_ptr body)
         : name(std::move(name)), params(std::move(params)), body(std::move(body)) {}
+
+    virtual void accept(statement_visitor<void> *visitor) override
+    {
+        visitor->visit(this);
+    }
+
+    virtual std::string accept(statement_visitor<std::string> *visitor) override
+    {
+        return visitor->visit(this);
+    }
+};
+
+struct return_statement
+    : public statement
+{
+    expression_ptr stmt;
+
+    return_statement(expression_ptr stmt)
+        : stmt(std::move(stmt)) {}
 
     virtual void accept(statement_visitor<void> *visitor) override
     {

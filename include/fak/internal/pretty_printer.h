@@ -166,6 +166,11 @@ public:
         return result;
     }
 
+    inline virtual std::string visit(fk::lang::return_statement *stmt) override
+    {
+        return "return " + stringify(stmt->stmt);
+    }
+
 private:
     inline std::string stringify(const fk::lang::expression_ptr& expr)
     {
