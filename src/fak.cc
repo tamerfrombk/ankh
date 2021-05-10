@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <cstdio>
+#include <iostream>
 
 #include <readline/readline.h>
 
@@ -13,6 +14,20 @@
 
 #include <fak/internal/pretty_printer.h>
 
+#include <termcolor/termcolor.h>
+
+static void print_error(const char *msg)
+{
+    std::cerr << termcolor::red << termcolor::bold << msg << "\n";
+    std::cerr << termcolor::reset;
+}
+
+static void print_error(const std::string& msg)
+{
+    std::cerr << termcolor::red << termcolor::bold << msg << "\n";
+    std::cerr << termcolor::reset;
+}
+
 static int execute(fk::lang::interpreter& interpreter, const std::string& script) noexcept
 {
     auto error_handler = std::make_unique<fk::lang::error_handler>();
@@ -22,7 +37,7 @@ static int execute(fk::lang::interpreter& interpreter, const std::string& script
     if (error_handler->error_count() > 0) {
         const auto& errors = error_handler->errors();
         for (const auto& e : errors) {
-            std::fprintf(stderr, "%s\n", e.msg.c_str());
+           print_error(e.msg);
         }
         return EXIT_FAILURE;
     }
@@ -30,7 +45,7 @@ static int execute(fk::lang::interpreter& interpreter, const std::string& script
     try {
         interpreter.interpret(program);
     } catch (const fk::lang::interpretation_exception& e) {
-        std::fprintf(stderr, "%s\n", e.what());
+        print_error(e.what());
         return EXIT_FAILURE;
     }
 
