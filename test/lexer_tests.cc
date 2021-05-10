@@ -64,8 +64,10 @@ LEXER_TEST("scan all basic language lexemes")
         for
         let
         def
+        return
         
         ;
+        ,
 
         ""
         "non-empty string"
@@ -138,27 +140,27 @@ LEXER_TEST("scan all basic language lexemes")
         REQUIRE(token_stream[i++] == fk::lang::token{ "def", fk::lang::token_type::DEF, 36, 0 });
 
         // return
-        REQUIRE((token_stream[i].str == "return" && token_stream[i++].type == fk::lang::token_type::FK_RETURN));
+        REQUIRE(token_stream[i++] == fk::lang::token{ "return", fk::lang::token_type::FK_RETURN, 37, 0 });
 
         // semicolon
-        REQUIRE(token_stream[i++] == fk::lang::token{ ";", fk::lang::token_type::SEMICOLON, 38, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ ";", fk::lang::token_type::SEMICOLON, 39, 0 });
 
         // comma
-        REQUIRE(token_stream[i++] == fk::lang::token{ ",", fk::lang::token_type::COMMA, 39, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ ",", fk::lang::token_type::COMMA, 40, 0 });
 
         // strings
-        REQUIRE(token_stream[i++] == fk::lang::token{ "", fk::lang::token_type::STRING, 39, 0 });
-        REQUIRE(token_stream[i++] == fk::lang::token{ "non-empty string", fk::lang::token_type::STRING, 40, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "", fk::lang::token_type::STRING, 42, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "non-empty string", fk::lang::token_type::STRING, 43, 0 });
 
         // number
-        REQUIRE(token_stream[i++] == fk::lang::token{ "123", fk::lang::token_type::NUMBER, 42, 0 });
-        REQUIRE(token_stream[i++] == fk::lang::token{ "123.45", fk::lang::token_type::NUMBER, 43, 0 });
-        REQUIRE(token_stream[i++] == fk::lang::token{ "123.", fk::lang::token_type::NUMBER, 44, 0 });
-        REQUIRE(token_stream[i++] == fk::lang::token{ "0.1", fk::lang::token_type::NUMBER, 45, 0 });
-        REQUIRE(token_stream[i++] == fk::lang::token{ "1.0", fk::lang::token_type::NUMBER, 46, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "123", fk::lang::token_type::NUMBER, 45, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "123.45", fk::lang::token_type::NUMBER, 46, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "123.", fk::lang::token_type::NUMBER, 47, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "0.1", fk::lang::token_type::NUMBER, 48, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "1.0", fk::lang::token_type::NUMBER, 49, 0 });
 
         // EOF -- make sure this is LAST
-        REQUIRE(token_stream[i++] == fk::lang::token{ "EOF", fk::lang::token_type::T_EOF, 47, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "EOF", fk::lang::token_type::T_EOF, 50, 0 });
 
         REQUIRE(error_handler->error_count() == 0);
     }

@@ -196,9 +196,13 @@ fk::lang::statement_ptr fk::lang::parser::parse_for()
 fk::lang::statement_ptr fk::lang::parser::parse_return()
 {
     // if there is no expression, we return nil
-    expression_ptr expr = check(token_type::RBRACE)
-        ? make_expression<literal_expression>(token{"nil", token_type::NIL})
-        : expression();
+    expression_ptr expr;
+    if (check(token_type::RBRACE)) {
+        const token& current_token = prev();
+        expr = make_expression<literal_expression>(token{"nil", token_type::NIL, current_token.line, current_token.inline_pos});
+    } else {
+        expr = expression();
+    }
 
     return make_statement<return_statement>(std::move(expr));
 }

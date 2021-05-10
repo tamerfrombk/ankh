@@ -99,6 +99,8 @@ fk::lang::token fk::lang::lexer::next_token() noexcept
         return { "|", fk::lang::token_type::UNKNOWN, line_, 0 };
     } else if (c == ';') {
         return { ";", fk::lang::token_type::SEMICOLON, line_, 0 };
+    } else if (c == ',') {
+        return { ",", fk::lang::token_type::COMMA, line_, 0 };
     } else {
         error_handler_->report_error({"unknown token!"});
         return { std::string{c}, fk::lang::token_type::UNKNOWN, line_, 0 };
