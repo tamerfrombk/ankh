@@ -45,8 +45,27 @@ std::string token_type_str(token_type type);
 struct token {
     std::string str;
     token_type type;
+    size_t line;
+    size_t inline_pos;
 
-    token(std::string str, token_type type);
+    token(std::string str, token_type type, size_t line, size_t inlinepos)
+        : str(std::move(str)), type(type), line(line), inline_pos(inlinepos) {}
+
 };
+
+inline bool operator==(const token& lhs, const token& rhs)
+{
+    // this order is done on purpose to avoid an O(n) string comparison if we can help it
+    return lhs.type == rhs.type
+        && lhs.line == rhs.line
+        && lhs.inline_pos == rhs.inline_pos
+        && lhs.str == rhs.str;
+}
+
+inline bool operator!=(const token& lhs, const token& rhs)
+{
+    // this order is done on purpose to avoid an O(n) string comparison if we can help it
+    return !operator==(lhs, rhs);
+}
 
 }

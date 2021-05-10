@@ -27,118 +27,124 @@ LEXER_TEST("scan all basic language lexemes")
 {
     auto error_handler = std::make_unique<fk::lang::error_handler>();
 
-    SECTION("happy path")
-    {
-        const std::string all_tokens = R"(
-            =
+    const std::string all_tokens = 
+    R"(=
 
-            !=
-            ==
-            >
-            >=
-            <
-            <=
+        !=
+        ==
+        >
+        >=
+        <
+        <=
 
-            -
-            +
-            /
-            *
+        -
+        +
+        /
+        *
 
-            (
-            )
+        (
+        )
 
-            { 
-            }
+        { 
+        }
 
-            !
-            true
-            false
-            nil
-            print
-            if
-            else
-            &&
-            ||
-            while
-            for
-            
-            ;
-
-            ""
-            "non-empty string"
-
-            123
-            123.45
-            123.
-            0.1
-            1.0
-        )";
-
-        fk::lang::lexer lexer(all_tokens, error_handler.get());
-
-        std::vector<fk::lang::token> tokens = extract_all_tokens(lexer);
+        !
+        true
+        false
         
+        nil
+
+        print
+
+        if
+        else
+        &&
+        ||
+        while
+        for
+        
+        ;
+
+        ""
+        "non-empty string"
+
+        123
+        123.45
+        123.
+        0.1
+        1.0
+    )";
+
+    fk::lang::lexer lexer(all_tokens, error_handler.get());
+
+    std::vector<fk::lang::token> token_stream = extract_all_tokens(lexer);
+
+    REQUIRE_FALSE(token_stream.empty());
+
+    SECTION("lex all language tokens")
+    {   
         int i = 0;
+        
         // assignment
-        REQUIRE((tokens[i].str == "=" && tokens[i++].type == fk::lang::token_type::EQ));
+        REQUIRE(token_stream[i++] == fk::lang::token{ "=", fk::lang::token_type::EQ, 1, 0 });
 
         // comparison and equality
-        REQUIRE((tokens[i].str == "!=" && tokens[i++].type == fk::lang::token_type::NEQ));
-        REQUIRE((tokens[i].str == "==" && tokens[i++].type == fk::lang::token_type::EQEQ));
-        REQUIRE((tokens[i].str == ">" && tokens[i++].type == fk::lang::token_type::GT));
-        REQUIRE((tokens[i].str == ">=" && tokens[i++].type == fk::lang::token_type::GTE));
-        REQUIRE((tokens[i].str == "<" && tokens[i++].type == fk::lang::token_type::LT));
-        REQUIRE((tokens[i].str == "<=" && tokens[i++].type == fk::lang::token_type::LTE));
+        REQUIRE(token_stream[i++] == fk::lang::token{ "!=", fk::lang::token_type::NEQ, 3, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "==", fk::lang::token_type::EQEQ, 4, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ ">", fk::lang::token_type::GT, 5, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ ">=", fk::lang::token_type::GTE, 6, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "<", fk::lang::token_type::LT, 7, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "<=", fk::lang::token_type::LTE, 8, 0 });
 
         // arithmetic
-        REQUIRE((tokens[i].str == "-" && tokens[i++].type == fk::lang::token_type::MINUS));
-        REQUIRE((tokens[i].str == "+" && tokens[i++].type == fk::lang::token_type::PLUS));
-        REQUIRE((tokens[i].str == "/" && tokens[i++].type == fk::lang::token_type::FSLASH));
-        REQUIRE((tokens[i].str == "*" && tokens[i++].type == fk::lang::token_type::STAR));
-
+        REQUIRE(token_stream[i++] == fk::lang::token{ "-", fk::lang::token_type::MINUS, 10, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "+", fk::lang::token_type::PLUS, 11, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "/", fk::lang::token_type::FSLASH, 12, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "*", fk::lang::token_type::STAR, 13, 0 });
+        
         // parens
-        REQUIRE((tokens[i].str == "(" && tokens[i++].type == fk::lang::token_type::LPAREN));
-        REQUIRE((tokens[i].str == ")" && tokens[i++].type == fk::lang::token_type::RPAREN));
-
+        REQUIRE(token_stream[i++] == fk::lang::token{ "(", fk::lang::token_type::LPAREN, 15, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ ")", fk::lang::token_type::RPAREN, 16, 0 });
+    
         // braces
-        REQUIRE((tokens[i].str == "{" && tokens[i++].type == fk::lang::token_type::LBRACE));
-        REQUIRE((tokens[i].str == "}" && tokens[i++].type == fk::lang::token_type::RBRACE));
-
+        REQUIRE(token_stream[i++] == fk::lang::token{ "{", fk::lang::token_type::LBRACE, 18, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "}", fk::lang::token_type::RBRACE, 19, 0 });
+        
         // boolean
-        REQUIRE((tokens[i].str == "!" && tokens[i++].type == fk::lang::token_type::BANG));
-        REQUIRE((tokens[i].str == "true" && tokens[i++].type == fk::lang::token_type::BTRUE));
-        REQUIRE((tokens[i].str == "false" && tokens[i++].type == fk::lang::token_type::BFALSE));
+        REQUIRE(token_stream[i++] == fk::lang::token{ "!", fk::lang::token_type::BANG, 21, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "true", fk::lang::token_type::BTRUE, 22, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "false", fk::lang::token_type::BFALSE, 23, 0 });
 
         // nil
-        REQUIRE((tokens[i].str == "nil" && tokens[i++].type == fk::lang::token_type::NIL));
-
+        REQUIRE(token_stream[i++] == fk::lang::token{ "nil", fk::lang::token_type::NIL, 25, 0 });
+        
         // print
-        REQUIRE((tokens[i].str == "print" && tokens[i++].type == fk::lang::token_type::PRINT));
+        REQUIRE(token_stream[i++] == fk::lang::token{ "print", fk::lang::token_type::PRINT, 27, 0 });
 
         // conditionals
-        REQUIRE((tokens[i].str == "if" && tokens[i++].type == fk::lang::token_type::IF));
-        REQUIRE((tokens[i].str == "else" && tokens[i++].type == fk::lang::token_type::ELSE));
-        REQUIRE((tokens[i].str == "&&" && tokens[i++].type == fk::lang::token_type::AND));
-        REQUIRE((tokens[i].str == "||" && tokens[i++].type == fk::lang::token_type::OR));
-        REQUIRE((tokens[i].str == "while" && tokens[i++].type == fk::lang::token_type::WHILE));
-        REQUIRE((tokens[i].str == "for" && tokens[i++].type == fk::lang::token_type::FOR));
+        REQUIRE(token_stream[i++] == fk::lang::token{ "if", fk::lang::token_type::IF, 29, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "else", fk::lang::token_type::ELSE, 30, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "&&", fk::lang::token_type::AND, 31, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "||", fk::lang::token_type::OR, 32, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "while", fk::lang::token_type::WHILE, 33, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "for", fk::lang::token_type::FOR, 34, 0 });
 
         // semicolon
-        REQUIRE((tokens[i].str == ";" && tokens[i++].type == fk::lang::token_type::SEMICOLON));
+        REQUIRE(token_stream[i++] == fk::lang::token{ ";", fk::lang::token_type::SEMICOLON, 36, 0 });
 
         // strings
-        REQUIRE((tokens[i].str == "" && tokens[i++].type == fk::lang::token_type::STRING));
-        REQUIRE((tokens[i].str == "non-empty string" && tokens[i++].type == fk::lang::token_type::STRING));
+        REQUIRE(token_stream[i++] == fk::lang::token{ "", fk::lang::token_type::STRING, 38, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "non-empty string", fk::lang::token_type::STRING, 39, 0 });
 
         // number
-        REQUIRE((tokens[i].str == "123" && tokens[i++].type == fk::lang::token_type::NUMBER));
-        REQUIRE((tokens[i].str == "123.45" && tokens[i++].type == fk::lang::token_type::NUMBER));
-        REQUIRE((tokens[i].str == "123." && tokens[i++].type == fk::lang::token_type::NUMBER));
-        REQUIRE((tokens[i].str == "0.1" && tokens[i++].type == fk::lang::token_type::NUMBER));
-        REQUIRE((tokens[i].str == "1.0" && tokens[i++].type == fk::lang::token_type::NUMBER));
+        REQUIRE(token_stream[i++] == fk::lang::token{ "123", fk::lang::token_type::NUMBER, 41, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "123.45", fk::lang::token_type::NUMBER, 42, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "123.", fk::lang::token_type::NUMBER, 43, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "0.1", fk::lang::token_type::NUMBER, 44, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "1.0", fk::lang::token_type::NUMBER, 45, 0 });
 
         // EOF -- make sure this is LAST
-        REQUIRE((tokens[i].str == "EOF" && tokens[i++].type == fk::lang::token_type::T_EOF));
+        REQUIRE(token_stream[i++] == fk::lang::token{ "EOF", fk::lang::token_type::T_EOF, 46, 0 });
 
         REQUIRE(error_handler->error_count() == 0);
     }

@@ -131,8 +131,9 @@ fk::lang::statement_ptr fk::lang::parser::parse_for()
 
     expression_ptr condition;
     if (match({ fk::lang::token_type::SEMICOLON })) {
+        const token& semicolon = prev();
         // if there is no condition, we borrow from C and assume the condition is always true
-        condition = make_expression<literal_expression>(token{"true", fk::lang::token_type::BTRUE});
+        condition = make_expression<literal_expression>(token{"true", fk::lang::token_type::BTRUE, semicolon.line, semicolon.inline_pos});
     } else {
         condition = expression();
         consume(fk::lang::token_type::SEMICOLON, "';' expected after condition expression");

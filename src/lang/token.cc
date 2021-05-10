@@ -74,6 +74,3 @@ std::string fk::lang::token_type_str(fk::lang::token_type type)
         return "";
     }
 }
-
-fk::lang::token::token(std::string str, fk::lang::token_type type)
-    : str(std::move(str)), type(type) {}

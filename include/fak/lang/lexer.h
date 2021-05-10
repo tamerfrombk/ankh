@@ -18,8 +18,6 @@ public:
 
     bool is_eof() const noexcept;
 
-    std::string rest() const noexcept;
-
 private:
     void skip_whitespace() noexcept;
     void skip_comment() noexcept;
@@ -37,6 +35,7 @@ private:
 private:
     const std::string text_;
     size_t cursor_;
+    size_t line_;
 
     error_handler *error_handler_;
 };
