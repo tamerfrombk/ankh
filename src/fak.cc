@@ -14,18 +14,16 @@
 
 #include <fak/internal/pretty_printer.h>
 
-#include <termcolor/termcolor.h>
+#include <fmt/color.h>
 
 static void print_error(const char *msg)
 {
-    std::cerr << termcolor::red << termcolor::bold << msg << "\n";
-    std::cerr << termcolor::reset;
+    fmt::print(fg(fmt::color::red) | fmt::emphasis::bold, "{}\n", msg);
 }
 
 static void print_error(const std::string& msg)
 {
-    std::cerr << termcolor::red << termcolor::bold << msg << "\n";
-    std::cerr << termcolor::reset;
+    fmt::print(fg(fmt::color::red) | fmt::emphasis::bold, "{}\n", msg);
 }
 
 static int execute(fk::lang::interpreter& interpreter, const std::string& script) noexcept
