@@ -64,7 +64,6 @@ inline bool operator==(const token& lhs, const token& rhs)
 
 inline bool operator!=(const token& lhs, const token& rhs)
 {
-    // this order is done on purpose to avoid an O(n) string comparison if we can help it
     return !operator==(lhs, rhs);
 }
 
