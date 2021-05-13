@@ -5,6 +5,7 @@
 #include <functional>
 #include <cerrno>
 #include <cstring>
+#include <stdexcept>
 
 #include <fak/def.h>
 #include <fak/log.h>
@@ -15,6 +16,15 @@
 #include <fak/lang/interpretation_exception.h>
 
 #include <fak/internal/pretty_printer.h>
+
+struct return_exception
+    : public std::runtime_error
+{
+    explicit return_exception(fk::lang::expr_result result)
+        : std::runtime_error(""), result(std::move(result)) {}
+
+    fk::lang::expr_result result;
+};
 
 FK_NO_RETURN static void panic(const std::string& msg)
 {
@@ -305,9 +315,13 @@ fk::lang::expr_result fk::lang::interpreter::visit(call_expression *expr)
     } catch (const interpretation_exception& e) {
         leave_current_scope();
         throw e;
+    } catch (const return_exception& e) {
+        leave_current_scope();
+        fk::log::debug("RETURN: popped stack frame\n");
+        return e.result;
     }
 
-    // TODO: implement return statement
+    // this shouldn't be reached but it's here to satisfy the compiler
     return expr_result::nil();
 }
 
@@ -389,9 +403,9 @@ void fk::lang::interpreter::visit(fk::lang::function_declaration *stmt)
 
 void fk::lang::interpreter::visit(return_statement *stmt)
 {
-    FK_UNUSED(stmt);
+    const expr_result result = evaluate(stmt->expr);
 
-    fk::log::debug("return_statement visit()\n");
+    throw return_exception(result);
 }
 
 fk::lang::expr_result fk::lang::interpreter::evaluate(const expression_ptr& expr)
