@@ -309,7 +309,13 @@ fk::lang::expr_result fk::lang::interpreter::visit(call_expression *expr)
             current_scope().assign(declaration->params[i].str, arg);
         }
 
-        execute(declaration->body);
+        // Here, we avoid calling execute(declaration->body) directly because visiting a block statement will
+        // create a new additional environment we don't want. When we implement function calls, we will be controlling
+        // the environment of the child block so we execute its statements directly here.
+        block_statement *block = static_cast<block_statement*>(declaration->body.get());
+        for (const auto& stmt : block->statements) {
+            execute(stmt);
+        }
         
         leave_current_scope();
     } catch (const interpretation_exception& e) {
@@ -317,7 +323,6 @@ fk::lang::expr_result fk::lang::interpreter::visit(call_expression *expr)
         throw e;
     } catch (const return_exception& e) {
         leave_current_scope();
-        fk::log::debug("RETURN: popped stack frame\n");
         return e.result;
     }
 
@@ -364,9 +369,24 @@ void fk::lang::interpreter::visit(assignment_statement *stmt)
 
 void fk::lang::interpreter::visit(block_statement *stmt)
 {
+<<<<<<< HEAD
     enter_new_scope();
     for (const statement_ptr& statement : stmt->statements) {
         execute(statement);
+=======
+    try {
+        enter_new_scope();
+        for (const statement_ptr& statement : stmt->statements) {
+            execute(statement);
+        }
+        leave_current_scope();
+    } catch (const interpretation_exception& e) {
+        leave_current_scope();
+        throw e;
+    } catch (const return_exception& e) {
+        leave_current_scope();
+        throw e;
+>>>>>>> 2ed8308 (part 2 of implementing return statement interpretation: have the call() expression directly manage the environment of the child block)
     }
     leave_current_scope();
 }
