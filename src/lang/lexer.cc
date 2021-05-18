@@ -1,7 +1,6 @@
 #include <cctype>
 #include <unordered_map>
 
-#include <fak/log.h>
 #include <fak/lang/lexer.h>
 #include <fak/lang/error_handler.h>
 
@@ -28,7 +27,6 @@ fk::lang::token fk::lang::lexer::next_token() noexcept
     skip_whitespace();
 
     if (is_eof()) {
-        fk::log::debug("EOF reached\n");
         return { "EOF", fk::lang::token_type::T_EOF, line_, 0 };
     }
 
@@ -122,7 +120,6 @@ bool fk::lang::lexer::is_eof() const noexcept
 
 void fk::lang::lexer::skip_whitespace() noexcept
 {
-    fk::log::debug("LEXER: skipping whitespace\n");
     while (!is_eof() && std::isspace(curr())) {
         if (curr() == '\n') {
             ++line_;
@@ -140,8 +137,6 @@ void fk::lang::lexer::skip_comment() noexcept
 
 fk::lang::token fk::lang::lexer::lex_alnum(char init) noexcept
 {
-    fk::log::debug("LEXER: lexing alnum token\n");
-
     std::string token(1, init);
     while (!is_eof()) {
         char c = curr();
