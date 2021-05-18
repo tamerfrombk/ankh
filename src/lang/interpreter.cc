@@ -255,6 +255,7 @@ fk::lang::expr_result fk::lang::interpreter::visit(identifier_expression *expr)
     for (auto it = env_.rbegin(); it != env_.rend(); ++it) {
         auto possible_value = it->value(expr->name.str); 
         if (possible_value.has_value()) {
+            fk::log::debug("IDENTIFIER '%s' = '%s' @ scope '%d'\n", expr->name.str.c_str(), possible_value.value().stringify().c_str(), scope());
             return possible_value.value();
         }
     }
@@ -301,8 +302,10 @@ fk::lang::expr_result fk::lang::interpreter::visit(call_expression *expr)
 
     fk::log::debug("function '%s' with matching arity '%d' found in the current scope\n", name.c_str(), expr->args.size());
 
+    size_t entered_scope;
     try {
         enter_new_scope();
+        entered_scope = scope();
         
         for (size_t i = 0; i < expr->args.size(); ++i) {
             const expr_result arg = evaluate(expr->args[i]);
@@ -322,7 +325,16 @@ fk::lang::expr_result fk::lang::interpreter::visit(call_expression *expr)
         leave_current_scope();
         throw e;
     } catch (const return_exception& e) {
-        leave_current_scope();
+        size_t return_scope = scope();
+        fk::log::debug("return scope: %d entered scope %d\n", return_scope, entered_scope);
+        // TODO: create an assertion that return_scope is always > entered_scope here
+        
+        // unwind the stack
+        while (return_scope >= entered_scope) {
+            leave_current_scope();
+            --return_scope;
+        }
+
         return e.result;
     }
 
@@ -355,13 +367,17 @@ void fk::lang::interpreter::visit(variable_declaration *stmt)
 
 void fk::lang::interpreter::visit(assignment_statement *stmt)
 {
+    // TODO: think about adding scope specifiers (export, local, global) to allow the user
+    // to mutate global variables with the same name or to add variables to the environment
+    size_t this_scope = scope();
     for (auto it = env_.rbegin(); it != env_.rend(); ++it) {
         if (it->contains(stmt->name.str)) {
             const expr_result result = evaluate(stmt->initializer);
-            fk::log::debug("ASSIGNMENT '%s' = '%s'\n", stmt->name.str.c_str(), result.stringify().c_str());
             it->assign(stmt->name.str, result);
+            fk::log::debug("ASSIGNMENT '%s' = '%s' @ scope '%d'\n", stmt->name.str.c_str(), result.stringify().c_str(), this_scope);
             return;
         }
+        --this_scope;
     }
     
     panic(stmt->name.str + " is not defined");
@@ -369,24 +385,9 @@ void fk::lang::interpreter::visit(assignment_statement *stmt)
 
 void fk::lang::interpreter::visit(block_statement *stmt)
 {
-<<<<<<< HEAD
     enter_new_scope();
     for (const statement_ptr& statement : stmt->statements) {
         execute(statement);
-=======
-    try {
-        enter_new_scope();
-        for (const statement_ptr& statement : stmt->statements) {
-            execute(statement);
-        }
-        leave_current_scope();
-    } catch (const interpretation_exception& e) {
-        leave_current_scope();
-        throw e;
-    } catch (const return_exception& e) {
-        leave_current_scope();
-        throw e;
->>>>>>> 2ed8308 (part 2 of implementing return statement interpretation: have the call() expression directly manage the environment of the child block)
     }
     leave_current_scope();
 }
@@ -441,14 +442,21 @@ void fk::lang::interpreter::execute(const statement_ptr& stmt)
 void fk::lang::interpreter::enter_new_scope() noexcept
 {
     env_.emplace_back();
+    fk::log::debug("entered new scope %d\n", scope());
 }
 
 void fk::lang::interpreter::leave_current_scope() noexcept
 {
+    fk::log::debug("leaving scope %d\n", scope());
     env_.pop_back();
 }
 
 fk::lang::environment& fk::lang::interpreter::current_scope() noexcept
 {
     return env_.back();
+}
+
+size_t fk::lang::interpreter::scope() const noexcept
+{
+    return env_.size() - 1;
 }

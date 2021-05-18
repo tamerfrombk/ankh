@@ -45,6 +45,7 @@ private:
     void enter_new_scope() noexcept;
     void leave_current_scope() noexcept;
     environment& current_scope() noexcept;
+    size_t scope() const noexcept;
 
 private:
     std::vector<environment> env_;
