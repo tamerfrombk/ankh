@@ -57,6 +57,8 @@ struct expr_result {
     static expr_result num(number n);
     static expr_result string(std::string s);
     static expr_result boolean(bool b);
+
+    std::string stringify() const noexcept;
 };
 
 struct expression {

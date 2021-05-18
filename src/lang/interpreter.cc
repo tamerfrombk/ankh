@@ -150,22 +150,8 @@ static bool truthy(const fk::lang::expr_result& result) noexcept
 
 static void print(const fk::lang::expr_result& result)
 {
-    switch (result.type) {
-    case fk::lang::expr_result_type::RT_STRING:
-        std::puts(result.str.c_str());
-        break;
-    case fk::lang::expr_result_type::RT_NUMBER:
-        std::printf("%f\n", result.n);
-        break;
-    case fk::lang::expr_result_type::RT_BOOL:
-        std::puts(result.b ? "true" : "false");
-        break;
-    case fk::lang::expr_result_type::RT_NIL:
-        std::puts("nil");
-        break;
-    default:
-        panic("unhandled expression result type");
-    }
+    const std::string stringy = result.stringify();
+    std::puts(stringy.c_str());
 }
 
 fk::lang::interpreter::interpreter()

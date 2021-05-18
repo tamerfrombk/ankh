@@ -52,3 +52,21 @@ fk::lang::expr_result fk::lang::expr_result::boolean(bool b)
 
     return e;
 }
+
+std::string fk::lang::expr_result::stringify() const noexcept
+{
+    switch (type) {
+    case fk::lang::expr_result_type::RT_STRING:
+        return str;
+    case fk::lang::expr_result_type::RT_NUMBER:
+        return std::to_string(n);
+    case fk::lang::expr_result_type::RT_BOOL:
+        return b ? "true" : "false";
+    case fk::lang::expr_result_type::RT_NIL:
+        return "nil";
+    default:
+        fk::log::fatal("stringify(): unknown expression result type!\n");
+        // this isn't really necessary but on debug builds, the compiler complains there is no return type because it does not see the exit() inside of fatal().
+        return ""; 
+    }
+}
