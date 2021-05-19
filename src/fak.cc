@@ -73,7 +73,6 @@ static std::optional<std::string> readline(const char *prompt) noexcept
 {
     std::cout << prompt;
     if (std::string line; std::getline(std::cin, line)) {
-        line += '\n';
         return { line };
     }
 
