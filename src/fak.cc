@@ -23,7 +23,7 @@ static void print_error(const char *msg)
 
 static void print_error(const std::string& msg)
 {
-    fmt::print(fg(fmt::color::red) | fmt::emphasis::bold, "{}\n", msg);
+    print_error(msg.c_str());
 }
 
 static int execute(fk::lang::interpreter& interpreter, const std::string& script) noexcept
