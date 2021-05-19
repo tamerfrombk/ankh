@@ -10,7 +10,6 @@ Don't get frustrated; `fak` it!
 
 ### Dependencies
 
-* [libreadline](https://tiswww.case.edu/php/chet/readline/rltop.html)
 * [CMake](https://cmake.org/)
 
 ### Building

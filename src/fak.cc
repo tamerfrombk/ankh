@@ -1,8 +1,8 @@
 #include <cstdlib>
 #include <cstdio>
 #include <iostream>
-
-#include <readline/readline.h>
+#include <optional>
+#include <string>
 
 #include <fak/log.h>
 #include <fak/fak.h>
@@ -69,6 +69,17 @@ static std::optional<std::string> read_file(const std::string& path) noexcept
     return { result };
 }
 
+static std::optional<std::string> readline(const char *prompt) noexcept
+{
+    std::cout << prompt;
+    if (std::string line; std::getline(std::cin, line)) {
+        line += '\n';
+        return { line };
+    }
+
+    return std::nullopt;
+}
+
 int fk::shell_loop(int argc, char **argv)
 {
     fk::lang::interpreter interpreter;
@@ -87,18 +98,19 @@ int fk::shell_loop(int argc, char **argv)
     // with an exit code equivalent to its last process
     int prev_process_exit_code = EXIT_SUCCESS;
     while (true) {
-        // TODO: remove dependency on libreadline
-        char *line = readline("> ");
-        if (line == nullptr) {
+        auto possible_line = readline("> ");
+        if (!possible_line.has_value()) {
             fk::log::debug("EOF\n");
-            return EXIT_SUCCESS;
-        } else if (*line == '\0') {
+            break;
+        }
+        
+        const std::string line = possible_line.value();
+        if (line.empty()) {
             fk::log::debug("empty line\n");
         } else {
-            fk::log::debug("read line: '%s'\n", line);
+            fk::log::debug("read line: '%s'\n", line.c_str());
             prev_process_exit_code = execute(interpreter, line);
         }
-        free(line);
     }
 
     return prev_process_exit_code;
