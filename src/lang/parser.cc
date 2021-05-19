@@ -1,3 +1,4 @@
+#include "fak/lang/interpreter.h"
 #include <algorithm>
 #include <initializer_list>
 
@@ -43,6 +44,17 @@ fk::lang::statement_ptr fk::lang::parser::declaration()
     return statement();
 }
 
+fk::lang::statement_ptr fk::lang::parser::parse_variable_declaration()
+{
+    consume(fk::lang::token_type::IDENTIFIER, "identifier expected");
+
+    token identifier = prev();
+
+    consume(fk::lang::token_type::EQ, "'=' expected");
+
+    return make_statement<variable_declaration>(identifier, expression());   
+}
+
 fk::lang::statement_ptr fk::lang::parser::assignment()
 {
     consume(fk::lang::token_type::IDENTIFIER, "identifier expected");
@@ -74,6 +86,10 @@ fk::lang::statement_ptr fk::lang::parser::statement()
     }
     if (match({ fk::lang::token_type::FOR })) {
         return parse_for();
+    }
+
+    if (match({ fk::lang::token_type::LET })) {
+        return parse_variable_declaration();
     }
 
     if (check(fk::lang::token_type::IDENTIFIER)) {

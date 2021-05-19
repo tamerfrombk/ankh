@@ -27,6 +27,7 @@ public:
 
     virtual void visit(print_statement *stmt) override;
     virtual void visit(expression_statement *stmt) override;
+    virtual void visit(variable_declaration *stmt) override;
     virtual void visit(assignment_statement *stmt) override;
     virtual void visit(block_statement *stmt) override;
     virtual void visit(if_statement *stmt) override;

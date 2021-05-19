@@ -60,6 +60,16 @@ public:
     {
         return stringify(stmt->expr);
     }
+
+    inline virtual std::string visit(fk::lang::variable_declaration *stmt) override
+    {
+        std::string result("let ");
+        result += stmt->name.str;
+        result += " = ";
+        result += stringify(stmt->initializer);
+
+        return result;
+    }
     
     inline virtual std::string visit(fk::lang::assignment_statement *stmt) override
     {

@@ -283,35 +283,39 @@ void fk::lang::interpreter::visit(expression_statement *stmt)
     evaluate(stmt->expr);
 }
 
+void fk::lang::interpreter::visit(variable_declaration *stmt)
+{
+    if (current_scope().contains(stmt->name.str)) {
+        panic(stmt->name.str + " is already declared in this scope");
+    }
+
+    const expr_result result = evaluate(stmt->initializer);
+    fk::log::debug("DECLARATION '%s' = '%s'\n", stmt->name.str.c_str(), result.stringify().c_str());
+
+    current_scope().assign(stmt->name.str, result);
+}
+
 void fk::lang::interpreter::visit(assignment_statement *stmt)
 {
-    const expr_result result = evaluate(stmt->initializer);
-
-    // TODO: think about adding scope specifiers (export, local, global) to allow the user
-    // to mutate global variables with the same name or to add variables to the environment
-    for (size_t i = 0; i < env_.size(); ++i) {
-        auto& env = env_[i];
-        if (env.contains(stmt->name.str)) {
-            env.assign(stmt->name.str, result);
-            fk::log::debug("'%s' found at scope '%d' with value ('%s, '%f')\n"
-                , stmt->name.str.c_str(), i, fk::lang::expr_result_type_str(result.type).c_str(), result.n);
+    for (auto it = env_.rbegin(); it != env_.rend(); ++it) {
+        if (it->contains(stmt->name.str)) {
+            const expr_result result = evaluate(stmt->initializer);
+            fk::log::debug("ASSIGNMENT '%s' = '%s'\n", stmt->name.str.c_str(), result.stringify().c_str());
+            it->assign(stmt->name.str, result);
             return;
         }
     }
-    current_scope().assign(stmt->name.str, result);
+    
+    panic(stmt->name.str + " is not defined");
 }
 
 void fk::lang::interpreter::visit(block_statement *stmt)
 {
-    try {
-        enter_new_scope();
-        for (const statement_ptr& statement : stmt->statements) {
-            execute(statement);
-        }
-        leave_current_scope();
-    } catch (...) {
-        leave_current_scope();
+    enter_new_scope();
+    for (const statement_ptr& statement : stmt->statements) {
+        execute(statement);
     }
+    leave_current_scope();
 }
 
 void fk::lang::interpreter::visit(if_statement *stmt)

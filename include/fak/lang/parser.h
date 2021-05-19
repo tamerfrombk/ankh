@@ -24,6 +24,7 @@ public:
 private:
     statement_ptr  declaration();
     statement_ptr  assignment();
+    statement_ptr  parse_variable_declaration();
     
     statement_ptr  statement();
     statement_ptr  block();

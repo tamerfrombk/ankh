@@ -12,6 +12,7 @@ namespace fk::lang {
 // forward declare statement types for visitor
 struct print_statement;
 struct expression_statement;
+struct variable_declaration;
 struct assignment_statement;
 struct block_statement;
 struct if_statement;
@@ -23,6 +24,7 @@ struct statement_visitor {
 
     virtual R visit(print_statement *stmt) = 0;
     virtual R visit(expression_statement *stmt) = 0;
+    virtual R visit(variable_declaration *stmt) = 0;
     virtual R visit(assignment_statement *stmt) = 0;
     virtual R visit(block_statement *stmt) = 0;
     virtual R visit(if_statement *stmt) = 0;
@@ -91,6 +93,26 @@ struct assignment_statement
     expression_ptr initializer;
 
     assignment_statement(token name, expression_ptr initializer)
+        : name(std::move(name)), initializer(std::move(initializer)) {}
+
+    virtual void accept(statement_visitor<void> *visitor) override
+    {
+        visitor->visit(this);
+    }
+
+    virtual std::string accept(statement_visitor<std::string> *visitor) override
+    {
+        return visitor->visit(this);
+    }
+};
+
+struct variable_declaration
+    : public statement
+{
+    token name;
+    expression_ptr initializer;
+
+    variable_declaration(token name, expression_ptr initializer)
         : name(std::move(name)), initializer(std::move(initializer)) {}
 
     virtual void accept(statement_visitor<void> *visitor) override
