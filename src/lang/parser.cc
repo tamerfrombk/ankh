@@ -46,11 +46,12 @@ fk::lang::statement_ptr fk::lang::parser::declaration()
 
 fk::lang::statement_ptr fk::lang::parser::parse_variable_declaration()
 {
-    consume(fk::lang::token_type::IDENTIFIER, "identifier expected");
+    consume(token_type::LET, "'let' expected");
+    consume(token_type::IDENTIFIER, "identifier expected");
 
     token identifier = prev();
 
-    consume(fk::lang::token_type::EQ, "'=' expected");
+    consume(token_type::EQ, "'=' expected");
 
     return make_statement<variable_declaration>(identifier, expression());   
 }
@@ -88,7 +89,7 @@ fk::lang::statement_ptr fk::lang::parser::statement()
         return parse_for();
     }
 
-    if (match({ fk::lang::token_type::LET })) {
+    if (check(fk::lang::token_type::LET)) {
         return parse_variable_declaration();
     }
 
@@ -141,7 +142,7 @@ fk::lang::statement_ptr fk::lang::parser::parse_for()
     if (match({ fk::lang::token_type::SEMICOLON })) {
         init = nullptr;
     } else {
-        init = assignment();
+        init = parse_variable_declaration();
         consume(fk::lang::token_type::SEMICOLON, "';' expected after initializer statement");
     }
 
