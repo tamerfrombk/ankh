@@ -6,7 +6,7 @@ def fib(n) {
     if n <= 1 { return n }
 
     # general case
-    return fib(n - 2) + fib(n - 2)
+    return fib(n - 2) + fib(n - 1)
 }
 
 # this will calculate the first 10 fibonacci numbers
