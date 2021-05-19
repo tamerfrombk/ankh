@@ -34,6 +34,7 @@ enum class token_type {
     WHILE,             // "while"
     FOR,               // "for"
     SEMICOLON,         // ;
+    LET,               // "let"
     NUMBER,
     STRING,
     T_EOF,

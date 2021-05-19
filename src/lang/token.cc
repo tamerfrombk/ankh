@@ -60,6 +60,8 @@ std::string fk::lang::token_type_str(fk::lang::token_type type)
         return "FOR";
     case fk::lang::token_type::SEMICOLON:
         return "SEMICOLON";
+    case fk::lang::token_type::LET:
+        return "LET";
     case fk::lang::token_type::NUMBER:
         return "NUMBER";
     case fk::lang::token_type::STRING:

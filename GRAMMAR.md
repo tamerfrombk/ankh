@@ -5,7 +5,8 @@ program               → declaration* EOF
 
 declaration           → statement
 
-statement             → expression_statement 
+statement             → expression_statement
+                        | variable_declaration 
                         | assignment
                         | print_statement
                         | block
@@ -13,6 +14,7 @@ statement             → expression_statement
                         | while_statement
                         | for_statement
 
+variable_declaration  → "let" assignment
 assignment            → identifier "=" expression newline
 expression_statement  → expression newline
 print_statement       → "print" expression newline
