@@ -40,13 +40,13 @@ fk::lang::token fk::lang::lexer::next_token() noexcept
     } else if (std::isdigit(c)) {
         return lex_number(c);  
     } else if (c == '+') {
-        return { "+", token_type::PLUS, line_, 0 };
+        return lex_compound_operator('=', token_type::PLUSEQ, token_type::PLUS);
     } else if (c == '-') {
-        return { "-", token_type::MINUS, line_, 0 };
+        return lex_compound_operator('=', token_type::MINUSEQ, token_type::MINUS);
     } else if (c == '*') {
-        return { "*", token_type::STAR, line_, 0 };
+        return lex_compound_operator('=', token_type::STAREQ, token_type::STAR);
     } else if (c == '/') {
-        return { "/", token_type::FSLASH, line_, 0 };
+        return lex_compound_operator('=', token_type::FSLASHEQ, token_type::FSLASH);
     } else if (c == '(') {
         return { "(", token_type::LPAREN, line_, 0 };  
     } else if (c == ')') {
@@ -194,10 +194,10 @@ fk::lang::token fk::lang::lexer::lex_compound_operator(char expected, token_type
     const std::string before(1, prev());
     if (curr() == expected) {
         advance(); // eat it
-        return { "" + before + expected, then, line_, 0 };
+        return { before + expected, then, line_, 0 };
     }
 
-    return { "" + before, otherwise, line_, 0 };
+    return { before, otherwise, line_, 0 };
 }
 
 char fk::lang::lexer::prev() const noexcept

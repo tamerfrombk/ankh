@@ -15,9 +15,13 @@ enum class token_type {
     GT,                // >
     GTE,               // >=
     MINUS,             // -
+    MINUSEQ,           // -=
     PLUS,              // +
+    PLUSEQ,            // +=
     FSLASH,            // /
+    FSLASHEQ,          // /=
     STAR,              // *
+    STAREQ,            // *=
     LPAREN,            // (
     RPAREN,            // )
     LBRACE,            // {

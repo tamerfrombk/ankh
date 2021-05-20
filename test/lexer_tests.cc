@@ -77,6 +77,11 @@ LEXER_TEST("scan all basic language lexemes")
         123.
         0.1
         1.0
+
+        +=
+        -=
+        *=
+        /=
     )";
 
     fk::lang::lexer lexer(all_tokens, error_handler.get());
@@ -159,8 +164,14 @@ LEXER_TEST("scan all basic language lexemes")
         REQUIRE(token_stream[i++] == fk::lang::token{ "0.1", fk::lang::token_type::NUMBER, 48, 0 });
         REQUIRE(token_stream[i++] == fk::lang::token{ "1.0", fk::lang::token_type::NUMBER, 49, 0 });
 
+        // compound assignment
+        REQUIRE(token_stream[i++] == fk::lang::token{ "+=", fk::lang::token_type::PLUSEQ, 51, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "-=", fk::lang::token_type::MINUSEQ, 52, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "*=", fk::lang::token_type::STAREQ, 53, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "/=", fk::lang::token_type::FSLASHEQ, 54, 0 });
+
         // EOF -- make sure this is LAST
-        REQUIRE(token_stream[i++] == fk::lang::token{ "EOF", fk::lang::token_type::T_EOF, 50, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "EOF", fk::lang::token_type::T_EOF, 55, 0 });
 
         REQUIRE(error_handler->error_count() == 0);
     }

@@ -18,7 +18,7 @@ statement             → expression_statement
                         | return_statement
 
 variable_declaration  → "let" assignment
-assignment            → identifier "=" expression newline
+assignment            → identifier ( "=" | "+=" | "-=" | "*=" | "/=" ) expression newline
 expression_statement  → expression newline
 print_statement       → "print" expression newline
 block                 → "{" declaration* "}"

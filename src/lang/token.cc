@@ -22,12 +22,20 @@ std::string fk::lang::token_type_str(fk::lang::token_type type)
         return "GTE";
     case fk::lang::token_type::MINUS:
         return "MINUS";
+    case fk::lang::token_type::MINUSEQ:
+        return "MINUSEQ";
     case fk::lang::token_type::PLUS:
         return "PLUS";
+    case fk::lang::token_type::PLUSEQ:
+        return "PLUSEQ";
     case fk::lang::token_type::FSLASH:
         return "FSLASH";
+    case fk::lang::token_type::FSLASHEQ:
+        return "FSLASHEQ";
     case fk::lang::token_type::STAR:
         return "STAR";
+    case fk::lang::token_type::STAREQ:
+        return "STAREQ";
     case fk::lang::token_type::BANG:
         return "BANG";
     case fk::lang::token_type::LPAREN:
