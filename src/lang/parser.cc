@@ -1,4 +1,3 @@
-#include "fak/lang/interpreter.h"
 #include <algorithm>
 #include <initializer_list>
 
@@ -85,11 +84,17 @@ fk::lang::statement_ptr fk::lang::parser::assignment()
 {
     consume(fk::lang::token_type::IDENTIFIER, "identifier expected");
 
-    token identifier = prev();
+    const token& lhs = prev();
+
+    if (match({ token_type::PLUSEQ, token_type::MINUSEQ, token_type::STAREQ, token_type::FSLASHEQ })) {
+        const token& op = prev();
+        expression_ptr rhs = expression();
+        return desugar_compound_assignment(lhs, op, std::move(rhs));
+    }
 
     consume(fk::lang::token_type::EQ, "'=' expected");
 
-    return make_statement<assignment_statement>(identifier, expression());   
+    return make_statement<assignment_statement>(lhs, expression());   
 }
 
 fk::lang::statement_ptr fk::lang::parser::statement()
@@ -381,6 +386,11 @@ bool fk::lang::parser::is_eof() const noexcept
     return curr().type == fk::lang::token_type::T_EOF;
 }
 
+bool fk::lang::parser::match(fk::lang::token_type type) noexcept
+{
+    return match({ type });
+}
+
 bool fk::lang::parser::match(std::initializer_list<fk::lang::token_type> types) noexcept
 {
     for (fk::lang::token_type type : types) {
@@ -439,7 +449,7 @@ fk::lang::statement_ptr fk::lang::parser::desugar_for_into_while(
     , fk::lang::expression_ptr condition
     , fk::lang::statement_ptr mutator
     , fk::lang::statement_ptr body
-    ) noexcept
+) noexcept
 {
     std::vector<statement_ptr> while_body_statements;
     while_body_statements.push_back(std::move(body));
@@ -457,4 +467,48 @@ fk::lang::statement_ptr fk::lang::parser::desugar_for_into_while(
     statements.push_back(std::move(while_stmt));
     
     return make_statement<block_statement>(std::move(statements));
+}
+
+// this turns a statement like
+// a += 2
+// into:
+// a = a + 2
+// for all of the compound assignment operators
+fk::lang::statement_ptr fk::lang::parser::desugar_compound_assignment(
+    const fk::lang::token& lhs
+    , const fk::lang::token& op
+    , fk::lang::expression_ptr rhs
+) noexcept
+{
+    // TODO: verify the line and column positions
+    token rhs_op{"", token_type::UNKNOWN, op.line, op.inline_pos};
+    switch (op.str[0]) {
+    case '+':
+        rhs_op.str = "+";
+        rhs_op.type = token_type::PLUS;
+        break;
+    case '-':
+        rhs_op.str = "-";
+        rhs_op.type = token_type::MINUS;
+        break;
+    case '*':
+        rhs_op.str = "*";
+        rhs_op.type = token_type::STAR;
+        break;
+    case '/':
+        rhs_op.str = "/";
+        rhs_op.type = token_type::FSLASH;
+        break;
+    default:
+        // we should never hit this case
+        fk::log::fatal("unknown compound assignment operator");
+    }
+
+    expression_ptr right = make_expression<binary_expression>(
+        make_expression<identifier_expression>(lhs)
+        , rhs_op
+        , std::move(rhs)
+    );
+
+    return make_statement<assignment_statement>(lhs, std::move(right));
 }

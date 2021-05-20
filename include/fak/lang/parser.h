@@ -51,6 +51,7 @@ private:
     const token& curr() const noexcept;
     const token& advance() noexcept;
 
+    bool match(token_type type) noexcept;
     bool match(std::initializer_list<token_type> types) noexcept;
     bool check(token_type type) const noexcept;
     token consume(token_type type, const std::string& msg);
@@ -58,6 +59,8 @@ private:
     void synchronize_next_statement() noexcept;
 
     statement_ptr desugar_for_into_while(statement_ptr init, expression_ptr condition, statement_ptr mutator,statement_ptr body) noexcept;
+
+    statement_ptr desugar_compound_assignment(const token& lhs, const token& op, expression_ptr rhs) noexcept;
 
 private:
     std::vector<token> tokens_;
