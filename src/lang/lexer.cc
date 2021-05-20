@@ -1,3 +1,4 @@
+#include "fak/lang/token.h"
 #include <cctype>
 #include <unordered_map>
 
@@ -30,7 +31,7 @@ fk::lang::token fk::lang::lexer::next_token() noexcept
     skip_whitespace();
 
     if (is_eof()) {
-        return { "EOF", fk::lang::token_type::T_EOF, line_, 0 };
+        return { "EOF", token_type::T_EOF, line_, 0 };
     }
 
     char c = advance();
@@ -39,71 +40,55 @@ fk::lang::token fk::lang::lexer::next_token() noexcept
     } else if (std::isdigit(c)) {
         return lex_number(c);  
     } else if (c == '+') {
-        return { "+", fk::lang::token_type::PLUS, line_, 0 };
+        return { "+", token_type::PLUS, line_, 0 };
     } else if (c == '-') {
-        return { "-", fk::lang::token_type::MINUS, line_, 0 };
+        return { "-", token_type::MINUS, line_, 0 };
     } else if (c == '*') {
-        return { "*", fk::lang::token_type::STAR, line_, 0 };
+        return { "*", token_type::STAR, line_, 0 };
     } else if (c == '/') {
-        return { "/", fk::lang::token_type::FSLASH, line_, 0 };
+        return { "/", token_type::FSLASH, line_, 0 };
     } else if (c == '(') {
-        return { "(", fk::lang::token_type::LPAREN, line_, 0 };  
+        return { "(", token_type::LPAREN, line_, 0 };  
     } else if (c == ')') {
-        return { ")", fk::lang::token_type::RPAREN, line_, 0 };
+        return { ")", token_type::RPAREN, line_, 0 };
     } else if (c == '<') {
-        if (curr() == '=') {
-            advance(); // eat the '='
-            return {"<=", fk::lang::token_type::LTE, line_, 0 };
-        }
-        return { "<", fk::lang::token_type::LT, line_, 0 };
+        return lex_compound_operator('=', token_type::LTE, token_type::LT);
     } else if (c == '>') {
-        if (curr() == '=') {
-            advance(); // eat the '='
-            return { ">=", fk::lang::token_type::GTE, line_, 0 };
-        }
-        return { ">", fk::lang::token_type::GT, line_, 0 };
+        return lex_compound_operator('=', token_type::GTE, token_type::GT);
     } else if (c == '=') {
-        if (curr() == '=') {
-            advance(); // eat the other equal
-            return { "==", fk::lang::token_type::EQEQ, line_, 0 };
-        }
-        return { "=", fk::lang::token_type::EQ, line_, 0 };
+        return lex_compound_operator('=', token_type::EQEQ, token_type::EQ);
     } else if (c == '!') {
-        if (curr() == '=') {
-            advance(); // eat the '='
-            return { "!=", fk::lang::token_type::NEQ, line_, 0 };
-        }
-        return { "!", fk::lang::token_type::BANG, line_, 0 };
+        return lex_compound_operator('=', token_type::NEQ, token_type::BANG);
     } else if (c == '"') {
         return lex_string();
     } else if (c == '#') {
         skip_comment();
         return next_token();
     } else if (c == '{') {
-        return { "{", fk::lang::token_type::LBRACE, line_, 0 };
+        return { "{", token_type::LBRACE, line_, 0 };
     } else if (c == '}') {
-        return { "}", fk::lang::token_type::RBRACE, line_, 0 };
+        return { "}", token_type::RBRACE, line_, 0 };
     } else if (c == '&') {
         if (curr() == '&') {
             advance(); // eat the '&'
-            return { "&&", fk::lang::token_type::AND, line_, 0 };
+            return { "&&", token_type::AND, line_, 0 };
         }
         error_handler_->report_error({"'&' is not a valid token; did you mean '&&'?"});
-        return { "&", fk::lang::token_type::UNKNOWN, line_, 0 };
+        return { "&", token_type::UNKNOWN, line_, 0 };
     } else if (c == '|') {
         if (curr() == '|') {
             advance(); // eat the '|'
-            return { "||", fk::lang::token_type::OR, line_, 0 };
+            return { "||", token_type::OR, line_, 0 };
         }
         error_handler_->report_error({"'|' is not a valid token; did you mean '||'?"});
-        return { "|", fk::lang::token_type::UNKNOWN, line_, 0 };
+        return { "|", token_type::UNKNOWN, line_, 0 };
     } else if (c == ';') {
-        return { ";", fk::lang::token_type::SEMICOLON, line_, 0 };
+        return { ";", token_type::SEMICOLON, line_, 0 };
     } else if (c == ',') {
-        return { ",", fk::lang::token_type::COMMA, line_, 0 };
+        return { ",", token_type::COMMA, line_, 0 };
     } else {
         error_handler_->report_error({"unknown token!"});
-        return { std::string{c}, fk::lang::token_type::UNKNOWN, line_, 0 };
+        return { std::string{c}, token_type::UNKNOWN, line_, 0 };
     }
 }
 
@@ -153,9 +138,9 @@ fk::lang::token fk::lang::lexer::lex_alnum(char init) noexcept
         }
     }
 
-    fk::lang::token_type type = is_keyword(token)
+    token_type type = is_keyword(token)
         ? KEYWORDS.at(token)
-        : fk::lang::token_type::IDENTIFIER;
+        : token_type::IDENTIFIER;
 
     return { token, type, line_, 0 };
 }
@@ -169,13 +154,13 @@ fk::lang::token fk::lang::lexer::lex_string() noexcept
             break;
         } else if (is_eof()) {
             error_handler_->report_error({"terminal \" not found"});
-            return { str, fk::lang::token_type::UNKNOWN, line_, 0 };
+            return { str, token_type::UNKNOWN, line_, 0 };
         } else {
             str += c;
         }
     }
 
-    return { str, fk::lang::token_type::STRING, line_, 0 };
+    return { str, token_type::STRING, line_, 0 };
 }
 
 fk::lang::token fk::lang::lexer::lex_number(char init) noexcept
@@ -191,7 +176,7 @@ fk::lang::token fk::lang::lexer::lex_number(char init) noexcept
         } else if (c == '.') {
             if (decimal_found) {
                 error_handler_->report_error({"'.' lexeme not expected"});
-                return { ".", fk::lang::token_type::UNKNOWN, line_, 0 };
+                return { ".", token_type::UNKNOWN, line_, 0 };
             }
             num += c;
             decimal_found = true;
@@ -201,7 +186,23 @@ fk::lang::token fk::lang::lexer::lex_number(char init) noexcept
         }
     }
 
-    return { num, fk::lang::token_type::NUMBER, line_, 0 };
+    return { num, token_type::NUMBER, line_, 0 };
+}
+
+fk::lang::token fk::lang::lexer::lex_compound_operator(char expected, token_type then, token_type otherwise) noexcept
+{
+    const std::string before(1, prev());
+    if (curr() == expected) {
+        advance(); // eat it
+        return { "" + before + expected, then, line_, 0 };
+    }
+
+    return { "" + before, otherwise, line_, 0 };
+}
+
+char fk::lang::lexer::prev() const noexcept
+{
+    return text_[cursor_ - 1];
 }
 
 char fk::lang::lexer::curr() const noexcept

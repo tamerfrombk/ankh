@@ -25,7 +25,9 @@ private:
     token lex_alnum(char init) noexcept;
     token lex_string() noexcept;
     token lex_number(char init) noexcept;
+    token lex_compound_operator(char expected, token_type then, token_type otherwise) noexcept;
 
+    char prev() const noexcept;
     char curr() const noexcept;
     char peek() const noexcept;
     char advance() noexcept;
