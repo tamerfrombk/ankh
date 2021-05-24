@@ -40,8 +40,16 @@ fk::lang::token fk::lang::lexer::next_token() noexcept
     } else if (std::isdigit(c)) {
         return lex_number(c);  
     } else if (c == '+') {
+        if (curr() == '+') {
+            advance(); // eat it
+            return { "++", token_type::INC, line_, 0 };
+        }
         return lex_compound_operator('=', token_type::PLUSEQ, token_type::PLUS);
     } else if (c == '-') {
+        if (curr() == '-') {
+            advance(); // eat it
+            return { "--", token_type::DEC, line_, 0 };
+        }
         return lex_compound_operator('=', token_type::MINUSEQ, token_type::MINUS);
     } else if (c == '*') {
         return lex_compound_operator('=', token_type::STAREQ, token_type::STAR);

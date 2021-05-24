@@ -10,6 +10,7 @@ params                → identifier ( "," identifier )*
 statement             → expression_statement
                         | variable_declaration 
                         | assignment
+                        | inc_dec
                         | print_statement
                         | block
                         | if_statement
@@ -19,6 +20,7 @@ statement             → expression_statement
 
 variable_declaration  → identifier ":=" assignment
 assignment            → identifier ( "=" | "+=" | "-=" | "*=" | "/=" ) expression newline
+inc_dec               → ( "++" | "--" ) expression newline
 expression_statement  → expression newline
 print_statement       → "print" expression newline
 block                 → "{" declaration* "}"

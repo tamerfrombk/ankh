@@ -84,6 +84,9 @@ LEXER_TEST("scan all basic language lexemes")
         /=
 
         :=
+
+        ++
+        --
     )";
 
     fk::lang::lexer lexer(all_tokens, error_handler.get());
@@ -175,8 +178,12 @@ LEXER_TEST("scan all basic language lexemes")
         // walrus
         REQUIRE(token_stream[i++] == fk::lang::token{ ":=", fk::lang::token_type::WALRUS, 56, 0 });
 
+        // inc/dec
+        REQUIRE(token_stream[i++] == fk::lang::token{ "++", fk::lang::token_type::INC, 58, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "--", fk::lang::token_type::DEC, 59, 0 });
+
         // EOF -- make sure this is LAST
-        REQUIRE(token_stream[i++] == fk::lang::token{ "EOF", fk::lang::token_type::T_EOF, 57, 0 });
+        REQUIRE(token_stream[i++] == fk::lang::token{ "EOF", fk::lang::token_type::T_EOF, 60, 0 });
 
         REQUIRE(error_handler->error_count() == 0);
     }

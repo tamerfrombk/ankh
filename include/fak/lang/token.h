@@ -45,6 +45,8 @@ enum class token_type {
     // TODO: once we remove libreadline, we can rename this back to just RETURN
     FK_RETURN,         // "return"
     WALRUS,            // :=
+    INC,               // ++
+    DEC,               // --
     NUMBER,
     STRING,
     T_EOF,

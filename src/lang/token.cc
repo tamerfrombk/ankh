@@ -78,6 +78,10 @@ std::string fk::lang::token_type_str(fk::lang::token_type type)
         return "RETURN";
     case fk::lang::token_type::WALRUS:
         return "WALRUS";
+    case fk::lang::token_type::INC:
+        return "INC";
+    case fk::lang::token_type::DEC:
+        return "DEC";
     case fk::lang::token_type::NUMBER:
         return "NUMBER";
     case fk::lang::token_type::STRING:
