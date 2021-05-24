@@ -216,7 +216,7 @@ fk::lang::statement_ptr fk::lang::parser::parse_for()
 
     statement_ptr mutator = check(fk::lang::token_type::LBRACE)
         ? nullptr
-        : assignment(expression());
+        : statement();
 
     statement_ptr body = block();
 
