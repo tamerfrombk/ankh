@@ -8,6 +8,12 @@
 #include <fak/lang/parse_exception.h>
 #include <fak/log.h>
 
+template <class ExpectedType>
+ExpectedType* instanceof(const fk::lang::expression_ptr& expr) noexcept
+{
+    return dynamic_cast<ExpectedType*>(expr.get());
+}
+
 fk::lang::parser::parser(std::string str, error_handler *error_handler)
     : cursor_(0)
     , error_handler_(error_handler)
@@ -47,16 +53,18 @@ fk::lang::statement_ptr fk::lang::parser::declaration()
     return statement();
 }
 
-fk::lang::statement_ptr fk::lang::parser::parse_variable_declaration()
+fk::lang::statement_ptr fk::lang::parser::parse_variable_declaration(expression_ptr target)
 {
-    consume(token_type::LET, "'let' expected");
-    consume(token_type::IDENTIFIER, "identifier expected");
+    identifier_expression *identifier = instanceof<identifier_expression>(target);
+    if (identifier == nullptr) {
+        throw parse_exception("invalid variable declaration target");
+    }
 
-    token identifier = prev();
+    consume(token_type::WALRUS, "':=' expected in variable declaration");
 
-    consume(token_type::EQ, "'=' expected");
+    expression_ptr rhs = expression();
 
-    return make_statement<variable_declaration>(identifier, expression());  
+    return make_statement<variable_declaration>(identifier->name, std::move(rhs));  
 } 
 
 fk::lang::statement_ptr fk::lang::parser::parse_function_declaration()
@@ -80,21 +88,24 @@ fk::lang::statement_ptr fk::lang::parser::parse_function_declaration()
     return make_statement<function_declaration>(std::move(name), std::move(params), std::move(body));
 }
 
-fk::lang::statement_ptr fk::lang::parser::assignment()
+fk::lang::statement_ptr fk::lang::parser::assignment(expression_ptr target)
 {
-    consume(fk::lang::token_type::IDENTIFIER, "identifier expected");
-
-    const token& lhs = prev();
+    identifier_expression *identifier = instanceof<identifier_expression>(target);
+    if (identifier == nullptr) {
+        throw parse_exception("invalid assignment target");
+    }
 
     if (match({ token_type::PLUSEQ, token_type::MINUSEQ, token_type::STAREQ, token_type::FSLASHEQ })) {
         const token& op = prev();
         expression_ptr rhs = expression();
-        return desugar_compound_assignment(lhs, op, std::move(rhs));
+        return desugar_compound_assignment(identifier->name, op, std::move(rhs));
     }
 
-    consume(fk::lang::token_type::EQ, "'=' expected");
+    consume(fk::lang::token_type::EQ, "'=' expected in assignment");
 
-    return make_statement<assignment_statement>(lhs, expression());   
+    expression_ptr rhs = expression();
+
+    return make_statement<assignment_statement>(identifier->name, std::move(rhs));   
 }
 
 fk::lang::statement_ptr fk::lang::parser::statement()
@@ -122,15 +133,15 @@ fk::lang::statement_ptr fk::lang::parser::statement()
         return parse_return();
     }
 
-    if (check(fk::lang::token_type::LET)) {
-        return parse_variable_declaration();
+    expression_ptr expr = expression();
+    if (check(token_type::WALRUS)) {
+        return parse_variable_declaration(std::move(expr));
+    }
+    if (check({ token_type::EQ, token_type::PLUSEQ, token_type::MINUSEQ, token_type::STAREQ, token_type::FSLASHEQ })) {
+        return assignment(std::move(expr));
     }
 
-    if (check(fk::lang::token_type::IDENTIFIER)) {
-        return assignment();
-    }
-
-    return make_statement<expression_statement>(expression());
+    return make_statement<expression_statement>(std::move(expr));
 }
 
 fk::lang::statement_ptr fk::lang::parser::block()
@@ -175,7 +186,8 @@ fk::lang::statement_ptr fk::lang::parser::parse_for()
     if (match({ fk::lang::token_type::SEMICOLON })) {
         init = nullptr;
     } else {
-        init = parse_variable_declaration();
+        expression_ptr target = expression();
+        init = parse_variable_declaration(std::move(target));
         consume(fk::lang::token_type::SEMICOLON, "';' expected after initializer statement");
     }
 
@@ -191,7 +203,7 @@ fk::lang::statement_ptr fk::lang::parser::parse_for()
 
     statement_ptr mutator = check(fk::lang::token_type::LBRACE)
         ? nullptr
-        : assignment();
+        : assignment(expression());
 
     statement_ptr body = block();
 
@@ -393,7 +405,7 @@ bool fk::lang::parser::match(fk::lang::token_type type) noexcept
 
 bool fk::lang::parser::match(std::initializer_list<fk::lang::token_type> types) noexcept
 {
-    for (fk::lang::token_type type : types) {
+    for (auto type : types) {
         if (check(type)) {
             advance();
             return true;
@@ -410,6 +422,13 @@ bool fk::lang::parser::check(fk::lang::token_type type) const noexcept
     }
 
     return curr().type == type;
+}
+
+bool fk::lang::parser::check(std::initializer_list<token_type> types) const noexcept
+{
+    return std::any_of(types.begin(), types.end(), [&](token_type type) {
+        return check(type);
+    });
 }
 
 fk::lang::token fk::lang::parser::consume(token_type type, const std::string& msg)

@@ -23,8 +23,8 @@ public:
 
 private:
     statement_ptr  declaration();
-    statement_ptr  assignment();
-    statement_ptr  parse_variable_declaration();
+    statement_ptr  assignment(expression_ptr target);
+    statement_ptr  parse_variable_declaration(expression_ptr target);
     statement_ptr  parse_function_declaration();
     
     statement_ptr  statement();
@@ -54,6 +54,7 @@ private:
     bool match(token_type type) noexcept;
     bool match(std::initializer_list<token_type> types) noexcept;
     bool check(token_type type) const noexcept;
+    bool check(std::initializer_list<token_type> types) const noexcept;
     token consume(token_type type, const std::string& msg);
 
     void synchronize_next_statement() noexcept;
