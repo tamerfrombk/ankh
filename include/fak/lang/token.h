@@ -44,6 +44,7 @@ enum class token_type {
     // prepended FK because RETURN is a macro in libreadline
     // TODO: once we remove libreadline, we can rename this back to just RETURN
     FK_RETURN,         // "return"
+    WALRUS,            // :=
     NUMBER,
     STRING,
     T_EOF,

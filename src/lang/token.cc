@@ -76,6 +76,8 @@ std::string fk::lang::token_type_str(fk::lang::token_type type)
         return "DEF";
     case fk::lang::token_type::FK_RETURN:
         return "RETURN";
+    case fk::lang::token_type::WALRUS:
+        return "WALRUS";
     case fk::lang::token_type::NUMBER:
         return "NUMBER";
     case fk::lang::token_type::STRING:

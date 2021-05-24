@@ -17,7 +17,7 @@ statement             → expression_statement
                         | for_statement
                         | return_statement
 
-variable_declaration  → "let" assignment
+variable_declaration  → identifier ":=" assignment
 assignment            → identifier ( "=" | "+=" | "-=" | "*=" | "/=" ) expression newline
 expression_statement  → expression newline
 print_statement       → "print" expression newline

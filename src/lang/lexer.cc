@@ -73,19 +73,26 @@ fk::lang::token fk::lang::lexer::next_token() noexcept
             advance(); // eat the '&'
             return { "&&", token_type::AND, line_, 0 };
         }
-        error_handler_->report_error({"'&' is not a valid token; did you mean '&&'?"});
+        error_handler_->report_error({"'&' is not a valid token; did you mean '&&' ?"});
         return { "&", token_type::UNKNOWN, line_, 0 };
     } else if (c == '|') {
         if (curr() == '|') {
             advance(); // eat the '|'
             return { "||", token_type::OR, line_, 0 };
         }
-        error_handler_->report_error({"'|' is not a valid token; did you mean '||'?"});
+        error_handler_->report_error({"'|' is not a valid token; did you mean '||' ?"});
         return { "|", token_type::UNKNOWN, line_, 0 };
     } else if (c == ';') {
         return { ";", token_type::SEMICOLON, line_, 0 };
     } else if (c == ',') {
         return { ",", token_type::COMMA, line_, 0 };
+    } else if (c == ':') {
+        if (curr() == '=') {
+            advance(); // eat the '='
+            return { ":=", token_type::WALRUS, line_, 0 };
+        }
+        error_handler_->report_error({"':' is not a valid token; did you mean ':=' ?"});
+        return { "|", token_type::UNKNOWN, line_, 0 };
     } else {
         error_handler_->report_error({"unknown token!"});
         return { std::string{c}, token_type::UNKNOWN, line_, 0 };
