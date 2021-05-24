@@ -133,6 +133,10 @@ fk::lang::statement_ptr fk::lang::parser::statement()
         return parse_return();
     }
 
+    if (check({ token_type::INC, token_type::DEC })) {
+        return parse_inc_dec();
+    }
+
     expression_ptr expr = expression();
     if (check(token_type::WALRUS)) {
         return parse_variable_declaration(std::move(expr));
@@ -142,6 +146,15 @@ fk::lang::statement_ptr fk::lang::parser::statement()
     }
 
     return make_statement<expression_statement>(std::move(expr));
+}
+
+fk::lang::statement_ptr fk::lang::parser::parse_inc_dec()
+{
+    const token& op = advance();
+
+    expression_ptr target = expression();
+
+    return desugar_inc_dec(op, std::move(target));
 }
 
 fk::lang::statement_ptr fk::lang::parser::block()
@@ -530,4 +543,53 @@ fk::lang::statement_ptr fk::lang::parser::desugar_compound_assignment(
     );
 
     return make_statement<assignment_statement>(lhs, std::move(right));
+}
+
+// this turns a statement like
+// ++i
+// into:
+// i = i + 1
+fk::lang::statement_ptr fk::lang::parser::desugar_inc_dec(const token& op, expression_ptr target)
+{
+    // TODO: verify the line and column positions
+    token rhs_op{"", token_type::UNKNOWN, op.line, op.inline_pos};
+    switch (op.str[0]) {
+    case '+':
+        rhs_op.str = "+";
+        rhs_op.type = token_type::PLUS;
+        break;
+    case '-':
+        rhs_op.str = "-";
+        rhs_op.type = token_type::MINUS;
+        break;
+    default:
+        // we should never hit this case
+        fk::log::fatal("unknown increment or decrement operator");
+    }
+
+    // TODO: for now, these operators only work on identifiers
+    // Once we add other targets like record members, we need to update this logic here
+    // to accept those as well
+    identifier_expression *identifier = instanceof<identifier_expression>(target);
+    if (identifier == nullptr) {
+        const std::string opstr = op.type == token_type::INC
+            ? "increment"
+            : "decrement";
+        throw parse_exception("invalid " + opstr + " target");
+    }
+
+
+    // TODO: figure out the line, col positions for these new tokens
+    expression_ptr one = make_expression<literal_expression>(token{"1", token_type::NUMBER, 0, 0});
+
+    // target + 1
+    expression_ptr right = make_expression<binary_expression>(
+        make_expression<identifier_expression>(identifier->name)
+        , rhs_op
+        , std::move(one)
+    );
+
+    // target = target + 1
+    return make_statement<assignment_statement>(identifier->name, std::move(right));
+
 }

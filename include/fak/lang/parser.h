@@ -28,6 +28,7 @@ private:
     statement_ptr  parse_function_declaration();
     
     statement_ptr  statement();
+    statement_ptr  parse_inc_dec();
     
     statement_ptr  block();
 
@@ -62,6 +63,8 @@ private:
     statement_ptr desugar_for_into_while(statement_ptr init, expression_ptr condition, statement_ptr mutator,statement_ptr body) noexcept;
 
     statement_ptr desugar_compound_assignment(const token& lhs, const token& op, expression_ptr rhs) noexcept;
+
+    statement_ptr desugar_inc_dec(const token& op, expression_ptr target);
 
 private:
     std::vector<token> tokens_;
