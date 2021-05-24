@@ -14,15 +14,15 @@ ExpectedType* instanceof(const fk::lang::expression_ptr& expr) noexcept
     return dynamic_cast<ExpectedType*>(expr.get());
 }
 
-fk::lang::parser::parser(std::string str, error_handler *error_handler)
+fk::lang::parser::parser(std::string str, ErrorHandler *error_handler)
     : cursor_(0)
     , error_handler_(error_handler)
 {
-    lexer lexer(str, error_handler_);
-    for (token tok = lexer.next_token(); tok.type != fk::lang::token_type::T_EOF; tok = lexer.next_token()) {
+    Lexer lexer(str, error_handler_);
+    for (Token tok = lexer.next(); tok.type != fk::lang::TokenType::FK_EOF; tok = lexer.next()) {
         tokens_.push_back(tok);
     }
-    tokens_.push_back(lexer.next_token());
+    tokens_.push_back(lexer.next());
 
     for (const auto& tok : tokens_) {
         fk::log::debug("('%s':'%s')\n", fk::lang::token_type_str(tok.type).c_str(), tok.str.c_str());
@@ -46,7 +46,7 @@ fk::lang::program fk::lang::parser::parse() noexcept
 
 fk::lang::statement_ptr fk::lang::parser::declaration()
 {
-    if (match({ fk::lang::token_type::DEF })) {
+    if (match({ fk::lang::TokenType::DEF })) {
         return parse_function_declaration();
     }
 
@@ -60,7 +60,7 @@ fk::lang::statement_ptr fk::lang::parser::parse_variable_declaration(expression_
         throw parse_exception("invalid variable declaration target");
     }
 
-    consume(token_type::WALRUS, "':=' expected in variable declaration");
+    consume(TokenType::WALRUS, "':=' expected in variable declaration");
 
     expression_ptr rhs = expression();
 
@@ -69,19 +69,19 @@ fk::lang::statement_ptr fk::lang::parser::parse_variable_declaration(expression_
 
 fk::lang::statement_ptr fk::lang::parser::parse_function_declaration()
 {
-    const token name = consume(token_type::IDENTIFIER, "<identifier> expected as function name");
+    const Token name = consume(TokenType::IDENTIFIER, "<identifier> expected as function name");
 
-    consume(token_type::LPAREN, "'(' expected to start function declaration parameters");
+    consume(TokenType::LPAREN, "'(' expected to start function declaration parameters");
 
-    std::vector<token> params;
-    if (!check(token_type::RPAREN)) {
+    std::vector<Token> params;
+    if (!check(TokenType::RPAREN)) {
         do {
-            token param = consume(token_type::IDENTIFIER, "<identifier> expected in function parameters");
+            Token param = consume(TokenType::IDENTIFIER, "<identifier> expected in function parameters");
             params.push_back(std::move(param));        
-        } while (match({ token_type::COMMA }));
+        } while (match({ TokenType::COMMA }));
     }
 
-    consume(token_type::RPAREN, "')' expected to terminate function declaration parameters");
+    consume(TokenType::RPAREN, "')' expected to terminate function declaration parameters");
 
     statement_ptr body = block();
 
@@ -95,13 +95,13 @@ fk::lang::statement_ptr fk::lang::parser::assignment(expression_ptr target)
         throw parse_exception("invalid assignment target");
     }
 
-    if (match({ token_type::PLUSEQ, token_type::MINUSEQ, token_type::STAREQ, token_type::FSLASHEQ })) {
-        const token& op = prev();
+    if (match({ TokenType::PLUSEQ, TokenType::MINUSEQ, TokenType::STAREQ, TokenType::FSLASHEQ })) {
+        const Token& op = prev();
         expression_ptr rhs = expression();
         return desugar_compound_assignment(identifier->name, op, std::move(rhs));
     }
 
-    consume(fk::lang::token_type::EQ, "'=' expected in assignment");
+    consume(fk::lang::TokenType::EQ, "'=' expected in assignment");
 
     expression_ptr rhs = expression();
 
@@ -110,38 +110,38 @@ fk::lang::statement_ptr fk::lang::parser::assignment(expression_ptr target)
 
 fk::lang::statement_ptr fk::lang::parser::statement()
 {
-    if (match({ fk::lang::token_type::PRINT })) {
+    if (match({ fk::lang::TokenType::PRINT })) {
         return make_statement<print_statement>(expression());
     }
 
     // NOTE: we check instead of matching here so we can consume the left brace __in__ block()
     // This allows us to simply call block() whenever we need to parse a block e.g. in while statements
-    if (check(fk::lang::token_type::LBRACE)) {
+    if (check(fk::lang::TokenType::LBRACE)) {
         return block();
     }
 
-    if (match({ fk::lang::token_type::IF })) {
+    if (match({ fk::lang::TokenType::IF })) {
         return parse_if();
     }
-    if (match({ fk::lang::token_type::WHILE })) {
+    if (match({ fk::lang::TokenType::WHILE })) {
         return parse_while();
     }
-    if (match({ fk::lang::token_type::FOR })) {
+    if (match({ fk::lang::TokenType::FOR })) {
         return parse_for();
     }
-    if (match({ fk::lang::token_type::FK_RETURN })) {
+    if (match({ fk::lang::TokenType::FK_RETURN })) {
         return parse_return();
     }
 
-    if (check({ token_type::INC, token_type::DEC })) {
+    if (check({ TokenType::INC, TokenType::DEC })) {
         return parse_inc_dec();
     }
 
     expression_ptr expr = expression();
-    if (check(token_type::WALRUS)) {
+    if (check(TokenType::WALRUS)) {
         return parse_variable_declaration(std::move(expr));
     }
-    if (check({ token_type::EQ, token_type::PLUSEQ, token_type::MINUSEQ, token_type::STAREQ, token_type::FSLASHEQ })) {
+    if (check({ TokenType::EQ, TokenType::PLUSEQ, TokenType::MINUSEQ, TokenType::STAREQ, TokenType::FSLASHEQ })) {
         return assignment(std::move(expr));
     }
 
@@ -150,7 +150,7 @@ fk::lang::statement_ptr fk::lang::parser::statement()
 
 fk::lang::statement_ptr fk::lang::parser::parse_inc_dec()
 {
-    const token& op = advance();
+    const Token& op = advance();
 
     expression_ptr target = expression();
 
@@ -159,15 +159,15 @@ fk::lang::statement_ptr fk::lang::parser::parse_inc_dec()
 
 fk::lang::statement_ptr fk::lang::parser::block()
 {
-    consume(fk::lang::token_type::LBRACE, "'{' expected to start block");
+    consume(fk::lang::TokenType::LBRACE, "'{' expected to start block");
 
     // TODO: reserve some room ahead of time for the statements
     std::vector<fk::lang::statement_ptr> statements;
-    while (!check(fk::lang::token_type::RBRACE) && !is_eof()) {
+    while (!check(fk::lang::TokenType::RBRACE) && !is_eof()) {
         statements.emplace_back(declaration()); 
     }
 
-    consume(fk::lang::token_type::RBRACE, "'}' expected to terminate block");
+    consume(fk::lang::TokenType::RBRACE, "'}' expected to terminate block");
 
     return make_statement<block_statement>(std::move(statements));
 }
@@ -178,7 +178,7 @@ fk::lang::statement_ptr fk::lang::parser::parse_if()
     statement_ptr then_block = block();
 
     statement_ptr else_block = nullptr;
-    if (match({ fk::lang::token_type::ELSE })) {
+    if (match({ fk::lang::TokenType::ELSE })) {
         else_block = block();
     }
 
@@ -196,25 +196,25 @@ fk::lang::statement_ptr fk::lang::parser::parse_while()
 fk::lang::statement_ptr fk::lang::parser::parse_for()
 {
     statement_ptr init;    
-    if (match({ fk::lang::token_type::SEMICOLON })) {
+    if (match({ fk::lang::TokenType::SEMICOLON })) {
         init = nullptr;
     } else {
         expression_ptr target = expression();
         init = parse_variable_declaration(std::move(target));
-        consume(fk::lang::token_type::SEMICOLON, "';' expected after initializer statement");
+        consume(fk::lang::TokenType::SEMICOLON, "';' expected after initializer statement");
     }
 
     expression_ptr condition;
-    if (match({ fk::lang::token_type::SEMICOLON })) {
-        const token& semicolon = prev();
+    if (match({ fk::lang::TokenType::SEMICOLON })) {
+        const Token& semicolon = prev();
         // if there is no condition, we borrow from C and assume the condition is always true
-        condition = make_expression<literal_expression>(token{"true", fk::lang::token_type::BTRUE, semicolon.line, semicolon.inline_pos});
+        condition = make_expression<literal_expression>(Token{"true", fk::lang::TokenType::FK_TRUE, semicolon.line, semicolon.col});
     } else {
         condition = expression();
-        consume(fk::lang::token_type::SEMICOLON, "';' expected after condition expression");
+        consume(fk::lang::TokenType::SEMICOLON, "';' expected after condition expression");
     }
 
-    statement_ptr mutator = check(fk::lang::token_type::LBRACE)
+    statement_ptr mutator = check(fk::lang::TokenType::LBRACE)
         ? nullptr
         : statement();
 
@@ -227,9 +227,9 @@ fk::lang::statement_ptr fk::lang::parser::parse_return()
 {
     // if there is no expression, we return nil
     expression_ptr expr;
-    if (check(token_type::RBRACE)) {
-        const token& current_token = prev();
-        expr = make_expression<literal_expression>(token{"nil", token_type::NIL, current_token.line, current_token.inline_pos});
+    if (check(TokenType::RBRACE)) {
+        const Token& current_token = prev();
+        expr = make_expression<literal_expression>(Token{"nil", TokenType::NIL, current_token.line, current_token.col});
     } else {
         expr = expression();
     }
@@ -245,7 +245,7 @@ fk::lang::expression_ptr fk::lang::parser::expression()
 fk::lang::expression_ptr fk::lang::parser::parse_or()
 {
     fk::lang::expression_ptr left = parse_and();
-    while (match({ fk::lang::token_type::OR })) {
+    while (match({ fk::lang::TokenType::OR })) {
         fk::lang::expression_ptr right = parse_and();
         left = make_expression<fk::lang::or_expression>(std::move(left), std::move(right));
     }
@@ -256,7 +256,7 @@ fk::lang::expression_ptr fk::lang::parser::parse_or()
 fk::lang::expression_ptr fk::lang::parser::parse_and()
 {
     fk::lang::expression_ptr left = equality();
-    while (match({ fk::lang::token_type::AND })) {
+    while (match({ fk::lang::TokenType::AND })) {
         fk::lang::expression_ptr right = equality();
         left = make_expression<fk::lang::and_expression>(std::move(left), std::move(right));
     }
@@ -266,11 +266,11 @@ fk::lang::expression_ptr fk::lang::parser::parse_and()
 
 fk::lang::expression_ptr fk::lang::parser::equality()
 {
-    static auto eq_ops = { fk::lang::token_type::EQEQ, fk::lang::token_type::NEQ };
+    static auto eq_ops = { fk::lang::TokenType::EQEQ, fk::lang::TokenType::NEQ };
 
     fk::lang::expression_ptr left = comparison();
     while (match(eq_ops)) {
-        token op = prev();
+        Token op = prev();
         fk::lang::expression_ptr right = comparison();
         left = make_expression<binary_expression>(std::move(left), op, std::move(right));
     }
@@ -280,11 +280,11 @@ fk::lang::expression_ptr fk::lang::parser::equality()
 
 fk::lang::expression_ptr fk::lang::parser::comparison()
 {
-    static auto comp_ops = { fk::lang::token_type::LT, fk::lang::token_type::LTE, fk::lang::token_type::GT, fk::lang::token_type::GTE };
+    static auto comp_ops = { fk::lang::TokenType::LT, fk::lang::TokenType::LTE, fk::lang::TokenType::GT, fk::lang::TokenType::GTE };
 
     fk::lang::expression_ptr left = term();
     while (match(comp_ops)) {
-        token op = prev();
+        Token op = prev();
         fk::lang::expression_ptr right = term();
         left = make_expression<binary_expression>(std::move(left), op, std::move(right));
     }
@@ -294,11 +294,11 @@ fk::lang::expression_ptr fk::lang::parser::comparison()
 
 fk::lang::expression_ptr fk::lang::parser::term()
 {
-    static auto term_ops = { fk::lang::token_type::MINUS, fk::lang::token_type::PLUS };
+    static auto term_ops = { fk::lang::TokenType::MINUS, fk::lang::TokenType::PLUS };
 
     fk::lang::expression_ptr left = factor();
     while (match(term_ops)) {
-        token op = prev();
+        Token op = prev();
         fk::lang::expression_ptr right = factor();
         left = make_expression<binary_expression>(std::move(left), op, std::move(right));
     }
@@ -308,11 +308,11 @@ fk::lang::expression_ptr fk::lang::parser::term()
 
 fk::lang::expression_ptr fk::lang::parser::factor()
 {
-    static auto factor_ops = { fk::lang::token_type::STAR, fk::lang::token_type::FSLASH };
+    static auto factor_ops = { fk::lang::TokenType::STAR, fk::lang::TokenType::FSLASH };
 
     fk::lang::expression_ptr left = unary();
     while (match(factor_ops)) {
-        token op = prev();
+        Token op = prev();
         fk::lang::expression_ptr right = unary();
         left = make_expression<binary_expression>(std::move(left), op, std::move(right));
     }
@@ -322,10 +322,10 @@ fk::lang::expression_ptr fk::lang::parser::factor()
 
 fk::lang::expression_ptr fk::lang::parser::unary()
 {
-    static auto unary_ops = { fk::lang::token_type::BANG, fk::lang::token_type::MINUS };
+    static auto unary_ops = { fk::lang::TokenType::BANG, fk::lang::TokenType::MINUS };
 
     if (match(unary_ops)) {
-        token op = prev();
+        Token op = prev();
         fk::lang::expression_ptr right = unary();
         return make_expression<unary_expression>(op, std::move(right));
     }
@@ -337,7 +337,7 @@ fk::lang::expression_ptr fk::lang::parser::call()
 {
     expression_ptr expr = primary();
 
-    if (!check(token_type::LPAREN)) {
+    if (!check(TokenType::LPAREN)) {
         return expr;
     }
 
@@ -346,40 +346,40 @@ fk::lang::expression_ptr fk::lang::parser::call()
         throw parse_exception("<identifier> expected as function name");
     }
 
-    consume(token_type::LPAREN, "'(' expected to start function call arguments");
+    consume(TokenType::LPAREN, "'(' expected to start function call arguments");
     
     std::vector<expression_ptr> args;
-    if (!check(token_type::RPAREN)) {
+    if (!check(TokenType::RPAREN)) {
         do {
             args.push_back(expression());
-        } while (match({ token_type::COMMA }));
+        } while (match({ TokenType::COMMA }));
     }
 
-    consume(token_type::RPAREN, "')' expected to terminate function call arguments");
+    consume(TokenType::RPAREN, "')' expected to terminate function call arguments");
 
     return make_expression<call_expression>(std::move(expr), std::move(args));
 }
 
 fk::lang::expression_ptr fk::lang::parser::primary()
 {
-    if (match({ fk::lang::token_type::NUMBER
-            , fk::lang::token_type::STRING
-            , fk::lang::token_type::BTRUE
-            , fk::lang::token_type::BFALSE
-            , fk::lang::token_type::NIL
+    if (match({ fk::lang::TokenType::NUMBER
+            , fk::lang::TokenType::STRING
+            , fk::lang::TokenType::FK_TRUE
+            , fk::lang::TokenType::FK_FALSE
+            , fk::lang::TokenType::NIL
         })) 
     {
         return make_expression<literal_expression>(prev());
     }
 
-    if (match({ fk::lang::token_type::IDENTIFIER })) {
+    if (match({ fk::lang::TokenType::IDENTIFIER })) {
         return make_expression<identifier_expression>(prev());
     }
 
-    if (match({ fk::lang::token_type::LPAREN })) {
+    if (match({ fk::lang::TokenType::LPAREN })) {
         fk::lang::expression_ptr expr = expression();
         
-        consume(fk::lang::token_type::RPAREN, "terminating ')' in parenthetic expression expected");
+        consume(fk::lang::TokenType::RPAREN, "terminating ')' in parenthetic expression expected");
 
         return make_expression<paren_expression>(std::move(expr));
     }
@@ -387,17 +387,17 @@ fk::lang::expression_ptr fk::lang::parser::primary()
     throw parse_exception("primary expression expected");
 }
 
-const fk::lang::token& fk::lang::parser::prev() const noexcept
+const fk::lang::Token& fk::lang::parser::prev() const noexcept
 {
     return tokens_[cursor_ - 1];
 }
 
-const fk::lang::token& fk::lang::parser::curr() const noexcept
+const fk::lang::Token& fk::lang::parser::curr() const noexcept
 {
     return tokens_[cursor_];
 }
 
-const fk::lang::token& fk::lang::parser::advance() noexcept
+const fk::lang::Token& fk::lang::parser::advance() noexcept
 {
     if (!is_eof()) {
         ++cursor_;
@@ -408,15 +408,15 @@ const fk::lang::token& fk::lang::parser::advance() noexcept
 
 bool fk::lang::parser::is_eof() const noexcept
 {
-    return curr().type == fk::lang::token_type::T_EOF;
+    return curr().type == fk::lang::TokenType::FK_EOF;
 }
 
-bool fk::lang::parser::match(fk::lang::token_type type) noexcept
+bool fk::lang::parser::match(fk::lang::TokenType type) noexcept
 {
     return match({ type });
 }
 
-bool fk::lang::parser::match(std::initializer_list<fk::lang::token_type> types) noexcept
+bool fk::lang::parser::match(std::initializer_list<fk::lang::TokenType> types) noexcept
 {
     for (auto type : types) {
         if (check(type)) {
@@ -428,7 +428,7 @@ bool fk::lang::parser::match(std::initializer_list<fk::lang::token_type> types) 
     return false;
 }
 
-bool fk::lang::parser::check(fk::lang::token_type type) const noexcept
+bool fk::lang::parser::check(fk::lang::TokenType type) const noexcept
 {
     if (is_eof()) {
         return false;
@@ -437,17 +437,17 @@ bool fk::lang::parser::check(fk::lang::token_type type) const noexcept
     return curr().type == type;
 }
 
-bool fk::lang::parser::check(std::initializer_list<token_type> types) const noexcept
+bool fk::lang::parser::check(std::initializer_list<TokenType> types) const noexcept
 {
-    return std::any_of(types.begin(), types.end(), [&](token_type type) {
+    return std::any_of(types.begin(), types.end(), [&](TokenType type) {
         return check(type);
     });
 }
 
-fk::lang::token fk::lang::parser::consume(token_type type, const std::string& msg)
+fk::lang::Token fk::lang::parser::consume(TokenType type, const std::string& msg)
 {
     if (!match({ type })) {
-        const token& current = curr();
+        const Token& current = curr();
         std::string error_message("syntax error: " + msg + " instead of '" + current.str + "'");
         throw fk::lang::parse_exception(error_message);
     }
@@ -507,29 +507,29 @@ fk::lang::statement_ptr fk::lang::parser::desugar_for_into_while(
 // a = a + 2
 // for all of the compound assignment operators
 fk::lang::statement_ptr fk::lang::parser::desugar_compound_assignment(
-    const fk::lang::token& lhs
-    , const fk::lang::token& op
+    const fk::lang::Token& lhs
+    , const fk::lang::Token& op
     , fk::lang::expression_ptr rhs
 ) noexcept
 {
     // TODO: verify the line and column positions
-    token rhs_op{"", token_type::UNKNOWN, op.line, op.inline_pos};
+    Token rhs_op{"", TokenType::UNKNOWN, op.line, op.col};
     switch (op.str[0]) {
     case '+':
         rhs_op.str = "+";
-        rhs_op.type = token_type::PLUS;
+        rhs_op.type = TokenType::PLUS;
         break;
     case '-':
         rhs_op.str = "-";
-        rhs_op.type = token_type::MINUS;
+        rhs_op.type = TokenType::MINUS;
         break;
     case '*':
         rhs_op.str = "*";
-        rhs_op.type = token_type::STAR;
+        rhs_op.type = TokenType::STAR;
         break;
     case '/':
         rhs_op.str = "/";
-        rhs_op.type = token_type::FSLASH;
+        rhs_op.type = TokenType::FSLASH;
         break;
     default:
         // we should never hit this case
@@ -549,18 +549,18 @@ fk::lang::statement_ptr fk::lang::parser::desugar_compound_assignment(
 // ++i
 // into:
 // i = i + 1
-fk::lang::statement_ptr fk::lang::parser::desugar_inc_dec(const token& op, expression_ptr target)
+fk::lang::statement_ptr fk::lang::parser::desugar_inc_dec(const Token& op, expression_ptr target)
 {
     // TODO: verify the line and column positions
-    token rhs_op{"", token_type::UNKNOWN, op.line, op.inline_pos};
+    Token rhs_op{"", TokenType::UNKNOWN, op.line, op.col};
     switch (op.str[0]) {
     case '+':
         rhs_op.str = "+";
-        rhs_op.type = token_type::PLUS;
+        rhs_op.type = TokenType::PLUS;
         break;
     case '-':
         rhs_op.str = "-";
-        rhs_op.type = token_type::MINUS;
+        rhs_op.type = TokenType::MINUS;
         break;
     default:
         // we should never hit this case
@@ -572,7 +572,7 @@ fk::lang::statement_ptr fk::lang::parser::desugar_inc_dec(const token& op, expre
     // to accept those as well
     identifier_expression *identifier = instanceof<identifier_expression>(target);
     if (identifier == nullptr) {
-        const std::string opstr = op.type == token_type::INC
+        const std::string opstr = op.type == TokenType::INC
             ? "increment"
             : "decrement";
         throw parse_exception("invalid " + opstr + " target");
@@ -580,7 +580,7 @@ fk::lang::statement_ptr fk::lang::parser::desugar_inc_dec(const token& op, expre
 
 
     // TODO: figure out the line, col positions for these new tokens
-    expression_ptr one = make_expression<literal_expression>(token{"1", token_type::NUMBER, 0, 0});
+    expression_ptr one = make_expression<literal_expression>(Token{"1", TokenType::NUMBER, 0, 0});
 
     // target + 1
     expression_ptr right = make_expression<binary_expression>(

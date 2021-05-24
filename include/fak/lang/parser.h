@@ -10,12 +10,12 @@
 namespace fk::lang {
 
 // forward declarations
-struct error_handler;
+struct ErrorHandler;
 
 class parser 
 {
 public:
-    explicit parser(std::string str, error_handler *error_handler);
+    explicit parser(std::string str, ErrorHandler *error_handler);
 
     program parse() noexcept;
 
@@ -48,29 +48,29 @@ private:
     expression_ptr call();
     expression_ptr primary();
 
-    const token& prev() const noexcept;
-    const token& curr() const noexcept;
-    const token& advance() noexcept;
+    const Token& prev() const noexcept;
+    const Token& curr() const noexcept;
+    const Token& advance() noexcept;
 
-    bool match(token_type type) noexcept;
-    bool match(std::initializer_list<token_type> types) noexcept;
-    bool check(token_type type) const noexcept;
-    bool check(std::initializer_list<token_type> types) const noexcept;
-    token consume(token_type type, const std::string& msg);
+    bool match(TokenType type) noexcept;
+    bool match(std::initializer_list<TokenType> types) noexcept;
+    bool check(TokenType type) const noexcept;
+    bool check(std::initializer_list<TokenType> types) const noexcept;
+    Token consume(TokenType type, const std::string& msg);
 
     void synchronize_next_statement() noexcept;
 
     statement_ptr desugar_for_into_while(statement_ptr init, expression_ptr condition, statement_ptr mutator,statement_ptr body) noexcept;
 
-    statement_ptr desugar_compound_assignment(const token& lhs, const token& op, expression_ptr rhs) noexcept;
+    statement_ptr desugar_compound_assignment(const Token& lhs, const Token& op, expression_ptr rhs) noexcept;
 
-    statement_ptr desugar_inc_dec(const token& op, expression_ptr target);
+    statement_ptr desugar_inc_dec(const Token& op, expression_ptr target);
 
 private:
-    std::vector<token> tokens_;
+    std::vector<Token> tokens_;
     size_t cursor_;
 
-    error_handler *error_handler_;
+    ErrorHandler *error_handler_;
 };
 
 }

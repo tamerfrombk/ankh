@@ -93,10 +93,10 @@ struct expression_statement
 struct assignment_statement
     : public statement
 {
-    token name;
+    Token name;
     expression_ptr initializer;
 
-    assignment_statement(token name, expression_ptr initializer)
+    assignment_statement(Token name, expression_ptr initializer)
         : name(std::move(name)), initializer(std::move(initializer)) {}
 
     virtual void accept(statement_visitor<void> *visitor) override
@@ -113,10 +113,10 @@ struct assignment_statement
 struct variable_declaration
     : public statement
 {
-    token name;
+    Token name;
     expression_ptr initializer;
 
-    variable_declaration(token name, expression_ptr initializer)
+    variable_declaration(Token name, expression_ptr initializer)
         : name(std::move(name)), initializer(std::move(initializer)) {}
 
     virtual void accept(statement_visitor<void> *visitor) override
@@ -193,11 +193,11 @@ struct while_statement
 struct function_declaration
     : public statement
 {
-    token name;
-    std::vector<token> params;
+    Token name;
+    std::vector<Token> params;
     statement_ptr body;
 
-    function_declaration(token name, std::vector<token> params, statement_ptr body)
+    function_declaration(Token name, std::vector<Token> params, statement_ptr body)
         : name(std::move(name)), params(std::move(params)), body(std::move(body)) {}
 
     virtual void accept(statement_visitor<void> *visitor) override

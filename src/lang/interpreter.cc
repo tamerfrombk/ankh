@@ -188,25 +188,25 @@ fk::lang::expr_result fk::lang::interpreter::visit(binary_expression *expr)
     const expr_result right = evaluate(expr->right);
 
     switch (expr->op.type) {
-    case token_type::EQEQ:
+    case TokenType::EQEQ:
         return eqeq(left, right);
-    case token_type::NEQ:
+    case TokenType::NEQ:
         return invert(eqeq(left, right));
-    case token_type::GT:
+    case TokenType::GT:
         return compare(left, right, std::greater<>{});
-    case token_type::GTE:
+    case TokenType::GTE:
         return compare(left, right, std::greater_equal<>{});
-    case token_type::LT:
+    case TokenType::LT:
         return compare(left, right, std::less<>{});
-    case token_type::LTE:
+    case TokenType::LTE:
         return compare(left, right, std::less_equal<>{});
-    case token_type::MINUS:
+    case TokenType::MINUS:
         return arithmetic(left, right, std::minus<>{});
-    case token_type::PLUS:
+    case TokenType::PLUS:
         return plus(left, right);
-    case token_type::STAR:
+    case TokenType::STAR:
         return arithmetic(left, right, std::multiplies<>{});
-    case token_type::FSLASH:
+    case TokenType::FSLASH:
         // TODO: right now, dividing by 0 yields 'inf' revisit this and make sure that's the behavior we want for the language
         return arithmetic(left, right, std::divides<>{});
     default:
@@ -218,9 +218,9 @@ fk::lang::expr_result fk::lang::interpreter::visit(unary_expression *expr)
 {
     const expr_result result = evaluate(expr->right);
     switch (expr->op.type) {
-    case token_type::MINUS:
+    case TokenType::MINUS:
         return negate(result);
-    case token_type::BANG:
+    case TokenType::BANG:
         return invert(result);
     default:
         panic(result, "unknown unary (" + expr->op.str + ") operator");
@@ -230,15 +230,15 @@ fk::lang::expr_result fk::lang::interpreter::visit(unary_expression *expr)
 fk::lang::expr_result fk::lang::interpreter::visit(literal_expression *expr)
 {
     switch (expr->literal.type) {
-    case token_type::NUMBER:
+    case TokenType::NUMBER:
         return expr_result::num(to_num(expr->literal.str));
-    case token_type::STRING:
+    case TokenType::STRING:
         return expr_result::string(expr->literal.str);
-    case token_type::BTRUE:
+    case TokenType::FK_TRUE:
         return expr_result::boolean(true);
-    case token_type::BFALSE:
+    case TokenType::FK_FALSE:
         return expr_result::boolean(false);
-    case token_type::NIL:
+    case TokenType::NIL:
         return expr_result::nil();
     default:
         panic("unkown literal expression: '" + expr->literal.str + "'");

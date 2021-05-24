@@ -1,148 +1,153 @@
-#include "fak/lang/token.h"
 #include <cctype>
 #include <unordered_map>
 
 #include <fak/lang/lexer.h>
 #include <fak/lang/error_handler.h>
 
-static const std::unordered_map<std::string, fk::lang::token_type> KEYWORDS = {
-      { "true", fk::lang::token_type::BTRUE }
-    , { "false", fk::lang::token_type::BFALSE }
-    , { "nil", fk::lang::token_type::NIL }
-    , { "print", fk::lang::token_type::PRINT }
-    , { "if", fk::lang::token_type::IF }
-    , { "else", fk::lang::token_type::ELSE }
-    , { "while", fk::lang::token_type::WHILE }
-    , { "for", fk::lang::token_type::FOR }
-    , { "let", fk::lang::token_type::LET }
-    , { "def", fk::lang::token_type::DEF }
-    , { "return", fk::lang::token_type::FK_RETURN }
+static const std::unordered_map<std::string, fk::lang::TokenType> KEYWORDS = {
+      { "true", fk::lang::TokenType::FK_TRUE }
+    , { "false", fk::lang::TokenType::FK_FALSE }
+    , { "nil", fk::lang::TokenType::NIL }
+    , { "print", fk::lang::TokenType::PRINT }
+    , { "if", fk::lang::TokenType::IF }
+    , { "else", fk::lang::TokenType::ELSE }
+    , { "while", fk::lang::TokenType::WHILE }
+    , { "for", fk::lang::TokenType::FOR }
+    , { "def", fk::lang::TokenType::DEF }
+    , { "return", fk::lang::TokenType::FK_RETURN }
 };
 
-fk::lang::lexer::lexer(std::string text, fk::lang::error_handler *error_handler)
+fk::lang::Lexer::Lexer(std::string text, fk::lang::ErrorHandler *error_handler)
     : text_(std::move(text))
     , cursor_(0)
     , line_(1)
+    , col_(1)
     , error_handler_(error_handler)
 {}
 
-fk::lang::token fk::lang::lexer::next_token() noexcept
+fk::lang::Token fk::lang::Lexer::next() noexcept
 {
     skip_whitespace();
 
     if (is_eof()) {
-        return { "EOF", token_type::T_EOF, line_, 0 };
+        return tokenize("EOF", TokenType::FK_EOF);
     }
 
-    char c = advance();
+    const char c = advance();
     if (std::isalpha(c)) {
-        return lex_alnum(c);
+        return scan_alnum();
     } else if (std::isdigit(c)) {
-        return lex_number(c);  
+        return scan_number();  
     } else if (c == '+') {
         if (curr() == '+') {
             advance(); // eat it
-            return { "++", token_type::INC, line_, 0 };
+            return tokenize("++", TokenType::INC);
         }
-        return lex_compound_operator('=', token_type::PLUSEQ, token_type::PLUS);
+        return scan_compound_operator('=', TokenType::PLUSEQ, TokenType::PLUS);
     } else if (c == '-') {
         if (curr() == '-') {
             advance(); // eat it
-            return { "--", token_type::DEC, line_, 0 };
+            return tokenize("--", TokenType::DEC);
         }
-        return lex_compound_operator('=', token_type::MINUSEQ, token_type::MINUS);
+        return scan_compound_operator('=', TokenType::MINUSEQ, TokenType::MINUS);
     } else if (c == '*') {
-        return lex_compound_operator('=', token_type::STAREQ, token_type::STAR);
+        return scan_compound_operator('=', TokenType::STAREQ, TokenType::STAR);
     } else if (c == '/') {
-        return lex_compound_operator('=', token_type::FSLASHEQ, token_type::FSLASH);
+        return scan_compound_operator('=', TokenType::FSLASHEQ, TokenType::FSLASH);
     } else if (c == '(') {
-        return { "(", token_type::LPAREN, line_, 0 };  
+        return tokenize("(", TokenType::LPAREN);
     } else if (c == ')') {
-        return { ")", token_type::RPAREN, line_, 0 };
+        return tokenize(")", TokenType::RPAREN);
     } else if (c == '<') {
-        return lex_compound_operator('=', token_type::LTE, token_type::LT);
+        return scan_compound_operator('=', TokenType::LTE, TokenType::LT);
     } else if (c == '>') {
-        return lex_compound_operator('=', token_type::GTE, token_type::GT);
+        return scan_compound_operator('=', TokenType::GTE, TokenType::GT);
     } else if (c == '=') {
-        return lex_compound_operator('=', token_type::EQEQ, token_type::EQ);
+        return scan_compound_operator('=', TokenType::EQEQ, TokenType::EQ);
     } else if (c == '!') {
-        return lex_compound_operator('=', token_type::NEQ, token_type::BANG);
+        return scan_compound_operator('=', TokenType::NEQ, TokenType::BANG);
     } else if (c == '"') {
-        return lex_string();
+        return scan_string();
     } else if (c == '#') {
         skip_comment();
-        return next_token();
+        return next();
     } else if (c == '{') {
-        return { "{", token_type::LBRACE, line_, 0 };
+        return tokenize("{", TokenType::LBRACE);
     } else if (c == '}') {
-        return { "}", token_type::RBRACE, line_, 0 };
+        return tokenize("}", TokenType::RBRACE);
     } else if (c == '&') {
         if (curr() == '&') {
             advance(); // eat the '&'
-            return { "&&", token_type::AND, line_, 0 };
+            return tokenize("&&", TokenType::AND);
         }
         error_handler_->report_error({"'&' is not a valid token; did you mean '&&' ?"});
-        return { "&", token_type::UNKNOWN, line_, 0 };
+        return tokenize("&", TokenType::UNKNOWN);
     } else if (c == '|') {
         if (curr() == '|') {
             advance(); // eat the '|'
-            return { "||", token_type::OR, line_, 0 };
+            return tokenize("||", TokenType::OR);
         }
         error_handler_->report_error({"'|' is not a valid token; did you mean '||' ?"});
-        return { "|", token_type::UNKNOWN, line_, 0 };
+        return tokenize("|", TokenType::UNKNOWN);
     } else if (c == ';') {
-        return { ";", token_type::SEMICOLON, line_, 0 };
+        return tokenize(";", TokenType::SEMICOLON);
     } else if (c == ',') {
-        return { ",", token_type::COMMA, line_, 0 };
+        return tokenize(",", TokenType::COMMA);
     } else if (c == ':') {
         if (curr() == '=') {
             advance(); // eat the '='
-            return { ":=", token_type::WALRUS, line_, 0 };
+            return tokenize(":=", TokenType::WALRUS);
         }
         error_handler_->report_error({"':' is not a valid token; did you mean ':=' ?"});
-        return { "|", token_type::UNKNOWN, line_, 0 };
+        return tokenize(":", TokenType::UNKNOWN);
     } else {
         error_handler_->report_error({"unknown token!"});
-        return { std::string{c}, token_type::UNKNOWN, line_, 0 };
+        return tokenize(c, TokenType::UNKNOWN);
     }
 }
 
-fk::lang::token fk::lang::lexer::peek_token() noexcept
+fk::lang::Token fk::lang::Lexer::peek() noexcept
 {
     size_t old_cursor = cursor_;
     
-    fk::lang::token token = next_token();
+    fk::lang::Token token = next();
 
     cursor_ = old_cursor;
 
     return token;
 }
 
-bool fk::lang::lexer::is_eof() const noexcept
+bool fk::lang::Lexer::is_eof() const noexcept
 {
     return cursor_ >= text_.length();
 }
 
-void fk::lang::lexer::skip_whitespace() noexcept
+bool fk::lang::Lexer::is_keyword(const std::string& str) const noexcept
+{
+    return KEYWORDS.find(str) != KEYWORDS.cend();
+}
+
+void fk::lang::Lexer::skip_whitespace() noexcept
 {
     while (!is_eof() && std::isspace(curr())) {
         if (curr() == '\n') {
             ++line_;
+            col_ = 0;
         }
         advance();
     }
 }
 
-void fk::lang::lexer::skip_comment() noexcept
+void fk::lang::Lexer::skip_comment() noexcept
 {
     while (!is_eof() && curr() != '\n') {
         advance();
     }
 }
 
-fk::lang::token fk::lang::lexer::lex_alnum(char init) noexcept
+fk::lang::Token fk::lang::Lexer::scan_alnum() noexcept
 {
-    std::string token(1, init);
+    std::string token(1, prev());
     while (!is_eof()) {
         char c = curr();
         if (std::isalnum(c)) {
@@ -153,14 +158,14 @@ fk::lang::token fk::lang::lexer::lex_alnum(char init) noexcept
         }
     }
 
-    token_type type = is_keyword(token)
+    const TokenType type = is_keyword(token)
         ? KEYWORDS.at(token)
-        : token_type::IDENTIFIER;
+        : TokenType::IDENTIFIER;
 
-    return { token, type, line_, 0 };
+    return tokenize(token, type);
 }
 
-fk::lang::token fk::lang::lexer::lex_string() noexcept
+fk::lang::Token fk::lang::Lexer::scan_string() noexcept
 {
     std::string str;
     while (!is_eof()) {
@@ -169,18 +174,18 @@ fk::lang::token fk::lang::lexer::lex_string() noexcept
             break;
         } else if (is_eof()) {
             error_handler_->report_error({"terminal \" not found"});
-            return { str, token_type::UNKNOWN, line_, 0 };
+            return { str, TokenType::UNKNOWN, line_, col_ };
         } else {
             str += c;
         }
     }
 
-    return { str, token_type::STRING, line_, 0 };
+    return tokenize(str, TokenType::STRING);
 }
 
-fk::lang::token fk::lang::lexer::lex_number(char init) noexcept
+fk::lang::Token fk::lang::Lexer::scan_number() noexcept
 {
-    std::string num(1, init);
+    std::string num(1, prev());
 
     bool decimal_found = false;
     while (!is_eof()) {
@@ -191,7 +196,7 @@ fk::lang::token fk::lang::lexer::lex_number(char init) noexcept
         } else if (c == '.') {
             if (decimal_found) {
                 error_handler_->report_error({"'.' lexeme not expected"});
-                return { ".", token_type::UNKNOWN, line_, 0 };
+                return { ".", TokenType::UNKNOWN, line_, col_ };
             }
             num += c;
             decimal_found = true;
@@ -201,41 +206,76 @@ fk::lang::token fk::lang::lexer::lex_number(char init) noexcept
         }
     }
 
-    return { num, token_type::NUMBER, line_, 0 };
+    return tokenize(num, TokenType::NUMBER);
 }
 
-fk::lang::token fk::lang::lexer::lex_compound_operator(char expected, token_type then, token_type otherwise) noexcept
+fk::lang::Token fk::lang::Lexer::scan_compound_operator(char expected, TokenType then, TokenType otherwise) noexcept
 {
     const std::string before(1, prev());
     if (curr() == expected) {
         advance(); // eat it
-        return { before + expected, then, line_, 0 };
+        return tokenize(before + expected, then);
     }
 
-    return { before, otherwise, line_, 0 };
+    return tokenize(before, otherwise);
 }
 
-char fk::lang::lexer::prev() const noexcept
+char fk::lang::Lexer::prev() const noexcept
 {
     return text_[cursor_ - 1];
 }
 
-char fk::lang::lexer::curr() const noexcept
+char fk::lang::Lexer::curr() const noexcept
 {
     return text_[cursor_];
 }
 
-char fk::lang::lexer::peek() const noexcept
+char fk::lang::Lexer::peek() const noexcept
 {
     return text_[cursor_ + 1];
 }
 
-char fk::lang::lexer::advance() noexcept
+char fk::lang::Lexer::advance() noexcept
 {
-    return text_[cursor_++];
+    char c = text_[cursor_++];
+
+    ++col_;
+
+    return c;
 }
 
-bool fk::lang::lexer::is_keyword(const std::string& str) const noexcept
+fk::lang::Token fk::lang::Lexer::tokenize(char c, TokenType type) const noexcept
 {
-    return KEYWORDS.find(str) != KEYWORDS.cend();
+    return tokenize(std::string(1, c), type);
+}
+
+fk::lang::Token fk::lang::Lexer::tokenize(const std::string& s, TokenType type) const noexcept
+{
+    // When we initialize a string token, we have to take into account both of the double quotes surrounding
+    // the actual string and remove that from the reported column position.
+    // For example, if we have the following string token that begins at line 1, col 1:
+    // "i am a string"
+    // ^-- line = 1, col = 1
+    // then after we're done scanning the token, we'll be here:
+    // "i am a string"
+    //                ^-- line = 1, col = 16
+    // If we simply subtract the length of the string without the double quotes, we'll end up at column 3
+    // which is incorrect.
+    const size_t column = type == TokenType::STRING
+        ? col_ - s.length() - 2
+        : col_ - s.length();
+
+    return { s, type, line_, column };
+}
+
+std::vector<fk::lang::Token> fk::lang::scan(const std::string& source, fk::lang::ErrorHandler *error_handler) noexcept
+{
+    fk::lang::Lexer lexer(source, error_handler);
+
+    std::vector<fk::lang::Token> tokens;
+    while (!lexer.is_eof()) {
+        tokens.push_back(lexer.next());
+    }
+
+    return tokens;
 }

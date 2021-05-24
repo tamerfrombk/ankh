@@ -82,10 +82,10 @@ struct binary_expression
     : public expression 
 {
     expression_ptr left;
-    token op;
+    Token op;
     expression_ptr right;
 
-    binary_expression(expression_ptr left, token op, expression_ptr right)
+    binary_expression(expression_ptr left, Token op, expression_ptr right)
         : left(std::move(left)), op(std::move(op)), right(std::move(right)) {}
 
     virtual expr_result accept(expression_visitor<expr_result> *visitor) override
@@ -97,10 +97,10 @@ struct binary_expression
 struct unary_expression 
     : public expression 
 {
-    token op;
+    Token op;
     expression_ptr right;
 
-    unary_expression(token op, expression_ptr right)
+    unary_expression(Token op, expression_ptr right)
         : op(std::move(op)), right(std::move(right)) {}
     
     virtual expr_result accept(expression_visitor<expr_result> *visitor) override
@@ -112,9 +112,9 @@ struct unary_expression
 struct literal_expression 
     : public expression 
 {
-    token literal;
+    Token literal;
 
-    literal_expression(token literal)
+    literal_expression(Token literal)
         : literal(std::move(literal)) {}
 
     virtual expr_result accept(expression_visitor<expr_result> *visitor) override
@@ -140,9 +140,9 @@ struct paren_expression
 struct identifier_expression 
     : public expression 
 {
-    token name;
+    Token name;
 
-    identifier_expression(token name)
+    identifier_expression(Token name)
         : name(std::move(name)) {}
 
     virtual expr_result accept(expression_visitor<expr_result> *visitor) override

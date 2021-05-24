@@ -182,7 +182,7 @@ private:
         return expr->accept(this);
     }
 
-    inline std::string stringify(const fk::lang::token& token)
+    inline std::string stringify(const fk::lang::Token& token)
     {
         return token.str;
     }

@@ -1,98 +1,96 @@
 #include <fak/lang/token.h>
 #include <fak/log.h>
 
-std::string fk::lang::token_type_str(fk::lang::token_type type)
+std::string fk::lang::token_type_str(fk::lang::TokenType type) noexcept
 {
     switch (type) {
-    case fk::lang::token_type::IDENTIFIER:
+    case fk::lang::TokenType::IDENTIFIER:
         return "IDENTIFIER";
-    case fk::lang::token_type::EQ:
+    case fk::lang::TokenType::EQ:
         return "EQ";
-    case fk::lang::token_type::EQEQ:
+    case fk::lang::TokenType::EQEQ:
         return "EQEQ";
-    case fk::lang::token_type::NEQ:
+    case fk::lang::TokenType::NEQ:
         return "NEQ";
-    case fk::lang::token_type::LT:
+    case fk::lang::TokenType::LT:
         return "LT";
-    case fk::lang::token_type::LTE:
+    case fk::lang::TokenType::LTE:
         return "LTE";
-    case fk::lang::token_type::GT:
+    case fk::lang::TokenType::GT:
         return "GT";
-    case fk::lang::token_type::GTE:
+    case fk::lang::TokenType::GTE:
         return "GTE";
-    case fk::lang::token_type::MINUS:
+    case fk::lang::TokenType::MINUS:
         return "MINUS";
-    case fk::lang::token_type::MINUSEQ:
+    case fk::lang::TokenType::MINUSEQ:
         return "MINUSEQ";
-    case fk::lang::token_type::PLUS:
+    case fk::lang::TokenType::PLUS:
         return "PLUS";
-    case fk::lang::token_type::PLUSEQ:
+    case fk::lang::TokenType::PLUSEQ:
         return "PLUSEQ";
-    case fk::lang::token_type::FSLASH:
+    case fk::lang::TokenType::FSLASH:
         return "FSLASH";
-    case fk::lang::token_type::FSLASHEQ:
+    case fk::lang::TokenType::FSLASHEQ:
         return "FSLASHEQ";
-    case fk::lang::token_type::STAR:
+    case fk::lang::TokenType::STAR:
         return "STAR";
-    case fk::lang::token_type::STAREQ:
+    case fk::lang::TokenType::STAREQ:
         return "STAREQ";
-    case fk::lang::token_type::BANG:
+    case fk::lang::TokenType::BANG:
         return "BANG";
-    case fk::lang::token_type::LPAREN:
+    case fk::lang::TokenType::LPAREN:
         return "LPAREN";
-    case fk::lang::token_type::RPAREN:
+    case fk::lang::TokenType::RPAREN:
         return "RPAREN";
-    case fk::lang::token_type::LBRACE:
+    case fk::lang::TokenType::LBRACE:
         return "LBRACE";
-    case fk::lang::token_type::RBRACE:
+    case fk::lang::TokenType::RBRACE:
         return "RBRACE";
-    case fk::lang::token_type::BTRUE:
+    case fk::lang::TokenType::FK_TRUE:
         return "BTRUE";
-    case fk::lang::token_type::BFALSE:
+    case fk::lang::TokenType::FK_FALSE:
         return "BFALSE";
-    case fk::lang::token_type::NIL:
+    case fk::lang::TokenType::NIL:
         return "NIL";
-    case fk::lang::token_type::PRINT:
+    case fk::lang::TokenType::PRINT:
         return "PRINT";
-    case fk::lang::token_type::IF:
+    case fk::lang::TokenType::IF:
         return "IF";
-    case fk::lang::token_type::ELSE:
+    case fk::lang::TokenType::ELSE:
         return "ELSE";
-    case fk::lang::token_type::AND:
+    case fk::lang::TokenType::AND:
         return "AND";
-    case fk::lang::token_type::OR:
+    case fk::lang::TokenType::OR:
         return "OR";
-    case fk::lang::token_type::WHILE:
+    case fk::lang::TokenType::WHILE:
         return "WHILE";
-    case fk::lang::token_type::FOR:
+    case fk::lang::TokenType::FOR:
         return "FOR";
-    case fk::lang::token_type::SEMICOLON:
+    case fk::lang::TokenType::SEMICOLON:
         return "SEMICOLON";
-    case fk::lang::token_type::LET:
+    case fk::lang::TokenType::LET:
         return "LET";
-    case fk::lang::token_type::COMMA:
+    case fk::lang::TokenType::COMMA:
         return "COMMA";
-    case fk::lang::token_type::DEF:
+    case fk::lang::TokenType::DEF:
         return "DEF";
-    case fk::lang::token_type::FK_RETURN:
+    case fk::lang::TokenType::FK_RETURN:
         return "RETURN";
-    case fk::lang::token_type::WALRUS:
+    case fk::lang::TokenType::WALRUS:
         return "WALRUS";
-    case fk::lang::token_type::INC:
+    case fk::lang::TokenType::INC:
         return "INC";
-    case fk::lang::token_type::DEC:
+    case fk::lang::TokenType::DEC:
         return "DEC";
-    case fk::lang::token_type::NUMBER:
+    case fk::lang::TokenType::NUMBER:
         return "NUMBER";
-    case fk::lang::token_type::STRING:
+    case fk::lang::TokenType::STRING:
         return "STRING";
-    case fk::lang::token_type::T_EOF:
+    case fk::lang::TokenType::FK_EOF:
         return "EOF";
-    case fk::lang::token_type::UNKNOWN:
+    case fk::lang::TokenType::UNKNOWN:
         return "UNKNOWN";
     default:
         fk::log::fatal("shouldn't happen");
-        // again, unnecessary but we'll silence the compiler
-        return "";
     }
 }

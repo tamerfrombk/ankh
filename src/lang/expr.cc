@@ -13,8 +13,6 @@ std::string fk::lang::expr_result_type_str(fk::lang::expr_result_type type) noex
     case fk::lang::expr_result_type::RT_NIL:       return "NIL";
     default:                                       
         fk::log::fatal("expr_result_type_str(): unknown expression result type!\n");
-        // this isn't really necessary but on debug builds, the compiler complains there is no return type because it does not see the exit() inside of fatal().
-        return ""; 
     }
 }
 
@@ -66,7 +64,5 @@ std::string fk::lang::expr_result::stringify() const noexcept
         return "nil";
     default:
         fk::log::fatal("stringify(): unknown expression result type!\n");
-        // this isn't really necessary but on debug builds, the compiler complains there is no return type because it does not see the exit() inside of fatal().
-        return ""; 
     }
 }

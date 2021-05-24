@@ -4,6 +4,8 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include <fak/def.h>
+
 
 namespace fk::log {
 
@@ -28,7 +30,7 @@ void error(const char *fmt, Args&&... args)
 }
 
 template <class... Args>
-void fatal(const char *fmt, Args&&... args)
+FK_NO_RETURN void fatal(const char *fmt, Args&&... args)
 {
         std::fprintf(stderr, fmt, std::forward<Args>(args)...);
         std::exit(1);
