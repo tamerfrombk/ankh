@@ -145,6 +145,12 @@ LEXER_TEST("scan all language tokens")
         REQUIRE(tokens[7] == fk::lang::Token{ "for", fk::lang::TokenType::FOR, 9, 13 });
         REQUIRE(tokens[8] == fk::lang::Token{ "def", fk::lang::TokenType::DEF, 10, 13 });
         REQUIRE(tokens[9] == fk::lang::Token{ "return", fk::lang::TokenType::FK_RETURN, 11, 13 });
+
+        for (const fk::lang::Token& token : tokens) {
+            if (token.type != fk::lang::TokenType::FK_EOF){
+                REQUIRE(fk::lang::is_keyword(token.str));
+            }
+        }
     }
 
     SECTION("scan string tokens")

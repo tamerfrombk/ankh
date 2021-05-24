@@ -18,7 +18,6 @@ public:
     Token peek() noexcept;
 
     bool is_eof() const noexcept;
-    bool is_keyword(const std::string& str) const noexcept;
 
 private:
     void skip_whitespace() noexcept;
@@ -45,6 +44,8 @@ private:
 
     ErrorHandler *error_handler_;
 };
+
+bool is_keyword(const std::string& str) noexcept;
 
 std::vector<Token> scan(const std::string& source, ErrorHandler *error_handler) noexcept;
 

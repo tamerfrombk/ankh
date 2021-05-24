@@ -122,11 +122,6 @@ bool fk::lang::Lexer::is_eof() const noexcept
     return cursor_ >= text_.length();
 }
 
-bool fk::lang::Lexer::is_keyword(const std::string& str) const noexcept
-{
-    return KEYWORDS.find(str) != KEYWORDS.cend();
-}
-
 void fk::lang::Lexer::skip_whitespace() noexcept
 {
     while (!is_eof() && std::isspace(curr())) {
@@ -266,6 +261,11 @@ fk::lang::Token fk::lang::Lexer::tokenize(const std::string& s, TokenType type) 
         : col_ - s.length();
 
     return { s, type, line_, column };
+}
+
+bool fk::lang::is_keyword(const std::string& str) noexcept
+{
+    return KEYWORDS.find(str) != KEYWORDS.cend();
 }
 
 std::vector<fk::lang::Token> fk::lang::scan(const std::string& source, fk::lang::ErrorHandler *error_handler) noexcept
