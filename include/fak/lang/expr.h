@@ -10,32 +10,32 @@
 namespace fk::lang {
 
 // forward declare our expression types for the visitor
-struct binary_expression;
-struct unary_expression;
-struct literal_expression;
-struct paren_expression;
-struct identifier_expression;
-struct and_expression;
-struct or_expression;
-struct call_expression;
+struct BinaryExpression;
+struct UnaryExpression;
+struct LiteralExpression;
+struct ParenExpression;
+struct IdentifierExpression;
+struct AndExpression;
+struct OrExpression;
+struct CallExpression;
 
 template <class R>
-struct expression_visitor {
-    virtual ~expression_visitor() = default;
+struct ExpressionVisitor {
+    virtual ~ExpressionVisitor() = default;
 
-    virtual R visit(binary_expression *expr) = 0;
-    virtual R visit(unary_expression *expr) = 0;
-    virtual R visit(literal_expression *expr) = 0;
-    virtual R visit(paren_expression *expr) = 0;
-    virtual R visit(identifier_expression *expr) = 0;
-    virtual R visit(and_expression *expr) = 0;
-    virtual R visit(or_expression *expr) = 0;
-    virtual R visit(call_expression *expr) = 0;
+    virtual R visit(BinaryExpression *expr) = 0;
+    virtual R visit(UnaryExpression *expr) = 0;
+    virtual R visit(LiteralExpression *expr) = 0;
+    virtual R visit(ParenExpression *expr) = 0;
+    virtual R visit(IdentifierExpression *expr) = 0;
+    virtual R visit(AndExpression *expr) = 0;
+    virtual R visit(OrExpression *expr) = 0;
+    virtual R visit(CallExpression *expr) = 0;
 };
 
-using number = double;
+using Number = double;
 
-enum class expr_result_type {
+enum class ExprResultType {
     RT_EXIT_CODE,
     RT_STRING,
     RT_NUMBER,
@@ -43,152 +43,152 @@ enum class expr_result_type {
     RT_NIL
 };
 
-std::string expr_result_type_str(expr_result_type type) noexcept;
+std::string expr_result_type_str(ExprResultType type) noexcept;
 
-struct expr_result {
+struct ExprResult {
 
     // TODO: unionize these fields. Right now, getting implicitly deleted destructor error because of union
     // and I don't want to block myself figuring it out right now.
     std::string str;
-    number      n;
+    Number      n;
     bool        b;
     int         exit_code;
 
-    expr_result_type type;
+    ExprResultType type;
 
-    static expr_result nil();
-    static expr_result num(number n);
-    static expr_result string(std::string s);
-    static expr_result boolean(bool b);
+    static ExprResult nil();
+    static ExprResult num(Number n);
+    static ExprResult string(std::string s);
+    static ExprResult boolean(bool b);
 
     std::string stringify() const noexcept;
 };
 
-struct expression {
-    virtual ~expression() = default;
+struct Expression {
+    virtual ~Expression() = default;
 
-    virtual expr_result accept(expression_visitor<expr_result> *visitor) = 0;
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) = 0;
 };
 
-using expression_ptr = std::unique_ptr<expression>;
+using ExpressionPtr = std::unique_ptr<Expression>;
 
 template <class T, class... Args>
-expression_ptr make_expression(Args&&... args)
+ExpressionPtr make_expression(Args&&... args)
 {
     return std::make_unique<T>(std::forward<Args>(args)...);
 }
 
-struct binary_expression 
-    : public expression 
+struct BinaryExpression 
+    : public Expression 
 {
-    expression_ptr left;
+    ExpressionPtr left;
     Token op;
-    expression_ptr right;
+    ExpressionPtr right;
 
-    binary_expression(expression_ptr left, Token op, expression_ptr right)
+    BinaryExpression(ExpressionPtr left, Token op, ExpressionPtr right)
         : left(std::move(left)), op(std::move(op)), right(std::move(right)) {}
 
-    virtual expr_result accept(expression_visitor<expr_result> *visitor) override
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
     {
         return visitor->visit(this);
     }
 };
 
-struct unary_expression 
-    : public expression 
+struct UnaryExpression 
+    : public Expression 
 {
     Token op;
-    expression_ptr right;
+    ExpressionPtr right;
 
-    unary_expression(Token op, expression_ptr right)
+    UnaryExpression(Token op, ExpressionPtr right)
         : op(std::move(op)), right(std::move(right)) {}
     
-    virtual expr_result accept(expression_visitor<expr_result> *visitor) override
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
     {
         return visitor->visit(this);
     }
 };
 
-struct literal_expression 
-    : public expression 
+struct LiteralExpression 
+    : public Expression 
 {
     Token literal;
 
-    literal_expression(Token literal)
+    LiteralExpression(Token literal)
         : literal(std::move(literal)) {}
 
-    virtual expr_result accept(expression_visitor<expr_result> *visitor) override
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
     {
         return visitor->visit(this);
     }
 };
 
-struct paren_expression 
-    : public expression 
+struct ParenExpression 
+    : public Expression 
 {
-    expression_ptr expr;
+    ExpressionPtr expr;
 
-    paren_expression(expression_ptr expr)
+    ParenExpression(ExpressionPtr expr)
         : expr(std::move(expr)) {}
 
-    virtual expr_result accept(expression_visitor<expr_result> *visitor) override
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
     {
         return visitor->visit(this);
     }
 };
 
-struct identifier_expression 
-    : public expression 
+struct IdentifierExpression 
+    : public Expression 
 {
     Token name;
 
-    identifier_expression(Token name)
+    IdentifierExpression(Token name)
         : name(std::move(name)) {}
 
-    virtual expr_result accept(expression_visitor<expr_result> *visitor) override
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
     {
         return visitor->visit(this);
     }
 };
 
-struct and_expression 
-    : public expression 
+struct AndExpression 
+    : public Expression 
 {
-    expression_ptr left, right;
+    ExpressionPtr left, right;
 
-    and_expression(expression_ptr left, expression_ptr right)
+    AndExpression(ExpressionPtr left, ExpressionPtr right)
         : left(std::move(left)), right(std::move(right)) {}
 
-    virtual expr_result accept(expression_visitor<expr_result> *visitor) override
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
     {
         return visitor->visit(this);
     }
 };
 
-struct or_expression 
-    : public expression 
+struct OrExpression 
+    : public Expression 
 {
-    expression_ptr left, right;
+    ExpressionPtr left, right;
 
-    or_expression(expression_ptr left, expression_ptr right)
+    OrExpression(ExpressionPtr left, ExpressionPtr right)
         : left(std::move(left)), right(std::move(right)) {}
 
-    virtual expr_result accept(expression_visitor<expr_result> *visitor) override
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
     {
         return visitor->visit(this);
     }
 };
 
-struct call_expression 
-    : public expression 
+struct CallExpression 
+    : public Expression 
 {
-    expression_ptr name;
-    std::vector<expression_ptr> args;
+    ExpressionPtr name;
+    std::vector<ExpressionPtr> args;
 
-    call_expression(expression_ptr name, std::vector<expression_ptr> args)
+    CallExpression(ExpressionPtr name, std::vector<ExpressionPtr> args)
         : name(std::move(name)), args(std::move(args)) {}
 
-    virtual expr_result accept(expression_visitor<expr_result> *visitor) override
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
     {
         return visitor->visit(this);
     }

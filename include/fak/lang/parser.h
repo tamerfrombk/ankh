@@ -12,41 +12,41 @@ namespace fk::lang {
 // forward declarations
 struct ErrorHandler;
 
-class parser 
+class Parser 
 {
 public:
-    explicit parser(std::string str, ErrorHandler *error_handler);
+    explicit Parser(const std::vector<Token>& tokens, ErrorHandler *error_handler);
 
-    program parse() noexcept;
+    Program parse() noexcept;
 
     bool is_eof() const noexcept;
 
 private:
-    statement_ptr  declaration();
-    statement_ptr  assignment(expression_ptr target);
-    statement_ptr  parse_variable_declaration(expression_ptr target);
-    statement_ptr  parse_function_declaration();
+    StatementPtr  declaration();
+    StatementPtr  assignment(ExpressionPtr target);
+    StatementPtr  parse_variable_declaration(ExpressionPtr target);
+    StatementPtr  parse_function_declaration();
     
-    statement_ptr  statement();
-    statement_ptr  parse_inc_dec();
+    StatementPtr  statement();
+    StatementPtr  parse_inc_dec();
     
-    statement_ptr  block();
+    StatementPtr  block();
 
-    statement_ptr  parse_if();
-    statement_ptr  parse_while();
-    statement_ptr  parse_for();
-    statement_ptr  parse_return();
+    StatementPtr  parse_if();
+    StatementPtr  parse_while();
+    StatementPtr  parse_for();
+    StatementPtr  parse_return();
 
-    expression_ptr expression();
-    expression_ptr parse_or();
-    expression_ptr parse_and();
-    expression_ptr equality();
-    expression_ptr comparison();
-    expression_ptr term();
-    expression_ptr factor();
-    expression_ptr unary();
-    expression_ptr call();
-    expression_ptr primary();
+    ExpressionPtr expression();
+    ExpressionPtr parse_or();
+    ExpressionPtr parse_and();
+    ExpressionPtr equality();
+    ExpressionPtr comparison();
+    ExpressionPtr term();
+    ExpressionPtr factor();
+    ExpressionPtr unary();
+    ExpressionPtr call();
+    ExpressionPtr primary();
 
     const Token& prev() const noexcept;
     const Token& curr() const noexcept;
@@ -54,23 +54,32 @@ private:
 
     bool match(TokenType type) noexcept;
     bool match(std::initializer_list<TokenType> types) noexcept;
+
     bool check(TokenType type) const noexcept;
     bool check(std::initializer_list<TokenType> types) const noexcept;
+    
     Token consume(TokenType type, const std::string& msg);
 
     void synchronize_next_statement() noexcept;
-
-    statement_ptr desugar_for_into_while(statement_ptr init, expression_ptr condition, statement_ptr mutator,statement_ptr body) noexcept;
-
-    statement_ptr desugar_compound_assignment(const Token& lhs, const Token& op, expression_ptr rhs) noexcept;
-
-    statement_ptr desugar_inc_dec(const Token& op, expression_ptr target);
-
 private:
     std::vector<Token> tokens_;
     size_t cursor_;
 
     ErrorHandler *error_handler_;
 };
+
+template <class ExpectedType, class Ptr>
+ExpectedType* instance(const Ptr& ptr) noexcept
+{
+    return dynamic_cast<ExpectedType*>(ptr.get());
+}
+
+template <class ExpectedType, class Ptr>
+bool instanceof(const Ptr& ptr) noexcept
+{
+    return instance<ExpectedType>(ptr) != nullptr;
+}
+
+Program parse(const std::string& source, ErrorHandler *error_handler) noexcept;
 
 }

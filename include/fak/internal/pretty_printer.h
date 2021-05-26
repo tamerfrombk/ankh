@@ -12,46 +12,46 @@
 namespace fk::internal {
 
 class pretty_printer
-    : public fk::lang::expression_visitor<fk::lang::expr_result>
+    : public fk::lang::ExpressionVisitor<fk::lang::ExprResult>
     , public fk::lang::statement_visitor<std::string>
 {
 public:
-    inline virtual fk::lang::expr_result visit(fk::lang::binary_expression *expr) override
+    inline virtual fk::lang::ExprResult visit(fk::lang::BinaryExpression *expr) override
     {
-        return fk::lang::expr_result::string(binary(expr->left, expr->op.str, expr->right));
+        return fk::lang::ExprResult::string(binary(expr->left, expr->op.str, expr->right));
     }
 
-    inline virtual fk::lang::expr_result visit(fk::lang::unary_expression *expr) override
+    inline virtual fk::lang::ExprResult visit(fk::lang::UnaryExpression *expr) override
     {
-        return fk::lang::expr_result::string(expr->op.str + " " + stringify(expr->right));
+        return fk::lang::ExprResult::string(expr->op.str + " " + stringify(expr->right));
     }
 
-    inline virtual fk::lang::expr_result visit(fk::lang::literal_expression *expr) override
+    inline virtual fk::lang::ExprResult visit(fk::lang::LiteralExpression *expr) override
     {
-        return fk::lang::expr_result::string(expr->literal.str);
+        return fk::lang::ExprResult::string(expr->literal.str);
     }
 
-    inline virtual fk::lang::expr_result visit(fk::lang::paren_expression *expr) override
+    inline virtual fk::lang::ExprResult visit(fk::lang::ParenExpression *expr) override
     {
-        return fk::lang::expr_result::string("( " + stringify(expr->expr) + " )");
+        return fk::lang::ExprResult::string("( " + stringify(expr->expr) + " )");
     }
 
-    inline virtual fk::lang::expr_result visit(fk::lang::identifier_expression *expr) override
+    inline virtual fk::lang::ExprResult visit(fk::lang::IdentifierExpression *expr) override
     {
-        return fk::lang::expr_result::string(expr->name.str);
+        return fk::lang::ExprResult::string(expr->name.str);
     }
 
-    inline virtual fk::lang::expr_result visit(fk::lang::and_expression *expr) override
+    inline virtual fk::lang::ExprResult visit(fk::lang::AndExpression *expr) override
     {
-        return fk::lang::expr_result::string(binary(expr->left, "&&", expr->right));
+        return fk::lang::ExprResult::string(binary(expr->left, "&&", expr->right));
     }
 
-    inline virtual fk::lang::expr_result visit(fk::lang::or_expression *expr) override
+    inline virtual fk::lang::ExprResult visit(fk::lang::OrExpression *expr) override
     {
-        return fk::lang::expr_result::string(binary(expr->left, "||", expr->right));
+        return fk::lang::ExprResult::string(binary(expr->left, "||", expr->right));
     }
 
-    inline virtual fk::lang::expr_result visit(fk::lang::call_expression *expr) override
+    inline virtual fk::lang::ExprResult visit(fk::lang::CallExpression *expr) override
     {
         std::string result = stringify(expr->name);
         
@@ -67,20 +67,20 @@ public:
         }
         result += ")";
 
-        return fk::lang::expr_result::string(result);
+        return fk::lang::ExprResult::string(result);
     }
 
-    inline virtual std::string visit(fk::lang::print_statement *stmt) override
+    inline virtual std::string visit(fk::lang::PrintStatement *stmt) override
     {
         return "print " + stringify(stmt->expr);
     }
     
-    inline virtual std::string visit(fk::lang::expression_statement *stmt) override
+    inline virtual std::string visit(fk::lang::ExpressionStatement *stmt) override
     {
         return stringify(stmt->expr);
     }
 
-    inline virtual std::string visit(fk::lang::variable_declaration *stmt) override
+    inline virtual std::string visit(fk::lang::VariableDeclaration *stmt) override
     {
         std::string result("let ");
         result += stmt->name.str;
@@ -90,7 +90,7 @@ public:
         return result;
     }
     
-    inline virtual std::string visit(fk::lang::assignment_statement *stmt) override
+    inline virtual std::string visit(fk::lang::AssignmentStatement *stmt) override
     {
         std::string result = stmt->name.str;
         result += " = ";
@@ -99,7 +99,7 @@ public:
         return result;
     }
     
-    inline virtual std::string visit(fk::lang::block_statement *stmt) override
+    inline virtual std::string visit(fk::lang::BlockStatement *stmt) override
     {
         static const char *const tab = " "" "" "" ";
 
@@ -115,7 +115,7 @@ public:
         return result;
     }
     
-    inline virtual std::string visit(fk::lang::if_statement *stmt) override
+    inline virtual std::string visit(fk::lang::IfStatement *stmt) override
     {
         std::string result("if ");
         
@@ -132,7 +132,7 @@ public:
         return result;
     }
     
-    inline virtual std::string visit(fk::lang::while_statement *stmt) override
+    inline virtual std::string visit(fk::lang::WhileStatement *stmt) override
     {
         std::string result("while ");
         result += stringify(stmt->condition);
@@ -143,7 +143,7 @@ public:
         return result;
     }
 
-    inline virtual std::string visit(fk::lang::function_declaration *stmt) override
+    inline virtual std::string visit(fk::lang::FunctionDeclaration *stmt) override
     {
         std::string result("def ");
 
@@ -166,18 +166,18 @@ public:
         return result;
     }
 
-    inline virtual std::string visit(fk::lang::return_statement *stmt) override
+    inline virtual std::string visit(fk::lang::ReturnStatement *stmt) override
     {
         return "return " + stringify(stmt->expr);
     }
 
 private:
-    inline std::string stringify(const fk::lang::expression_ptr& expr)
+    inline std::string stringify(const fk::lang::ExpressionPtr& expr)
     {
         return expr->accept(this).str;
     }
 
-    inline std::string stringify(const fk::lang::statement_ptr& expr)
+    inline std::string stringify(const fk::lang::StatementPtr& expr)
     {
         return expr->accept(this);
     }
@@ -187,7 +187,7 @@ private:
         return token.str;
     }
 
-    inline std::string binary(const fk::lang::expression_ptr& left, const std::string& op, const fk::lang::expression_ptr& right)
+    inline std::string binary(const fk::lang::ExpressionPtr& left, const std::string& op, const fk::lang::ExpressionPtr& right)
     {
         return stringify(left) + " " + op + " " + stringify(right);
     }

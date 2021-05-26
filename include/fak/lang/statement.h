@@ -10,54 +10,54 @@
 namespace fk::lang {
 
 // forward declare statement types for visitor
-struct print_statement;
-struct expression_statement;
-struct variable_declaration;
-struct assignment_statement;
-struct block_statement;
-struct if_statement;
-struct while_statement;
-struct function_declaration;
-struct return_statement;
+struct PrintStatement;
+struct ExpressionStatement;
+struct VariableDeclaration;
+struct AssignmentStatement;
+struct BlockStatement;
+struct IfStatement;
+struct WhileStatement;
+struct FunctionDeclaration;
+struct ReturnStatement;
 
 template <class R>
 struct statement_visitor {
     virtual ~statement_visitor() = default;
 
-    virtual R visit(print_statement *stmt) = 0;
-    virtual R visit(expression_statement *stmt) = 0;
-    virtual R visit(variable_declaration *stmt) = 0;
-    virtual R visit(assignment_statement *stmt) = 0;
-    virtual R visit(block_statement *stmt) = 0;
-    virtual R visit(if_statement *stmt) = 0;
-    virtual R visit(while_statement *stmt) = 0;
-    virtual R visit(function_declaration *stmt) = 0;
-    virtual R visit(return_statement *stmt) = 0;
+    virtual R visit(PrintStatement *stmt) = 0;
+    virtual R visit(ExpressionStatement *stmt) = 0;
+    virtual R visit(VariableDeclaration *stmt) = 0;
+    virtual R visit(AssignmentStatement *stmt) = 0;
+    virtual R visit(BlockStatement *stmt) = 0;
+    virtual R visit(IfStatement *stmt) = 0;
+    virtual R visit(WhileStatement *stmt) = 0;
+    virtual R visit(FunctionDeclaration *stmt) = 0;
+    virtual R visit(ReturnStatement *stmt) = 0;
 };
 
-struct statement
+struct Statement
 {
-    virtual ~statement() = default;
+    virtual ~Statement() = default;
 
     virtual void accept(statement_visitor<void> *visitor) = 0;
     virtual std::string accept(statement_visitor<std::string>  *visitor) = 0;
 };
 
-using statement_ptr = std::unique_ptr<statement>;
-using program     = std::vector<statement_ptr>;
+using StatementPtr = std::unique_ptr<Statement>;
+using Program     = std::vector<StatementPtr>;
 
 template <class T, class... Args>
-statement_ptr make_statement(Args&&... args)
+StatementPtr make_statement(Args&&... args)
 {
     return std::make_unique<T>(std::forward<Args>(args)...);
 }
 
-struct print_statement
-    : public statement
+struct PrintStatement
+    : public Statement
 {
-    expression_ptr expr;
+    ExpressionPtr expr;
 
-    print_statement(expression_ptr expr)
+    PrintStatement(ExpressionPtr expr)
         : expr(std::move(expr)) {}
 
     virtual void accept(statement_visitor<void> *visitor) override
@@ -71,12 +71,12 @@ struct print_statement
     }
 };
 
-struct expression_statement
-    : public statement
+struct ExpressionStatement
+    : public Statement
 {
-    expression_ptr expr;
+    ExpressionPtr expr;
 
-    expression_statement(expression_ptr expr)
+    ExpressionStatement(ExpressionPtr expr)
         : expr(std::move(expr)) {}
 
     virtual void accept(statement_visitor<void> *visitor) override
@@ -90,13 +90,13 @@ struct expression_statement
     }
 };
 
-struct assignment_statement
-    : public statement
+struct AssignmentStatement
+    : public Statement
 {
     Token name;
-    expression_ptr initializer;
+    ExpressionPtr initializer;
 
-    assignment_statement(Token name, expression_ptr initializer)
+    AssignmentStatement(Token name, ExpressionPtr initializer)
         : name(std::move(name)), initializer(std::move(initializer)) {}
 
     virtual void accept(statement_visitor<void> *visitor) override
@@ -110,13 +110,13 @@ struct assignment_statement
     }
 };
 
-struct variable_declaration
-    : public statement
+struct VariableDeclaration
+    : public Statement
 {
     Token name;
-    expression_ptr initializer;
+    ExpressionPtr initializer;
 
-    variable_declaration(Token name, expression_ptr initializer)
+    VariableDeclaration(Token name, ExpressionPtr initializer)
         : name(std::move(name)), initializer(std::move(initializer)) {}
 
     virtual void accept(statement_visitor<void> *visitor) override
@@ -130,12 +130,12 @@ struct variable_declaration
     }
 };
 
-struct block_statement
-    : public statement
+struct BlockStatement
+    : public Statement
 {
-    std::vector<statement_ptr> statements;
+    std::vector<StatementPtr> statements;
 
-    block_statement(std::vector<statement_ptr> statements)
+    BlockStatement(std::vector<StatementPtr> statements)
         : statements(std::move(statements)) {}
 
     virtual void accept(statement_visitor<void> *visitor) override
@@ -149,14 +149,14 @@ struct block_statement
     }
 };
 
-struct if_statement
-    : public statement
+struct IfStatement
+    : public Statement
 {
-    expression_ptr condition;
-    statement_ptr then_block;
-    statement_ptr else_block;
+    ExpressionPtr condition;
+    StatementPtr then_block;
+    StatementPtr else_block;
 
-    if_statement(expression_ptr condition, statement_ptr then_block, statement_ptr else_block)
+    IfStatement(ExpressionPtr condition, StatementPtr then_block, StatementPtr else_block)
         : condition(std::move(condition)), then_block(std::move(then_block)), else_block(std::move(else_block)) {}
 
     virtual void accept(statement_visitor<void> *visitor) override
@@ -170,13 +170,13 @@ struct if_statement
     }
 };
 
-struct while_statement
-    : public statement
+struct WhileStatement
+    : public Statement
 {
-    expression_ptr condition;
-    statement_ptr body;
+    ExpressionPtr condition;
+    StatementPtr body;
 
-    while_statement(expression_ptr condition, statement_ptr body)
+    WhileStatement(ExpressionPtr condition, StatementPtr body)
         : condition(std::move(condition)), body(std::move(body)) {}
 
     virtual void accept(statement_visitor<void> *visitor) override
@@ -190,14 +190,14 @@ struct while_statement
     }
 };
 
-struct function_declaration
-    : public statement
+struct FunctionDeclaration
+    : public Statement
 {
     Token name;
     std::vector<Token> params;
-    statement_ptr body;
+    StatementPtr body;
 
-    function_declaration(Token name, std::vector<Token> params, statement_ptr body)
+    FunctionDeclaration(Token name, std::vector<Token> params, StatementPtr body)
         : name(std::move(name)), params(std::move(params)), body(std::move(body)) {}
 
     virtual void accept(statement_visitor<void> *visitor) override
@@ -211,12 +211,12 @@ struct function_declaration
     }
 };
 
-struct return_statement
-    : public statement
+struct ReturnStatement
+    : public Statement
 {
-    expression_ptr expr;
+    ExpressionPtr expr;
 
-    return_statement(expression_ptr expr)
+    ReturnStatement(ExpressionPtr expr)
         : expr(std::move(expr)) {}
 
     virtual void accept(statement_visitor<void> *visitor) override

@@ -26,7 +26,7 @@ print_statement       → "print" expression newline
 block                 → "{" declaration* "}"
 if_statement          → "if" expression block ( "else" block )?
 while_statement       → "while" expression block
-for_statement         → "for" variable_declaration? ";" expression? ";" assignment? block
+for_statement         → "for" variable_declaration? ";" expression? ";" statement? block
 return_statement      → "return" expression?
 
 expression            → or_expression

@@ -29,9 +29,8 @@ static void print_error(const std::string& msg)
 static int execute(fk::lang::interpreter& interpreter, const std::string& script) noexcept
 {
     auto error_handler = std::make_unique<fk::lang::ErrorHandler>();
-    fk::lang::parser parser(script, error_handler.get());
 
-    const fk::lang::program program = parser.parse();
+    const fk::lang::Program program = fk::lang::parse(script, error_handler.get());
     if (error_handler->error_count() > 0) {
         const auto& errors = error_handler->errors();
         for (const auto& e : errors) {

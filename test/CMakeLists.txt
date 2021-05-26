@@ -9,6 +9,7 @@ ADD_LIBRARY(${TEST_LIB} STATIC catch.cpp)
 ADD_EXECUTABLE(${TEST_EXE} 
     tests.cc
     lexer_tests.cc
+    parser_tests.cc
 )
 
 TARGET_INCLUDE_DIRECTORIES(${TEST_EXE} PRIVATE ${CMAKE_SOURCE_DIR}/include)

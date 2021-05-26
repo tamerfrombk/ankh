@@ -3,6 +3,7 @@
 
 #include <fak/lang/lexer.h>
 #include <fak/lang/error_handler.h>
+#include <fak/log.h>
 
 static const std::unordered_map<std::string, fk::lang::TokenType> KEYWORDS = {
       { "true", fk::lang::TokenType::FK_TRUE }
@@ -275,6 +276,10 @@ std::vector<fk::lang::Token> fk::lang::scan(const std::string& source, fk::lang:
     std::vector<fk::lang::Token> tokens;
     while (!lexer.is_eof()) {
         tokens.push_back(lexer.next());
+    }
+
+    for (const auto& tok : tokens) {
+        fk::log::debug("('%s':'%s')\n", fk::lang::token_type_str(tok.type).c_str(), tok.str.c_str());
     }
 
     return tokens;

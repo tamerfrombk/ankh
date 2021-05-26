@@ -11,36 +11,36 @@
 namespace fk::lang {
 
 class interpreter
-    : public expression_visitor<expr_result>
+    : public ExpressionVisitor<ExprResult>
     , public statement_visitor<void>
 {
 public:
     interpreter();
 
-    void interpret(const program& program);
+    void interpret(const Program& program);
 
-    virtual expr_result visit(binary_expression *expr) override;
-    virtual expr_result visit(unary_expression *expr) override;
-    virtual expr_result visit(literal_expression *expr) override;
-    virtual expr_result visit(paren_expression *expr) override;
-    virtual expr_result visit(identifier_expression *expr) override;
-    virtual expr_result visit(and_expression *expr) override;
-    virtual expr_result visit(or_expression *expr) override;
-    virtual expr_result visit(call_expression *expr) override;
+    virtual ExprResult visit(BinaryExpression *expr) override;
+    virtual ExprResult visit(UnaryExpression *expr) override;
+    virtual ExprResult visit(LiteralExpression *expr) override;
+    virtual ExprResult visit(ParenExpression *expr) override;
+    virtual ExprResult visit(IdentifierExpression *expr) override;
+    virtual ExprResult visit(AndExpression *expr) override;
+    virtual ExprResult visit(OrExpression *expr) override;
+    virtual ExprResult visit(CallExpression *expr) override;
 
-    virtual void visit(print_statement *stmt) override;
-    virtual void visit(expression_statement *stmt) override;
-    virtual void visit(variable_declaration *stmt) override;
-    virtual void visit(assignment_statement *stmt) override;
-    virtual void visit(block_statement *stmt) override;
-    virtual void visit(if_statement *stmt) override;
-    virtual void visit(while_statement *stmt) override;
-    virtual void visit(function_declaration *stmt) override;
-    virtual void visit(return_statement *stmt) override;
+    virtual void visit(PrintStatement *stmt) override;
+    virtual void visit(ExpressionStatement *stmt) override;
+    virtual void visit(VariableDeclaration *stmt) override;
+    virtual void visit(AssignmentStatement *stmt) override;
+    virtual void visit(BlockStatement *stmt) override;
+    virtual void visit(IfStatement *stmt) override;
+    virtual void visit(WhileStatement *stmt) override;
+    virtual void visit(FunctionDeclaration *stmt) override;
+    virtual void visit(ReturnStatement *stmt) override;
 
 private:
-    expr_result evaluate(const expression_ptr& expr);
-    void execute(const statement_ptr& stmt);
+    ExprResult evaluate(const ExpressionPtr& expr);
+    void execute(const StatementPtr& stmt);
 
     void enter_new_scope() noexcept;
     void leave_current_scope() noexcept;
@@ -52,7 +52,7 @@ private:
 
     // TODO: this assumes all functions are in global namespace
     // That's OK for now but needs to be revisited when implementing modules
-    std::unordered_map<std::string, function_declaration*> functions_;
+    std::unordered_map<std::string, FunctionDeclaration*> functions_;
 
 };
 

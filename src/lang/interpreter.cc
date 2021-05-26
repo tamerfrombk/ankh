@@ -20,10 +20,10 @@
 struct return_exception
     : public std::runtime_error
 {
-    explicit return_exception(fk::lang::expr_result result)
+    explicit return_exception(fk::lang::ExprResult result)
         : std::runtime_error(""), result(std::move(result)) {}
 
-    fk::lang::expr_result result;
+    fk::lang::ExprResult result;
 };
 
 FK_NO_RETURN static void panic(const std::string& msg)
@@ -31,14 +31,14 @@ FK_NO_RETURN static void panic(const std::string& msg)
     throw fk::lang::interpretation_exception("runtime error: " + msg);
 }
 
-FK_NO_RETURN static void panic(const fk::lang::expr_result& result, const std::string& msg)
+FK_NO_RETURN static void panic(const fk::lang::ExprResult& result, const std::string& msg)
 {
     const std::string typestr = fk::lang::expr_result_type_str(result.type);
 
     throw fk::lang::interpretation_exception("runtime error: " + msg + " instead of '" + typestr + "'");
 }
 
-FK_NO_RETURN static void panic(const fk::lang::expr_result& left, const fk::lang::expr_result& right, const std::string& msg)
+FK_NO_RETURN static void panic(const fk::lang::ExprResult& left, const fk::lang::ExprResult& right, const std::string& msg)
 {
     const std::string ltypestr = fk::lang::expr_result_type_str(left.type);
     const std::string rtypestr = fk::lang::expr_result_type_str(right.type);
@@ -47,18 +47,18 @@ FK_NO_RETURN static void panic(const fk::lang::expr_result& left, const fk::lang
         + " with LHS '" + ltypestr + "', RHS '" + rtypestr + "'");
 }
 
-static bool operands_are(fk::lang::expr_result_type type, std::initializer_list<fk::lang::expr_result> elems) noexcept
+static bool operands_are(fk::lang::ExprResultType type, std::initializer_list<fk::lang::ExprResult> elems) noexcept
 {
-    return std::all_of(elems.begin(), elems.end(), [=](const fk::lang::expr_result& result) {
+    return std::all_of(elems.begin(), elems.end(), [=](const fk::lang::ExprResult& result) {
         return type == result.type;
     });
 }
 
-static fk::lang::number to_num(const std::string& s)
+static fk::lang::Number to_num(const std::string& s)
 {
     char *end;
 
-    fk::lang::number n = std::strtod(s.c_str(), &end);
+    fk::lang::Number n = std::strtod(s.c_str(), &end);
     if (*end == '\0') {
         return n;
     }
@@ -68,51 +68,51 @@ static fk::lang::number to_num(const std::string& s)
     panic("'" + s + "' could not be turned into a number due to " + errno_msg);
 }
 
-static fk::lang::expr_result negate(const fk::lang::expr_result& result)
+static fk::lang::ExprResult negate(const fk::lang::ExprResult& result)
 {
-    if (result.type == fk::lang::expr_result_type::RT_NUMBER) {
-        return fk::lang::expr_result::num(-1 * result.n);
+    if (result.type == fk::lang::ExprResultType::RT_NUMBER) {
+        return fk::lang::ExprResult::num(-1 * result.n);
     }
 
     panic(result, "unary (-) operator expects a number expression");
 }
 
-static fk::lang::expr_result invert(const fk::lang::expr_result& result)
+static fk::lang::ExprResult invert(const fk::lang::ExprResult& result)
 {
-    if (result.type == fk::lang::expr_result_type::RT_BOOL) {
-        return fk::lang::expr_result::boolean(!(result.b));
+    if (result.type == fk::lang::ExprResultType::RT_BOOL) {
+        return fk::lang::ExprResult::boolean(!(result.b));
     }
 
     panic(result, "(!) operator expects a boolean expression");
 }
 
-static fk::lang::expr_result eqeq(const fk::lang::expr_result& left, const fk::lang::expr_result& right)
+static fk::lang::ExprResult eqeq(const fk::lang::ExprResult& left, const fk::lang::ExprResult& right)
 {
-    if (operands_are(fk::lang::expr_result_type::RT_NUMBER, {left, right})) {
-        return fk::lang::expr_result::boolean(left.n == right.n);
+    if (operands_are(fk::lang::ExprResultType::RT_NUMBER, {left, right})) {
+        return fk::lang::ExprResult::boolean(left.n == right.n);
     }
 
-    if (operands_are(fk::lang::expr_result_type::RT_STRING, {left, right})) {
-        return fk::lang::expr_result::boolean(left.str == right.str);
+    if (operands_are(fk::lang::ExprResultType::RT_STRING, {left, right})) {
+        return fk::lang::ExprResult::boolean(left.str == right.str);
     }
 
-    if (operands_are(fk::lang::expr_result_type::RT_BOOL, {left, right})) {
-        return fk::lang::expr_result::boolean(left.b == right.b);
+    if (operands_are(fk::lang::ExprResultType::RT_BOOL, {left, right})) {
+        return fk::lang::ExprResult::boolean(left.b == right.b);
     }
 
-    if (operands_are(fk::lang::expr_result_type::RT_NIL, {left, right})) {
-        return fk::lang::expr_result::boolean(true);
+    if (operands_are(fk::lang::ExprResultType::RT_NIL, {left, right})) {
+        return fk::lang::ExprResult::boolean(true);
     }
 
     panic(left, right, "unknown overload of (==) operator");
 }
 
 template <class BinaryOperation>
-static fk::lang::expr_result 
-arithmetic(const fk::lang::expr_result& left, const fk::lang::expr_result& right, BinaryOperation op)
+static fk::lang::ExprResult 
+arithmetic(const fk::lang::ExprResult& left, const fk::lang::ExprResult& right, BinaryOperation op)
 {
-    if (operands_are(fk::lang::expr_result_type::RT_NUMBER, {left, right})) {
-        return fk::lang::expr_result::num(op(left.n, right.n));
+    if (operands_are(fk::lang::ExprResultType::RT_NUMBER, {left, right})) {
+        return fk::lang::ExprResult::num(op(left.n, right.n));
     }
 
     panic(left, right, "unknown overload of arithmetic operator");
@@ -121,44 +121,44 @@ arithmetic(const fk::lang::expr_result& left, const fk::lang::expr_result& right
 // We handle + separately as it has two overloads for numbers and strings
 // The generic arithmetic() function overloads all of the general arithmetic operations
 // on only numbers
-static fk::lang::expr_result plus(const fk::lang::expr_result& left, const fk::lang::expr_result& right)
+static fk::lang::ExprResult plus(const fk::lang::ExprResult& left, const fk::lang::ExprResult& right)
 {
-    if (operands_are(fk::lang::expr_result_type::RT_NUMBER, {left, right})) {
-        return fk::lang::expr_result::num(left.n + right.n);
+    if (operands_are(fk::lang::ExprResultType::RT_NUMBER, {left, right})) {
+        return fk::lang::ExprResult::num(left.n + right.n);
     }
 
-    if (operands_are(fk::lang::expr_result_type::RT_STRING, {left, right})) {
-        return fk::lang::expr_result::string(left.str + right.str);
+    if (operands_are(fk::lang::ExprResultType::RT_STRING, {left, right})) {
+        return fk::lang::ExprResult::string(left.str + right.str);
     }
 
     panic(left, right, "unknown overload of (+) operator");
 }
 
 template <class Compare>
-static fk::lang::expr_result compare(const fk::lang::expr_result& left, const fk::lang::expr_result& right, Compare cmp)
+static fk::lang::ExprResult compare(const fk::lang::ExprResult& left, const fk::lang::ExprResult& right, Compare cmp)
 {
-    if (operands_are(fk::lang::expr_result_type::RT_NUMBER, {left, right})) {
-        return fk::lang::expr_result::boolean(cmp(left.n, right.n));
+    if (operands_are(fk::lang::ExprResultType::RT_NUMBER, {left, right})) {
+        return fk::lang::ExprResult::boolean(cmp(left.n, right.n));
     }
 
-    if (operands_are(fk::lang::expr_result_type::RT_STRING, {left, right})) {
-        return fk::lang::expr_result::boolean(cmp(left.str, right.str));
+    if (operands_are(fk::lang::ExprResultType::RT_STRING, {left, right})) {
+        return fk::lang::ExprResult::boolean(cmp(left.str, right.str));
     }
 
     panic(left, right, "unknown overload of comparison operator");
 }
 
 // TODO: rethink truthiness -- do we really only want boolean expressions?
-static bool truthy(const fk::lang::expr_result& result) noexcept
+static bool truthy(const fk::lang::ExprResult& result) noexcept
 {
-    if (result.type == fk::lang::expr_result_type::RT_BOOL) {
+    if (result.type == fk::lang::ExprResultType::RT_BOOL) {
         return result.b;
     }
 
     return false;
 }
 
-static void print(const fk::lang::expr_result& result)
+static void print(const fk::lang::ExprResult& result)
 {
     const std::string stringy = result.stringify();
     std::puts(stringy.c_str());
@@ -170,7 +170,7 @@ fk::lang::interpreter::interpreter()
     enter_new_scope();
 }
 
-void fk::lang::interpreter::interpret(const program& program)
+void fk::lang::interpreter::interpret(const Program& program)
 {
     for (const auto& stmt : program) {
 #ifndef NDEBUG
@@ -182,10 +182,10 @@ void fk::lang::interpreter::interpret(const program& program)
     }
 }
 
-fk::lang::expr_result fk::lang::interpreter::visit(binary_expression *expr)
+fk::lang::ExprResult fk::lang::interpreter::visit(BinaryExpression *expr)
 {
-    const expr_result left  = evaluate(expr->left);
-    const expr_result right = evaluate(expr->right);
+    const ExprResult left  = evaluate(expr->left);
+    const ExprResult right = evaluate(expr->right);
 
     switch (expr->op.type) {
     case TokenType::EQEQ:
@@ -214,9 +214,9 @@ fk::lang::expr_result fk::lang::interpreter::visit(binary_expression *expr)
     }
 }
 
-fk::lang::expr_result fk::lang::interpreter::visit(unary_expression *expr)
+fk::lang::ExprResult fk::lang::interpreter::visit(UnaryExpression *expr)
 {
-    const expr_result result = evaluate(expr->right);
+    const ExprResult result = evaluate(expr->right);
     switch (expr->op.type) {
     case TokenType::MINUS:
         return negate(result);
@@ -227,30 +227,30 @@ fk::lang::expr_result fk::lang::interpreter::visit(unary_expression *expr)
     }
 }
 
-fk::lang::expr_result fk::lang::interpreter::visit(literal_expression *expr)
+fk::lang::ExprResult fk::lang::interpreter::visit(LiteralExpression *expr)
 {
     switch (expr->literal.type) {
     case TokenType::NUMBER:
-        return expr_result::num(to_num(expr->literal.str));
+        return ExprResult::num(to_num(expr->literal.str));
     case TokenType::STRING:
-        return expr_result::string(expr->literal.str);
+        return ExprResult::string(expr->literal.str);
     case TokenType::FK_TRUE:
-        return expr_result::boolean(true);
+        return ExprResult::boolean(true);
     case TokenType::FK_FALSE:
-        return expr_result::boolean(false);
+        return ExprResult::boolean(false);
     case TokenType::NIL:
-        return expr_result::nil();
+        return ExprResult::nil();
     default:
         panic("unkown literal expression: '" + expr->literal.str + "'");
     }
 }
 
-fk::lang::expr_result fk::lang::interpreter::visit(paren_expression *expr)
+fk::lang::ExprResult fk::lang::interpreter::visit(ParenExpression *expr)
 {
     return evaluate(expr->expr);
 }
 
-fk::lang::expr_result fk::lang::interpreter::visit(identifier_expression *expr)
+fk::lang::ExprResult fk::lang::interpreter::visit(IdentifierExpression *expr)
 {
     for (auto it = env_.rbegin(); it != env_.rend(); ++it) {
         auto possible_value = it->value(expr->name.str); 
@@ -263,9 +263,9 @@ fk::lang::expr_result fk::lang::interpreter::visit(identifier_expression *expr)
     panic("identifier " + expr->name.str + " is not defined in the current scope");
 }
 
-fk::lang::expr_result fk::lang::interpreter::visit(and_expression *expr)
+fk::lang::ExprResult fk::lang::interpreter::visit(AndExpression *expr)
 {
-    const expr_result left = evaluate(expr->left);
+    const ExprResult left = evaluate(expr->left);
     if (!truthy(left)) {
         return left;
     }
@@ -273,9 +273,9 @@ fk::lang::expr_result fk::lang::interpreter::visit(and_expression *expr)
     return evaluate(expr->right);
 }
 
-fk::lang::expr_result fk::lang::interpreter::visit(or_expression *expr)
+fk::lang::ExprResult fk::lang::interpreter::visit(OrExpression *expr)
 {
-    const expr_result left = evaluate(expr->left);
+    const ExprResult left = evaluate(expr->left);
     if (truthy(left)) {
         return left;
     }
@@ -283,19 +283,19 @@ fk::lang::expr_result fk::lang::interpreter::visit(or_expression *expr)
     return evaluate(expr->right);
 }
 
-fk::lang::expr_result fk::lang::interpreter::visit(call_expression *expr)
+fk::lang::ExprResult fk::lang::interpreter::visit(CallExpression *expr)
 {
     // TODO: ugh, fix this again
-    if (!dynamic_cast<identifier_expression*>(expr->name.get())) {
+    if (!dynamic_cast<IdentifierExpression*>(expr->name.get())) {
         panic("<identifier> expected as function call name");
     }
 
-    const std::string name = static_cast<identifier_expression*>(expr->name.get())->name.str;
+    const std::string name = static_cast<IdentifierExpression*>(expr->name.get())->name.str;
     if (functions_.count(name) == 0) {
         panic(name + " is not a function defined in this scope");
     }
 
-    function_declaration *declaration = functions_[name];
+    FunctionDeclaration *declaration = functions_[name];
     if (expr->args.size() != declaration->params.size()) {
         panic("expected " + std::to_string(declaration->params.size()) + " arguments to function " + name + " instead of " + std::to_string(expr->args.size()));
     }
@@ -308,14 +308,14 @@ fk::lang::expr_result fk::lang::interpreter::visit(call_expression *expr)
         entered_scope = scope();
         
         for (size_t i = 0; i < expr->args.size(); ++i) {
-            const expr_result arg = evaluate(expr->args[i]);
+            const ExprResult arg = evaluate(expr->args[i]);
             current_scope().assign(declaration->params[i].str, arg);
         }
 
         // Here, we avoid calling execute(declaration->body) directly because visiting a block statement will
         // create a new additional environment we don't want. When we implement function calls, we will be controlling
         // the environment of the child block so we execute its statements directly here.
-        block_statement *block = static_cast<block_statement*>(declaration->body.get());
+        BlockStatement *block = static_cast<BlockStatement*>(declaration->body.get());
         for (const auto& stmt : block->statements) {
             execute(stmt);
         }
@@ -339,40 +339,40 @@ fk::lang::expr_result fk::lang::interpreter::visit(call_expression *expr)
     }
 
     // this shouldn't be reached but it's here to satisfy the compiler
-    return expr_result::nil();
+    return ExprResult::nil();
 }
 
-void fk::lang::interpreter::visit(print_statement *stmt)
+void fk::lang::interpreter::visit(PrintStatement *stmt)
 {
-    const expr_result result = evaluate(stmt->expr);
+    const ExprResult result = evaluate(stmt->expr);
     print(result);
 }
 
-void fk::lang::interpreter::visit(expression_statement *stmt)
+void fk::lang::interpreter::visit(ExpressionStatement *stmt)
 {
     evaluate(stmt->expr);
 }
 
-void fk::lang::interpreter::visit(variable_declaration *stmt)
+void fk::lang::interpreter::visit(VariableDeclaration *stmt)
 {
     if (current_scope().contains(stmt->name.str)) {
         panic(stmt->name.str + " is already declared in this scope");
     }
 
-    const expr_result result = evaluate(stmt->initializer);
+    const ExprResult result = evaluate(stmt->initializer);
     fk::log::debug("DECLARATION '%s' = '%s'\n", stmt->name.str.c_str(), result.stringify().c_str());
 
     current_scope().assign(stmt->name.str, result);
 }
 
-void fk::lang::interpreter::visit(assignment_statement *stmt)
+void fk::lang::interpreter::visit(AssignmentStatement *stmt)
 {
     // TODO: think about adding scope specifiers (export, local, global) to allow the user
     // to mutate global variables with the same name or to add variables to the environment
     size_t this_scope = scope();
     for (auto it = env_.rbegin(); it != env_.rend(); ++it) {
         if (it->contains(stmt->name.str)) {
-            const expr_result result = evaluate(stmt->initializer);
+            const ExprResult result = evaluate(stmt->initializer);
             it->assign(stmt->name.str, result);
             fk::log::debug("ASSIGNMENT '%s' = '%s' @ scope '%d'\n", stmt->name.str.c_str(), result.stringify().c_str(), this_scope);
             return;
@@ -383,18 +383,18 @@ void fk::lang::interpreter::visit(assignment_statement *stmt)
     panic(stmt->name.str + " is not defined");
 }
 
-void fk::lang::interpreter::visit(block_statement *stmt)
+void fk::lang::interpreter::visit(BlockStatement *stmt)
 {
     enter_new_scope();
-    for (const statement_ptr& statement : stmt->statements) {
+    for (const StatementPtr& statement : stmt->statements) {
         execute(statement);
     }
     leave_current_scope();
 }
 
-void fk::lang::interpreter::visit(if_statement *stmt)
+void fk::lang::interpreter::visit(IfStatement *stmt)
 {
-    const expr_result result = evaluate(stmt->condition);
+    const ExprResult result = evaluate(stmt->condition);
     if (truthy(result)) {
         execute(stmt->then_block);
     } else if (stmt->else_block != nullptr) {
@@ -402,16 +402,16 @@ void fk::lang::interpreter::visit(if_statement *stmt)
     }
 }
 
-void fk::lang::interpreter::visit(while_statement *stmt)
+void fk::lang::interpreter::visit(WhileStatement *stmt)
 {
-    expr_result result = evaluate(stmt->condition);
+    ExprResult result = evaluate(stmt->condition);
     while (truthy(result)) {
         execute(stmt->body);
         result = evaluate(stmt->condition);
     }
 }
 
-void fk::lang::interpreter::visit(fk::lang::function_declaration *stmt)
+void fk::lang::interpreter::visit(fk::lang::FunctionDeclaration *stmt)
 {
     if (functions_.count(stmt->name.str) > 0) {
         panic("function " + stmt->name.str + " is already declared in this scope");
@@ -422,19 +422,19 @@ void fk::lang::interpreter::visit(fk::lang::function_declaration *stmt)
     fk::log::debug("function '%s' added to current scope\n", stmt->name.str.c_str());
 }
 
-void fk::lang::interpreter::visit(return_statement *stmt)
+void fk::lang::interpreter::visit(ReturnStatement *stmt)
 {
-    const expr_result result = evaluate(stmt->expr);
+    const ExprResult result = evaluate(stmt->expr);
 
     throw return_exception(result);
 }
 
-fk::lang::expr_result fk::lang::interpreter::evaluate(const expression_ptr& expr)
+fk::lang::ExprResult fk::lang::interpreter::evaluate(const ExpressionPtr& expr)
 {
     return expr->accept(this);
 }
 
-void fk::lang::interpreter::execute(const statement_ptr& stmt)
+void fk::lang::interpreter::execute(const StatementPtr& stmt)
 {
     stmt->accept(this);
 }
