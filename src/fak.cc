@@ -26,7 +26,7 @@ static void print_error(const std::string& msg)
     print_error(msg.c_str());
 }
 
-static int execute(fk::lang::interpreter& interpreter, const std::string& script) noexcept
+static int execute(fk::lang::Interpreter& interpreter, const std::string& script) noexcept
 {
     auto error_handler = std::make_unique<fk::lang::ErrorHandler>();
 
@@ -41,7 +41,7 @@ static int execute(fk::lang::interpreter& interpreter, const std::string& script
 
     try {
         interpreter.interpret(program);
-    } catch (const fk::lang::interpretation_exception& e) {
+    } catch (const fk::lang::InterpretationException& e) {
         print_error(e.what());
         return EXIT_FAILURE;
     }
@@ -80,7 +80,7 @@ static std::optional<std::string> readline(const char *prompt) noexcept
 
 int fk::shell_loop(int argc, char **argv)
 {
-    fk::lang::interpreter interpreter;
+    fk::lang::Interpreter interpreter;
 
     if (argc > 1) {
         if (auto possible_script = read_file(argv[1]); possible_script) {

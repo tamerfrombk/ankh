@@ -7,7 +7,7 @@
 #include <fak/lang/expr.h>
 
 namespace fk::lang {
-class environment
+class Environment
 {
 public:
     bool assign(const std::string& name, const ExprResult& result) noexcept;

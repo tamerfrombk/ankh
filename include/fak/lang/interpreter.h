@@ -10,12 +10,12 @@
 
 namespace fk::lang {
 
-class interpreter
+class Interpreter
     : public ExpressionVisitor<ExprResult>
-    , public statement_visitor<void>
+    , public StatementVisitor<void>
 {
 public:
-    interpreter();
+    Interpreter();
 
     void interpret(const Program& program);
 
@@ -44,11 +44,11 @@ private:
 
     void enter_new_scope() noexcept;
     void leave_current_scope() noexcept;
-    environment& current_scope() noexcept;
+    Environment& current_scope() noexcept;
     size_t scope() const noexcept;
 
 private:
-    std::vector<environment> env_;
+    std::vector<Environment> env_;
 
     // TODO: this assumes all functions are in global namespace
     // That's OK for now but needs to be revisited when implementing modules

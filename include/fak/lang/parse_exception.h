@@ -4,13 +4,13 @@
 
 namespace fk::lang {
 
-struct parse_exception
+struct ParseException
     : public std::runtime_error
 {
-    explicit parse_exception(const std::string& msg)
+    explicit ParseException(const std::string& msg)
         : std::runtime_error(msg) {}
     
-    explicit parse_exception(const char *msg)
+    explicit ParseException(const char *msg)
         : std::runtime_error(msg) {}
 };
 

@@ -122,7 +122,7 @@ static fk::lang::StatementPtr desugar_inc_dec(const fk::lang::Token& op, fk::lan
         const std::string opstr = op.type == fk::lang::TokenType::INC
             ? "increment"
             : "decrement";
-        throw fk::lang::parse_exception("invalid " + opstr + " target");
+        throw fk::lang::ParseException("invalid " + opstr + " target");
     }
 
 
@@ -164,7 +164,7 @@ fk::lang::Program fk::lang::Parser::parse() noexcept
     while (!is_eof()) {
         try {
             stmts.push_back(declaration());    
-        } catch (const fk::lang::parse_exception& e) {
+        } catch (const fk::lang::ParseException& e) {
             error_handler_->report_error({e.what()});
             synchronize_next_statement();
         }
@@ -186,7 +186,7 @@ fk::lang::StatementPtr fk::lang::Parser::parse_variable_declaration(ExpressionPt
 {
     IdentifierExpression *identifier = instance<IdentifierExpression>(target);
     if (identifier == nullptr) {
-        throw parse_exception("invalid variable declaration target");
+        throw ParseException("invalid variable declaration target");
     }
 
     consume(TokenType::WALRUS, "':=' expected in variable declaration");
@@ -221,7 +221,7 @@ fk::lang::StatementPtr fk::lang::Parser::assignment(ExpressionPtr target)
 {
     IdentifierExpression *identifier = instance<IdentifierExpression>(target);
     if (identifier == nullptr) {
-        throw parse_exception("invalid assignment target");
+        throw ParseException("invalid assignment target");
     }
 
     if (match({ 
@@ -470,7 +470,7 @@ fk::lang::ExpressionPtr fk::lang::Parser::call()
     }
 
     if (!instanceof<IdentifierExpression>(expr)) {
-        throw parse_exception("<identifier> expected as function name");
+        throw ParseException("<identifier> expected as function name");
     }
 
     consume(TokenType::LPAREN, "'(' expected to start function call arguments");
@@ -512,7 +512,7 @@ fk::lang::ExpressionPtr fk::lang::Parser::primary()
         return make_expression<ParenExpression>(std::move(expr));
     }
 
-    throw parse_exception("primary expression expected");
+    throw ParseException("primary expression expected");
 }
 
 const fk::lang::Token& fk::lang::Parser::prev() const noexcept
@@ -577,7 +577,7 @@ fk::lang::Token fk::lang::Parser::consume(TokenType type, const std::string& msg
     if (!match(type)) {
         const Token& current = curr();
         std::string error_message("syntax error: " + msg + " instead of '" + current.str + "'");
-        throw fk::lang::parse_exception(error_message);
+        throw fk::lang::ParseException(error_message);
     }
 
     return prev();

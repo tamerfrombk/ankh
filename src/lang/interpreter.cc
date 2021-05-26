@@ -28,14 +28,14 @@ struct return_exception
 
 FK_NO_RETURN static void panic(const std::string& msg)
 {
-    throw fk::lang::interpretation_exception("runtime error: " + msg);
+    throw fk::lang::InterpretationException("runtime error: " + msg);
 }
 
 FK_NO_RETURN static void panic(const fk::lang::ExprResult& result, const std::string& msg)
 {
     const std::string typestr = fk::lang::expr_result_type_str(result.type);
 
-    throw fk::lang::interpretation_exception("runtime error: " + msg + " instead of '" + typestr + "'");
+    throw fk::lang::InterpretationException("runtime error: " + msg + " instead of '" + typestr + "'");
 }
 
 FK_NO_RETURN static void panic(const fk::lang::ExprResult& left, const fk::lang::ExprResult& right, const std::string& msg)
@@ -43,7 +43,7 @@ FK_NO_RETURN static void panic(const fk::lang::ExprResult& left, const fk::lang:
     const std::string ltypestr = fk::lang::expr_result_type_str(left.type);
     const std::string rtypestr = fk::lang::expr_result_type_str(right.type);
 
-    throw fk::lang::interpretation_exception("runtime error: " + msg 
+    throw fk::lang::InterpretationException("runtime error: " + msg 
         + " with LHS '" + ltypestr + "', RHS '" + rtypestr + "'");
 }
 
@@ -164,17 +164,17 @@ static void print(const fk::lang::ExprResult& result)
     std::puts(stringy.c_str());
 }
 
-fk::lang::interpreter::interpreter()
+fk::lang::Interpreter::Interpreter()
 {
     // initialize the global scope
     enter_new_scope();
 }
 
-void fk::lang::interpreter::interpret(const Program& program)
+void fk::lang::Interpreter::interpret(const Program& program)
 {
     for (const auto& stmt : program) {
 #ifndef NDEBUG
-        fk::internal::pretty_printer printer;
+        fk::internal::PrettyPrinter printer;
         const std::string pretty = stmt->accept(&printer);
         fk::log::debug("%s\n", pretty.c_str());
 #endif
@@ -182,7 +182,7 @@ void fk::lang::interpreter::interpret(const Program& program)
     }
 }
 
-fk::lang::ExprResult fk::lang::interpreter::visit(BinaryExpression *expr)
+fk::lang::ExprResult fk::lang::Interpreter::visit(BinaryExpression *expr)
 {
     const ExprResult left  = evaluate(expr->left);
     const ExprResult right = evaluate(expr->right);
@@ -214,7 +214,7 @@ fk::lang::ExprResult fk::lang::interpreter::visit(BinaryExpression *expr)
     }
 }
 
-fk::lang::ExprResult fk::lang::interpreter::visit(UnaryExpression *expr)
+fk::lang::ExprResult fk::lang::Interpreter::visit(UnaryExpression *expr)
 {
     const ExprResult result = evaluate(expr->right);
     switch (expr->op.type) {
@@ -227,7 +227,7 @@ fk::lang::ExprResult fk::lang::interpreter::visit(UnaryExpression *expr)
     }
 }
 
-fk::lang::ExprResult fk::lang::interpreter::visit(LiteralExpression *expr)
+fk::lang::ExprResult fk::lang::Interpreter::visit(LiteralExpression *expr)
 {
     switch (expr->literal.type) {
     case TokenType::NUMBER:
@@ -245,12 +245,12 @@ fk::lang::ExprResult fk::lang::interpreter::visit(LiteralExpression *expr)
     }
 }
 
-fk::lang::ExprResult fk::lang::interpreter::visit(ParenExpression *expr)
+fk::lang::ExprResult fk::lang::Interpreter::visit(ParenExpression *expr)
 {
     return evaluate(expr->expr);
 }
 
-fk::lang::ExprResult fk::lang::interpreter::visit(IdentifierExpression *expr)
+fk::lang::ExprResult fk::lang::Interpreter::visit(IdentifierExpression *expr)
 {
     for (auto it = env_.rbegin(); it != env_.rend(); ++it) {
         auto possible_value = it->value(expr->name.str); 
@@ -263,7 +263,7 @@ fk::lang::ExprResult fk::lang::interpreter::visit(IdentifierExpression *expr)
     panic("identifier " + expr->name.str + " is not defined in the current scope");
 }
 
-fk::lang::ExprResult fk::lang::interpreter::visit(AndExpression *expr)
+fk::lang::ExprResult fk::lang::Interpreter::visit(AndExpression *expr)
 {
     const ExprResult left = evaluate(expr->left);
     if (!truthy(left)) {
@@ -273,7 +273,7 @@ fk::lang::ExprResult fk::lang::interpreter::visit(AndExpression *expr)
     return evaluate(expr->right);
 }
 
-fk::lang::ExprResult fk::lang::interpreter::visit(OrExpression *expr)
+fk::lang::ExprResult fk::lang::Interpreter::visit(OrExpression *expr)
 {
     const ExprResult left = evaluate(expr->left);
     if (truthy(left)) {
@@ -283,7 +283,7 @@ fk::lang::ExprResult fk::lang::interpreter::visit(OrExpression *expr)
     return evaluate(expr->right);
 }
 
-fk::lang::ExprResult fk::lang::interpreter::visit(CallExpression *expr)
+fk::lang::ExprResult fk::lang::Interpreter::visit(CallExpression *expr)
 {
     // TODO: ugh, fix this again
     if (!dynamic_cast<IdentifierExpression*>(expr->name.get())) {
@@ -321,7 +321,7 @@ fk::lang::ExprResult fk::lang::interpreter::visit(CallExpression *expr)
         }
         
         leave_current_scope();
-    } catch (const interpretation_exception& e) {
+    } catch (const InterpretationException& e) {
         leave_current_scope();
         throw e;
     } catch (const return_exception& e) {
@@ -342,18 +342,18 @@ fk::lang::ExprResult fk::lang::interpreter::visit(CallExpression *expr)
     return ExprResult::nil();
 }
 
-void fk::lang::interpreter::visit(PrintStatement *stmt)
+void fk::lang::Interpreter::visit(PrintStatement *stmt)
 {
     const ExprResult result = evaluate(stmt->expr);
     print(result);
 }
 
-void fk::lang::interpreter::visit(ExpressionStatement *stmt)
+void fk::lang::Interpreter::visit(ExpressionStatement *stmt)
 {
     evaluate(stmt->expr);
 }
 
-void fk::lang::interpreter::visit(VariableDeclaration *stmt)
+void fk::lang::Interpreter::visit(VariableDeclaration *stmt)
 {
     if (current_scope().contains(stmt->name.str)) {
         panic(stmt->name.str + " is already declared in this scope");
@@ -365,7 +365,7 @@ void fk::lang::interpreter::visit(VariableDeclaration *stmt)
     current_scope().assign(stmt->name.str, result);
 }
 
-void fk::lang::interpreter::visit(AssignmentStatement *stmt)
+void fk::lang::Interpreter::visit(AssignmentStatement *stmt)
 {
     // TODO: think about adding scope specifiers (export, local, global) to allow the user
     // to mutate global variables with the same name or to add variables to the environment
@@ -383,7 +383,7 @@ void fk::lang::interpreter::visit(AssignmentStatement *stmt)
     panic(stmt->name.str + " is not defined");
 }
 
-void fk::lang::interpreter::visit(BlockStatement *stmt)
+void fk::lang::Interpreter::visit(BlockStatement *stmt)
 {
     enter_new_scope();
     for (const StatementPtr& statement : stmt->statements) {
@@ -392,7 +392,7 @@ void fk::lang::interpreter::visit(BlockStatement *stmt)
     leave_current_scope();
 }
 
-void fk::lang::interpreter::visit(IfStatement *stmt)
+void fk::lang::Interpreter::visit(IfStatement *stmt)
 {
     const ExprResult result = evaluate(stmt->condition);
     if (truthy(result)) {
@@ -402,7 +402,7 @@ void fk::lang::interpreter::visit(IfStatement *stmt)
     }
 }
 
-void fk::lang::interpreter::visit(WhileStatement *stmt)
+void fk::lang::Interpreter::visit(WhileStatement *stmt)
 {
     ExprResult result = evaluate(stmt->condition);
     while (truthy(result)) {
@@ -411,7 +411,7 @@ void fk::lang::interpreter::visit(WhileStatement *stmt)
     }
 }
 
-void fk::lang::interpreter::visit(fk::lang::FunctionDeclaration *stmt)
+void fk::lang::Interpreter::visit(fk::lang::FunctionDeclaration *stmt)
 {
     if (functions_.count(stmt->name.str) > 0) {
         panic("function " + stmt->name.str + " is already declared in this scope");
@@ -422,41 +422,41 @@ void fk::lang::interpreter::visit(fk::lang::FunctionDeclaration *stmt)
     fk::log::debug("function '%s' added to current scope\n", stmt->name.str.c_str());
 }
 
-void fk::lang::interpreter::visit(ReturnStatement *stmt)
+void fk::lang::Interpreter::visit(ReturnStatement *stmt)
 {
     const ExprResult result = evaluate(stmt->expr);
 
     throw return_exception(result);
 }
 
-fk::lang::ExprResult fk::lang::interpreter::evaluate(const ExpressionPtr& expr)
+fk::lang::ExprResult fk::lang::Interpreter::evaluate(const ExpressionPtr& expr)
 {
     return expr->accept(this);
 }
 
-void fk::lang::interpreter::execute(const StatementPtr& stmt)
+void fk::lang::Interpreter::execute(const StatementPtr& stmt)
 {
     stmt->accept(this);
 }
 
-void fk::lang::interpreter::enter_new_scope() noexcept
+void fk::lang::Interpreter::enter_new_scope() noexcept
 {
     env_.emplace_back();
     fk::log::debug("entered new scope %d\n", scope());
 }
 
-void fk::lang::interpreter::leave_current_scope() noexcept
+void fk::lang::Interpreter::leave_current_scope() noexcept
 {
     fk::log::debug("leaving scope %d\n", scope());
     env_.pop_back();
 }
 
-fk::lang::environment& fk::lang::interpreter::current_scope() noexcept
+fk::lang::Environment& fk::lang::Interpreter::current_scope() noexcept
 {
     return env_.back();
 }
 
-size_t fk::lang::interpreter::scope() const noexcept
+size_t fk::lang::Interpreter::scope() const noexcept
 {
     return env_.size() - 1;
 }

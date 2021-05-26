@@ -11,9 +11,9 @@
 
 namespace fk::internal {
 
-class pretty_printer
+class PrettyPrinter
     : public fk::lang::ExpressionVisitor<fk::lang::ExprResult>
-    , public fk::lang::statement_visitor<std::string>
+    , public fk::lang::StatementVisitor<std::string>
 {
 public:
     inline virtual fk::lang::ExprResult visit(fk::lang::BinaryExpression *expr) override

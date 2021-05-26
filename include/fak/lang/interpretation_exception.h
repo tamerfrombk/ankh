@@ -4,13 +4,13 @@
 
 namespace fk::lang {
 
-struct interpretation_exception
+struct InterpretationException
     : public std::runtime_error
 {
-    explicit interpretation_exception(const std::string& msg)
+    explicit InterpretationException(const std::string& msg)
         : std::runtime_error(msg) {}
     
-    explicit interpretation_exception(const char *msg)
+    explicit InterpretationException(const char *msg)
         : std::runtime_error(msg) {}
 };
 

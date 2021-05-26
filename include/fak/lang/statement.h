@@ -21,8 +21,8 @@ struct FunctionDeclaration;
 struct ReturnStatement;
 
 template <class R>
-struct statement_visitor {
-    virtual ~statement_visitor() = default;
+struct StatementVisitor {
+    virtual ~StatementVisitor() = default;
 
     virtual R visit(PrintStatement *stmt) = 0;
     virtual R visit(ExpressionStatement *stmt) = 0;
@@ -39,8 +39,8 @@ struct Statement
 {
     virtual ~Statement() = default;
 
-    virtual void accept(statement_visitor<void> *visitor) = 0;
-    virtual std::string accept(statement_visitor<std::string>  *visitor) = 0;
+    virtual void accept(StatementVisitor<void> *visitor) = 0;
+    virtual std::string accept(StatementVisitor<std::string>  *visitor) = 0;
 };
 
 using StatementPtr = std::unique_ptr<Statement>;
@@ -60,12 +60,12 @@ struct PrintStatement
     PrintStatement(ExpressionPtr expr)
         : expr(std::move(expr)) {}
 
-    virtual void accept(statement_visitor<void> *visitor) override
+    virtual void accept(StatementVisitor<void> *visitor) override
     {
         visitor->visit(this);
     }
 
-    virtual std::string accept(statement_visitor<std::string> *visitor) override
+    virtual std::string accept(StatementVisitor<std::string> *visitor) override
     {
         return visitor->visit(this);
     }
@@ -79,12 +79,12 @@ struct ExpressionStatement
     ExpressionStatement(ExpressionPtr expr)
         : expr(std::move(expr)) {}
 
-    virtual void accept(statement_visitor<void> *visitor) override
+    virtual void accept(StatementVisitor<void> *visitor) override
     {
         visitor->visit(this);
     }
 
-    virtual std::string accept(statement_visitor<std::string> *visitor) override
+    virtual std::string accept(StatementVisitor<std::string> *visitor) override
     {
         return visitor->visit(this);
     }
@@ -99,12 +99,12 @@ struct AssignmentStatement
     AssignmentStatement(Token name, ExpressionPtr initializer)
         : name(std::move(name)), initializer(std::move(initializer)) {}
 
-    virtual void accept(statement_visitor<void> *visitor) override
+    virtual void accept(StatementVisitor<void> *visitor) override
     {
         visitor->visit(this);
     }
 
-    virtual std::string accept(statement_visitor<std::string> *visitor) override
+    virtual std::string accept(StatementVisitor<std::string> *visitor) override
     {
         return visitor->visit(this);
     }
@@ -119,12 +119,12 @@ struct VariableDeclaration
     VariableDeclaration(Token name, ExpressionPtr initializer)
         : name(std::move(name)), initializer(std::move(initializer)) {}
 
-    virtual void accept(statement_visitor<void> *visitor) override
+    virtual void accept(StatementVisitor<void> *visitor) override
     {
         visitor->visit(this);
     }
 
-    virtual std::string accept(statement_visitor<std::string> *visitor) override
+    virtual std::string accept(StatementVisitor<std::string> *visitor) override
     {
         return visitor->visit(this);
     }
@@ -138,12 +138,12 @@ struct BlockStatement
     BlockStatement(std::vector<StatementPtr> statements)
         : statements(std::move(statements)) {}
 
-    virtual void accept(statement_visitor<void> *visitor) override
+    virtual void accept(StatementVisitor<void> *visitor) override
     {
         visitor->visit(this);
     }
 
-    virtual std::string accept(statement_visitor<std::string> *visitor) override
+    virtual std::string accept(StatementVisitor<std::string> *visitor) override
     {
         return visitor->visit(this);
     }
@@ -159,12 +159,12 @@ struct IfStatement
     IfStatement(ExpressionPtr condition, StatementPtr then_block, StatementPtr else_block)
         : condition(std::move(condition)), then_block(std::move(then_block)), else_block(std::move(else_block)) {}
 
-    virtual void accept(statement_visitor<void> *visitor) override
+    virtual void accept(StatementVisitor<void> *visitor) override
     {
         visitor->visit(this);
     }
 
-    virtual std::string accept(statement_visitor<std::string> *visitor) override
+    virtual std::string accept(StatementVisitor<std::string> *visitor) override
     {
         return visitor->visit(this);
     }
@@ -179,12 +179,12 @@ struct WhileStatement
     WhileStatement(ExpressionPtr condition, StatementPtr body)
         : condition(std::move(condition)), body(std::move(body)) {}
 
-    virtual void accept(statement_visitor<void> *visitor) override
+    virtual void accept(StatementVisitor<void> *visitor) override
     {
         visitor->visit(this);
     }
 
-    virtual std::string accept(statement_visitor<std::string> *visitor) override
+    virtual std::string accept(StatementVisitor<std::string> *visitor) override
     {
         return visitor->visit(this);
     }
@@ -200,12 +200,12 @@ struct FunctionDeclaration
     FunctionDeclaration(Token name, std::vector<Token> params, StatementPtr body)
         : name(std::move(name)), params(std::move(params)), body(std::move(body)) {}
 
-    virtual void accept(statement_visitor<void> *visitor) override
+    virtual void accept(StatementVisitor<void> *visitor) override
     {
         visitor->visit(this);
     }
 
-    virtual std::string accept(statement_visitor<std::string> *visitor) override
+    virtual std::string accept(StatementVisitor<std::string> *visitor) override
     {
         return visitor->visit(this);
     }
@@ -219,12 +219,12 @@ struct ReturnStatement
     ReturnStatement(ExpressionPtr expr)
         : expr(std::move(expr)) {}
 
-    virtual void accept(statement_visitor<void> *visitor) override
+    virtual void accept(StatementVisitor<void> *visitor) override
     {
         visitor->visit(this);
     }
 
-    virtual std::string accept(statement_visitor<std::string> *visitor) override
+    virtual std::string accept(StatementVisitor<std::string> *visitor) override
     {
         return visitor->visit(this);
     }
