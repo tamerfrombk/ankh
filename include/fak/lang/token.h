@@ -3,6 +3,8 @@
 #include <string>
 #include <iostream>
 
+#include <fmt/core.h>
+
 namespace fk::lang {
 
 enum class TokenType {
@@ -61,8 +63,8 @@ struct Token {
     size_t line;
     size_t col;
 
-    Token(std::string str, TokenType type, size_t line, size_t inlinepos)
-        : str(std::move(str)), type(type), line(line), col(inlinepos) {}
+    Token(std::string str, TokenType type, size_t line, size_t col)
+        : str(std::move(str)), type(type), line(line), col(col) {}
 };
 
 inline bool operator==(const Token& lhs, const Token& rhs) noexcept

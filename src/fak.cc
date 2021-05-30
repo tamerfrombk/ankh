@@ -98,15 +98,15 @@ int fk::shell_loop(int argc, char **argv)
     while (true) {
         auto possible_line = readline("> ");
         if (!possible_line.has_value()) {
-            fk::log::debug("EOF\n");
+            FK_DEBUG("EOF");
             break;
         }
         
         const std::string line = possible_line.value();
         if (line.empty()) {
-            fk::log::debug("empty line\n");
+            FK_DEBUG("empty line");
         } else {
-            fk::log::debug("read line: '%s'\n", line.c_str());
+            FK_DEBUG("read line: {}", line);
             prev_process_exit_code = execute(interpreter, line);
         }
     }

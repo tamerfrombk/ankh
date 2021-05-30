@@ -176,7 +176,7 @@ void fk::lang::Interpreter::interpret(const Program& program)
 #ifndef NDEBUG
         fk::internal::PrettyPrinter printer;
         const std::string pretty = stmt->accept(&printer);
-        fk::log::debug("%s\n", pretty.c_str());
+        FK_DEBUG("{}", pretty);
 #endif
         execute(stmt);
     }
@@ -255,7 +255,7 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(IdentifierExpression *expr)
     for (auto it = env_.rbegin(); it != env_.rend(); ++it) {
         auto possible_value = it->value(expr->name.str); 
         if (possible_value.has_value()) {
-            fk::log::debug("IDENTIFIER '%s' = '%s' @ scope '%d'\n", expr->name.str.c_str(), possible_value.value().stringify().c_str(), scope());
+            FK_DEBUG("IDENTIFIER '{}' = '{}' @ scope '{}'", expr->name.str, possible_value.value().stringify(), scope());
             return possible_value.value();
         }
     }
@@ -300,7 +300,7 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(CallExpression *expr)
         panic("expected " + std::to_string(declaration->params.size()) + " arguments to function " + name + " instead of " + std::to_string(expr->args.size()));
     }
 
-    fk::log::debug("function '%s' with matching arity '%d' found in the current scope\n", name.c_str(), expr->args.size());
+    FK_DEBUG("function '{}' with matching arity '{}' found in the current scope", name, expr->args.size());
 
     size_t entered_scope;
     try {
@@ -326,8 +326,9 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(CallExpression *expr)
         throw e;
     } catch (const return_exception& e) {
         size_t return_scope = scope();
-        fk::log::debug("return scope: %d entered scope %d\n", return_scope, entered_scope);
-        // TODO: create an assertion that return_scope is always > entered_scope here
+        FK_DEBUG("return scope: '{}' entered scope '{}'", return_scope, entered_scope);
+        
+        FK_VERIFY(return_scope >= entered_scope);
         
         // unwind the stack
         while (return_scope >= entered_scope) {
@@ -360,7 +361,7 @@ void fk::lang::Interpreter::visit(VariableDeclaration *stmt)
     }
 
     const ExprResult result = evaluate(stmt->initializer);
-    fk::log::debug("DECLARATION '%s' = '%s'\n", stmt->name.str.c_str(), result.stringify().c_str());
+    FK_DEBUG("DECLARATION '{}' = '{}'", stmt->name.str, result.stringify());
 
     current_scope().assign(stmt->name.str, result);
 }
@@ -374,7 +375,7 @@ void fk::lang::Interpreter::visit(AssignmentStatement *stmt)
         if (it->contains(stmt->name.str)) {
             const ExprResult result = evaluate(stmt->initializer);
             it->assign(stmt->name.str, result);
-            fk::log::debug("ASSIGNMENT '%s' = '%s' @ scope '%d'\n", stmt->name.str.c_str(), result.stringify().c_str(), this_scope);
+            FK_DEBUG("ASSIGNMENT '{}' = '{}' @ scope '{}'", stmt->name.str, result.stringify(), this_scope);
             return;
         }
         --this_scope;
@@ -419,7 +420,7 @@ void fk::lang::Interpreter::visit(fk::lang::FunctionDeclaration *stmt)
 
     functions_[stmt->name.str] = stmt;
 
-    fk::log::debug("function '%s' added to current scope\n", stmt->name.str.c_str());
+    FK_DEBUG("function '{}' added to current scope", stmt->name.str);
 }
 
 void fk::lang::Interpreter::visit(ReturnStatement *stmt)
@@ -442,12 +443,12 @@ void fk::lang::Interpreter::execute(const StatementPtr& stmt)
 void fk::lang::Interpreter::enter_new_scope() noexcept
 {
     env_.emplace_back();
-    fk::log::debug("entered new scope %d\n", scope());
+    FK_DEBUG("entered new scope '{}'", scope());
 }
 
 void fk::lang::Interpreter::leave_current_scope() noexcept
 {
-    fk::log::debug("leaving scope %d\n", scope());
+    FK_DEBUG("leaving scope '{}'", scope());
     env_.pop_back();
 }
 

@@ -91,6 +91,6 @@ std::string fk::lang::token_type_str(fk::lang::TokenType type) noexcept
     case fk::lang::TokenType::UNKNOWN:
         return "UNKNOWN";
     default:
-        fk::log::fatal("shouldn't happen");
+        FK_FATAL("unknown token type: this should never happen");
     }
 }

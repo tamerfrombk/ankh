@@ -79,8 +79,7 @@ static fk::lang::StatementPtr desugar_compound_assignment(
         rhs_op.type = fk::lang::TokenType::FSLASH;
         break;
     default:
-        // we should never hit this case
-        fk::log::fatal("unknown compound assignment operator");
+        FK_FATAL("unknown compound assignment operator");
     }
 
     fk::lang::ExpressionPtr right = fk::lang::make_expression<fk::lang::BinaryExpression>(
@@ -110,8 +109,7 @@ static fk::lang::StatementPtr desugar_inc_dec(const fk::lang::Token& op, fk::lan
         rhs_op.type = fk::lang::TokenType::MINUS;
         break;
     default:
-        // we should never hit this case
-        fk::log::fatal("unknown increment or decrement operator");
+        FK_FATAL("unknown increment or decrement operator");
     }
 
     // TODO: for now, these operators only work on identifiers

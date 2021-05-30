@@ -12,7 +12,7 @@ std::string fk::lang::expr_result_type_str(fk::lang::ExprResultType type) noexce
     case fk::lang::ExprResultType::RT_BOOL:      return "BOOL";
     case fk::lang::ExprResultType::RT_NIL:       return "NIL";
     default:                                       
-        fk::log::fatal("expr_result_type_str(): unknown expression result type!\n");
+        FK_FATAL("expr_result_type_str(): unknown expression result type!");
     }
 }
 
@@ -63,6 +63,6 @@ std::string fk::lang::ExprResult::stringify() const noexcept
     case fk::lang::ExprResultType::RT_NIL:
         return "nil";
     default:
-        fk::log::fatal("stringify(): unknown expression result type!\n");
+        FK_FATAL("stringify(): unknown expression result type!");
     }
 }
