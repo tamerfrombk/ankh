@@ -1,3 +1,4 @@
+#include "fak/lang/token.h"
 #include <cctype>
 #include <unordered_map>
 
@@ -280,7 +281,7 @@ std::vector<fk::lang::Token> fk::lang::scan(const std::string& source, fk::lang:
 
     for (const auto& tok : tokens) {
         // TODO: look up fmt formatter and implement it
-        FK_DEBUG("({}, {}, {}, {})", tok.type, tok.str, tok.line, tok.col);
+        FK_DEBUG("({}, {}, {}, {})", token_type_str(tok.type), tok.str, tok.line, tok.col);
     }
 
     return tokens;
