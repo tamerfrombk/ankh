@@ -17,10 +17,10 @@
 
 #include <fak/internal/pretty_printer.h>
 
-struct return_exception
+struct ReturnException
     : public std::runtime_error
 {
-    explicit return_exception(fk::lang::ExprResult result)
+    explicit ReturnException(fk::lang::ExprResult result)
         : std::runtime_error(""), result(std::move(result)) {}
 
     fk::lang::ExprResult result;
@@ -324,7 +324,7 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(CallExpression *expr)
     } catch (const InterpretationException& e) {
         leave_current_scope();
         throw e;
-    } catch (const return_exception& e) {
+    } catch (const ReturnException& e) {
         size_t return_scope = scope();
         FK_DEBUG("return scope: '{}' entered scope '{}'", return_scope, entered_scope);
         
@@ -427,7 +427,7 @@ void fk::lang::Interpreter::visit(ReturnStatement *stmt)
 {
     const ExprResult result = evaluate(stmt->expr);
 
-    throw return_exception(result);
+    throw ReturnException(result);
 }
 
 fk::lang::ExprResult fk::lang::Interpreter::evaluate(const ExpressionPtr& expr)
