@@ -14,6 +14,7 @@
 #include <fak/lang/token.h>
 #include <fak/lang/expr.h>
 #include <fak/lang/interpretation_exception.h>
+#include <fak/lang/callable.h>
 
 #include <fak/internal/pretty_printer.h>
 
@@ -286,18 +287,15 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(OrExpression *expr)
 fk::lang::ExprResult fk::lang::Interpreter::visit(CallExpression *expr)
 {
     // TODO: ugh, fix this again
-    if (!dynamic_cast<IdentifierExpression*>(expr->name.get())) {
-        panic("<identifier> expected as function call name");
+    const ExprResult callee = evaluate(expr->callee);
+    if (callee.type != ExprResultType::RT_CALLABLE) {
+        panic("only functions and classes are callable");
     }
 
-    const std::string name = static_cast<IdentifierExpression*>(expr->name.get())->name.str;
-    if (functions_.count(name) == 0) {
-        panic(name + " is not a function defined in this scope");
-    }
-
-    FunctionDeclaration *declaration = functions_[name];
-    if (expr->args.size() != declaration->params.size()) {
-        panic("expected " + std::to_string(declaration->params.size()) + " arguments to function " + name + " instead of " + std::to_string(expr->args.size()));
+    Callable *callable = callee.callable;
+    const std::string name = callable->name();
+    if (expr->args.size() != callable->arity()) {
+        panic("expected " + std::to_string(callable->arity()) + " arguments to function " + name + " instead of " + std::to_string(expr->args.size()));
     }
 
     FK_DEBUG("function '{}' with matching arity '{}' found in the current scope", name, expr->args.size());
@@ -307,18 +305,7 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(CallExpression *expr)
         enter_new_scope();
         entered_scope = scope();
         
-        for (size_t i = 0; i < expr->args.size(); ++i) {
-            const ExprResult arg = evaluate(expr->args[i]);
-            current_scope().assign(declaration->params[i].str, arg);
-        }
-
-        // Here, we avoid calling execute(declaration->body) directly because visiting a block statement will
-        // create a new additional environment we don't want. When we implement function calls, we will be controlling
-        // the environment of the child block so we execute its statements directly here.
-        BlockStatement *block = static_cast<BlockStatement*>(declaration->body.get());
-        for (const auto& stmt : block->statements) {
-            execute(stmt);
-        }
+        callable->invoke(expr->args);
         
         leave_current_scope();
     } catch (const InterpretationException& e) {
@@ -414,13 +401,20 @@ void fk::lang::Interpreter::visit(WhileStatement *stmt)
 
 void fk::lang::Interpreter::visit(fk::lang::FunctionDeclaration *stmt)
 {
-    if (functions_.count(stmt->name.str) > 0) {
+    const std::string& name = stmt->name.str;
+    if (functions_.count(name) > 0) {
         panic("function " + stmt->name.str + " is already declared in this scope");
     }
 
-    functions_[stmt->name.str] = stmt;
+    CallablePtr callable = make_callable<Function>(this, stmt);
 
-    FK_DEBUG("function '{}' added to current scope", stmt->name.str);
+    ExprResult result = ExprResult::call(callable.get());
+
+    functions_[name] = std::move(callable);
+
+    global_scope().assign(name, result);
+
+    FK_DEBUG("function '{}' added to global scope", name);
 }
 
 void fk::lang::Interpreter::visit(ReturnStatement *stmt)
@@ -455,6 +449,11 @@ void fk::lang::Interpreter::leave_current_scope() noexcept
 fk::lang::Environment& fk::lang::Interpreter::current_scope() noexcept
 {
     return env_.back();
+}
+
+fk::lang::Environment& fk::lang::Interpreter::global_scope() noexcept
+{
+    return env_.front();
 }
 
 size_t fk::lang::Interpreter::scope() const noexcept

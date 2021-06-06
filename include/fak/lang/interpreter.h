@@ -7,6 +7,7 @@
 #include <fak/lang/expr.h>
 #include <fak/lang/statement.h>
 #include <fak/lang/env.h>
+#include <fak/lang/callable.h>
 
 namespace fk::lang {
 
@@ -38,13 +39,14 @@ public:
     virtual void visit(FunctionDeclaration *stmt) override;
     virtual void visit(ReturnStatement *stmt) override;
 
-private:
     ExprResult evaluate(const ExpressionPtr& expr);
     void execute(const StatementPtr& stmt);
 
+    Environment& current_scope() noexcept;
+private:
     void enter_new_scope() noexcept;
     void leave_current_scope() noexcept;
-    Environment& current_scope() noexcept;
+    Environment& global_scope() noexcept;
     size_t scope() const noexcept;
 
 private:
@@ -52,7 +54,7 @@ private:
 
     // TODO: this assumes all functions are in global namespace
     // That's OK for now but needs to be revisited when implementing modules
-    std::unordered_map<std::string, FunctionDeclaration*> functions_;
+    std::unordered_map<std::string, CallablePtr> functions_;
 
 };
 

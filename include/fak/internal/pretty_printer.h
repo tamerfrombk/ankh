@@ -53,7 +53,7 @@ public:
 
     inline virtual fk::lang::ExprResult visit(fk::lang::CallExpression *expr) override
     {
-        std::string result = stringify(expr->name);
+        std::string result = stringify(expr->callee);
         
         result += "(";
         for (const auto& arg : expr->args) {

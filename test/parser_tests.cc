@@ -435,7 +435,7 @@ PARSER_TEST("parse language expressions")
         REQUIRE(call != nullptr);
         REQUIRE(call->args.size() == 0);
 
-        auto identifier = fk::lang::instance<fk::lang::IdentifierExpression>(call->name);
+        auto identifier = fk::lang::instance<fk::lang::IdentifierExpression>(call->callee);
         REQUIRE(identifier != nullptr);
         REQUIRE(identifier->name.str == "a");
     }
@@ -459,9 +459,37 @@ PARSER_TEST("parse language expressions")
         REQUIRE(call != nullptr);
         REQUIRE(call->args.size() == 2);
 
-        auto identifier = fk::lang::instance<fk::lang::IdentifierExpression>(call->name);
+        auto identifier = fk::lang::instance<fk::lang::IdentifierExpression>(call->callee);
         REQUIRE(identifier != nullptr);
         REQUIRE(identifier->name.str == "a");
+    }
+
+    SECTION("parse function call, multicall")
+    {
+        const std::string source =
+        R"(
+            a(1, 2)()
+        )";
+
+        auto program = fk::lang::parse(source, error_handler.get());
+
+        REQUIRE(program.size() == 1);
+        REQUIRE(error_handler->error_count() == 0);
+
+        auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+        REQUIRE(stmt != nullptr);
+        
+        auto inner_call = fk::lang::instance<fk::lang::CallExpression>(stmt->expr);
+        REQUIRE(inner_call != nullptr);
+        REQUIRE(inner_call->args.size() == 0);
+
+        auto callee = fk::lang::instance<fk::lang::CallExpression>(inner_call->callee);
+        REQUIRE(callee != nullptr);
+        REQUIRE(callee->args.size() == 2);
+
+        auto callee_name = fk::lang::instance<fk::lang::IdentifierExpression>(callee->callee);
+        REQUIRE(callee_name != nullptr);
+        REQUIRE(callee_name->name.str == "a");
     }
 
     SECTION("parse unary !")

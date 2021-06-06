@@ -19,7 +19,8 @@ SET(APP_SOURCES
     src/lang/expr.cc
     src/lang/interpreter.cc
     src/lang/env.cc
-    "src/pkg/path.cc"
+    src/lang/callable.cc
+    src/pkg/path.cc
 )
 
 SET(FMT_LIB fmt)

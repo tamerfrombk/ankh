@@ -19,6 +19,8 @@ struct AndExpression;
 struct OrExpression;
 struct CallExpression;
 
+struct Callable;
+
 template <class R>
 struct ExpressionVisitor {
     virtual ~ExpressionVisitor() = default;
@@ -40,6 +42,7 @@ enum class ExprResultType {
     RT_STRING,
     RT_NUMBER,
     RT_BOOL,
+    RT_CALLABLE,
     RT_NIL
 };
 
@@ -53,6 +56,7 @@ struct ExprResult {
     Number      n;
     bool        b;
     int         exit_code;
+    Callable    *callable;
 
     ExprResultType type;
 
@@ -60,6 +64,7 @@ struct ExprResult {
     static ExprResult num(Number n);
     static ExprResult string(std::string s);
     static ExprResult boolean(bool b);
+    static ExprResult call(Callable *callable);
 
     std::string stringify() const noexcept;
 };
@@ -182,11 +187,11 @@ struct OrExpression
 struct CallExpression 
     : public Expression 
 {
-    ExpressionPtr name;
+    ExpressionPtr callee;
     std::vector<ExpressionPtr> args;
 
     CallExpression(ExpressionPtr name, std::vector<ExpressionPtr> args)
-        : name(std::move(name)), args(std::move(args)) {}
+        : callee(std::move(name)), args(std::move(args)) {}
 
     virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
     {

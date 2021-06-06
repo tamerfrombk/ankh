@@ -462,7 +462,7 @@ fk::lang::ExpressionPtr fk::lang::Parser::unary()
 fk::lang::ExpressionPtr fk::lang::Parser::call()
 {
     ExpressionPtr expr = primary();
-
+    
     if (!check(TokenType::LPAREN)) {
         return expr;
     }
@@ -471,18 +471,22 @@ fk::lang::ExpressionPtr fk::lang::Parser::call()
         throw ParseException("<identifier> expected as function name");
     }
 
-    consume(TokenType::LPAREN, "'(' expected to start function call arguments");
-    
-    std::vector<ExpressionPtr> args;
-    if (!check(TokenType::RPAREN)) {
-        do {
-            args.push_back(expression());
-        } while (match({ TokenType::COMMA }));
+    ExpressionPtr callable = std::move(expr);
+    while (match(TokenType::LPAREN)) {
+        std::vector<ExpressionPtr> args;
+        
+        if (!check(TokenType::RPAREN)) {
+            do {
+                args.push_back(expression());
+            } while (match({ TokenType::COMMA }));
+        }
+
+        consume(TokenType::RPAREN, "')' expected to terminate function call arguments");
+
+        callable = make_expression<CallExpression>(std::move(callable), std::move(args)); 
     }
 
-    consume(TokenType::RPAREN, "')' expected to terminate function call arguments");
-
-    return make_expression<CallExpression>(std::move(expr), std::move(args));
+    return callable;
 }
 
 fk::lang::ExpressionPtr fk::lang::Parser::primary()
