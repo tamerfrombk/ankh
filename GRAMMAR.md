@@ -39,11 +39,13 @@ factor                → unary ( ( "/" | "*" ) unary )*
 unary                 → ( "!" | "-" ) unary | call
 call                  → primary "(" args? ")"
 args                  → expression ( "," expression )* 
-primary               → number | string 
-                        | "true" | "false" | "nil" 
+primary               → literal
                         | "(" expression ")" 
                         | identifier
+                        | lambda
 
+literal               → number | string | "true" | "false" | "nil"
+lambda                → def "(" params? ")" block
 identifier            → (_ | [a-z][A-Z]) (_ | [a-z][A-Z] | [0-9])*
 string                → "[ascii]*"
 number                → [0-9]\.?[0-9]+

@@ -10,7 +10,7 @@
 #include <fak/lang/parser.h>
 #include <fak/lang/error_handler.h>
 #include <fak/lang/interpreter.h>
-#include <fak/lang/interpretation_exception.h>
+#include <fak/lang/exceptions.h>
 
 #include <fak/internal/pretty_printer.h>
 

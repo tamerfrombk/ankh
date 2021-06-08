@@ -18,6 +18,7 @@ struct IdentifierExpression;
 struct AndExpression;
 struct OrExpression;
 struct CallExpression;
+struct LambdaExpression;
 
 struct Callable;
 
@@ -33,6 +34,7 @@ struct ExpressionVisitor {
     virtual R visit(AndExpression *expr) = 0;
     virtual R visit(OrExpression *expr) = 0;
     virtual R visit(CallExpression *expr) = 0;
+    virtual R visit(LambdaExpression *expr) = 0;
 };
 
 using Number = double;

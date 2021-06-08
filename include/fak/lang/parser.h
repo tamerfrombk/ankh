@@ -47,6 +47,7 @@ private:
     ExpressionPtr unary();
     ExpressionPtr call();
     ExpressionPtr primary();
+    ExpressionPtr lambda();
 
     const Token& prev() const noexcept;
     const Token& curr() const noexcept;

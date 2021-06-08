@@ -7,13 +7,15 @@
 #include <cstring>
 #include <stdexcept>
 
+#include <fmt/format.h>
+
 #include <fak/def.h>
 #include <fak/log.h>
 
 #include <fak/lang/interpreter.h>
 #include <fak/lang/token.h>
 #include <fak/lang/expr.h>
-#include <fak/lang/interpretation_exception.h>
+#include <fak/lang/exceptions.h>
 #include <fak/lang/callable.h>
 
 #include <fak/internal/pretty_printer.h>
@@ -27,25 +29,36 @@ struct ReturnException
     fk::lang::ExprResult result;
 };
 
-FK_NO_RETURN static void panic(const std::string& msg)
+template <class... Args>
+FK_NO_RETURN static void panic(const char *fmt, Args&&... args)
 {
-    throw fk::lang::InterpretationException("runtime error: " + msg);
+    const std::string msg = fmt::format(fmt, std::forward<Args>(args)...);
+    fk::lang::panic<fk::lang::InterpretationException>("runtime error: {}", msg);
 }
 
-FK_NO_RETURN static void panic(const fk::lang::ExprResult& result, const std::string& msg)
+template <class... Args>
+FK_NO_RETURN static void panic(const fk::lang::ExprResult& result, const char *fmt, Args&&... args)
 {
     const std::string typestr = fk::lang::expr_result_type_str(result.type);
 
-    throw fk::lang::InterpretationException("runtime error: " + msg + " instead of '" + typestr + "'");
+    const std::string msg = fmt::format(fmt, std::forward<Args>(args)...);
+
+    fk::lang::panic<fk::lang::InterpretationException>("runtime error: {} instead of '{}'", msg, typestr);
 }
 
-FK_NO_RETURN static void panic(const fk::lang::ExprResult& left, const fk::lang::ExprResult& right, const std::string& msg)
+template <class... Args>
+FK_NO_RETURN static void panic(
+    const fk::lang::ExprResult& left
+    , const fk::lang::ExprResult& right
+    , const char *fmt
+    , Args&&... args
+)
 {
     const std::string ltypestr = fk::lang::expr_result_type_str(left.type);
     const std::string rtypestr = fk::lang::expr_result_type_str(right.type);
+    const std::string msg = fmt::format(fmt, std::forward<Args>(args)...);
 
-    throw fk::lang::InterpretationException("runtime error: " + msg 
-        + " with LHS '" + ltypestr + "', RHS '" + rtypestr + "'");
+    fk::lang::panic<fk::lang::InterpretationException>("runtime error: {} with LHS '{}', RHS '{}'", msg, ltypestr, rtypestr);
 }
 
 static bool operands_are(fk::lang::ExprResultType type, std::initializer_list<fk::lang::ExprResult> elems) noexcept
@@ -66,7 +79,7 @@ static fk::lang::Number to_num(const std::string& s)
 
     const std::string errno_msg(std::strerror(errno));
 
-    panic("'" + s + "' could not be turned into a number due to " + errno_msg);
+    panic("'{}' could not be turned into a number due to {}", s, errno_msg);
 }
 
 static fk::lang::ExprResult negate(const fk::lang::ExprResult& result)
@@ -166,10 +179,7 @@ static void print(const fk::lang::ExprResult& result)
 }
 
 fk::lang::Interpreter::Interpreter()
-{
-    // initialize the global scope
-    enter_new_scope();
-}
+    : current_env_(make_env(nullptr)) {}
 
 void fk::lang::Interpreter::interpret(const Program& program)
 {
@@ -211,7 +221,7 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(BinaryExpression *expr)
         // TODO: right now, dividing by 0 yields 'inf' revisit this and make sure that's the behavior we want for the language
         return arithmetic(left, right, std::divides<>{});
     default:
-        panic(left, right, "unknown binary operator (" + expr->op.str + ")");
+        ::panic(left, right, "unknown binary operator '{}'", expr->op.str);
     }
 }
 
@@ -224,7 +234,7 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(UnaryExpression *expr)
     case TokenType::BANG:
         return invert(result);
     default:
-        panic(result, "unknown unary (" + expr->op.str + ") operator");
+        ::panic(result, "unknown unary operator '{}'", expr->op.str);
     }
 }
 
@@ -242,7 +252,7 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(LiteralExpression *expr)
     case TokenType::NIL:
         return ExprResult::nil();
     default:
-        panic("unkown literal expression: '" + expr->literal.str + "'");
+        ::panic("unknown literal expression '{}''", expr->literal.str);
     }
 }
 
@@ -253,15 +263,12 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(ParenExpression *expr)
 
 fk::lang::ExprResult fk::lang::Interpreter::visit(IdentifierExpression *expr)
 {
-    for (auto it = env_.rbegin(); it != env_.rend(); ++it) {
-        auto possible_value = it->value(expr->name.str); 
-        if (possible_value.has_value()) {
-            FK_DEBUG("IDENTIFIER '{}' = '{}' @ scope '{}'", expr->name.str, possible_value.value().stringify(), scope());
-            return possible_value.value();
-        }
+    auto possible_value = current_env_->value(expr->name.str);
+    if (possible_value.has_value()) {
+        return possible_value.value();
     }
 
-    panic("identifier " + expr->name.str + " is not defined in the current scope");
+    ::panic("identifier '{}' not defined", expr->name.str);
 }
 
 fk::lang::ExprResult fk::lang::Interpreter::visit(AndExpression *expr)
@@ -286,48 +293,46 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(OrExpression *expr)
 
 fk::lang::ExprResult fk::lang::Interpreter::visit(CallExpression *expr)
 {
-    // TODO: ugh, fix this again
     const ExprResult callee = evaluate(expr->callee);
     if (callee.type != ExprResultType::RT_CALLABLE) {
-        panic("only functions and classes are callable");
+        ::panic("only functions and classes are callable");
     }
 
     Callable *callable = callee.callable;
     const std::string name = callable->name();
     if (expr->args.size() != callable->arity()) {
-        panic("expected " + std::to_string(callable->arity()) + " arguments to function " + name + " instead of " + std::to_string(expr->args.size()));
+        ::panic("expected {} arguments to function '{}' instead of {}", callable->arity(), name, expr->args.size());
     }
 
-    FK_DEBUG("function '{}' with matching arity '{}' found in the current scope", name, expr->args.size());
+    FK_DEBUG("function '{}' with matching arity '{}' found", name, expr->args.size());
 
-    size_t entered_scope;
     try {
-        enter_new_scope();
-        entered_scope = scope();
-        
         callable->invoke(expr->args);
-        
-        leave_current_scope();
-    } catch (const InterpretationException& e) {
-        leave_current_scope();
-        throw e;
     } catch (const ReturnException& e) {
-        size_t return_scope = scope();
-        FK_DEBUG("return scope: '{}' entered scope '{}'", return_scope, entered_scope);
-        
-        FK_VERIFY(return_scope >= entered_scope);
-        
-        // unwind the stack
-        while (return_scope >= entered_scope) {
-            leave_current_scope();
-            --return_scope;
-        }
-
         return e.result;
     }
 
-    // this shouldn't be reached but it's here to satisfy the compiler
-    return ExprResult::nil();
+    FK_FATAL("callables should always return");
+}
+
+fk::lang::ExprResult fk::lang::Interpreter::visit(LambdaExpression *expr)
+{
+    const std::string& name = expr->generated_name;
+    if (functions_.count(name) > 0) {
+        FK_FATAL("lambda function generated name '{}' is duplicated", name);
+    }
+
+    CallablePtr callable = make_callable<Lambda>(this, expr, current_env_);
+
+    ExprResult result = ExprResult::call(callable.get());
+    
+    functions_[name] = std::move(callable);
+    
+    current_env_->put(name, result);
+
+    FK_DEBUG("function '{}' added to scope {}", name, current_env_->scope());
+
+    return result;
 }
 
 void fk::lang::Interpreter::visit(PrintStatement *stmt)
@@ -343,41 +348,38 @@ void fk::lang::Interpreter::visit(ExpressionStatement *stmt)
 
 void fk::lang::Interpreter::visit(VariableDeclaration *stmt)
 {
-    if (current_scope().contains(stmt->name.str)) {
-        panic(stmt->name.str + " is already declared in this scope");
+    if (current_env_->contains(stmt->name.str)) {
+        ::panic("'{}' is already declared in this scope", stmt->name.str);
     }
 
     const ExprResult result = evaluate(stmt->initializer);
+
     FK_DEBUG("DECLARATION '{}' = '{}'", stmt->name.str, result.stringify());
 
-    current_scope().assign(stmt->name.str, result);
+    current_env_->put(stmt->name.str, result);
 }
 
 void fk::lang::Interpreter::visit(AssignmentStatement *stmt)
 {
     // TODO: think about adding scope specifiers (export, local, global) to allow the user
     // to mutate global variables with the same name or to add variables to the environment
-    size_t this_scope = scope();
-    for (auto it = env_.rbegin(); it != env_.rend(); ++it) {
-        if (it->contains(stmt->name.str)) {
-            const ExprResult result = evaluate(stmt->initializer);
-            it->assign(stmt->name.str, result);
-            FK_DEBUG("ASSIGNMENT '{}' = '{}' @ scope '{}'", stmt->name.str, result.stringify(), this_scope);
-            return;
-        }
-        --this_scope;
+    const ExprResult result = evaluate(stmt->initializer);
+    if (!current_env_->assign(stmt->name.str, result)) {
+        ::panic("'{}' is not defined", stmt->name.str);
     }
-    
-    panic(stmt->name.str + " is not defined");
 }
 
 void fk::lang::Interpreter::visit(BlockStatement *stmt)
 {
-    enter_new_scope();
+    execute_block(stmt, current_env_.get());
+}
+
+void fk::lang::Interpreter::execute_block(const BlockStatement *stmt, Environment *environment)
+{
+    Scope block_scope(this, environment);
     for (const StatementPtr& statement : stmt->statements) {
         execute(statement);
     }
-    leave_current_scope();
 }
 
 void fk::lang::Interpreter::visit(IfStatement *stmt)
@@ -403,18 +405,18 @@ void fk::lang::Interpreter::visit(fk::lang::FunctionDeclaration *stmt)
 {
     const std::string& name = stmt->name.str;
     if (functions_.count(name) > 0) {
-        panic("function " + stmt->name.str + " is already declared in this scope");
+        ::panic("function '{}' is already declared", name);
     }
 
-    CallablePtr callable = make_callable<Function>(this, stmt);
+    CallablePtr callable = make_callable<Function>(this, stmt, current_env_);
 
     ExprResult result = ExprResult::call(callable.get());
-
+    
     functions_[name] = std::move(callable);
+    
+    current_env_->put(name, result);
 
-    global_scope().assign(name, result);
-
-    FK_DEBUG("function '{}' added to global scope", name);
+    FK_DEBUG("function '{}' added to scope {}", name, current_env_->scope());
 }
 
 void fk::lang::Interpreter::visit(ReturnStatement *stmt)
@@ -434,29 +436,17 @@ void fk::lang::Interpreter::execute(const StatementPtr& stmt)
     stmt->accept(this);
 }
 
-void fk::lang::Interpreter::enter_new_scope() noexcept
+fk::lang::Interpreter::Scope::Scope(fk::lang::Interpreter *interpreter, fk::lang::Environment *enclosing)
+    : interpreter_(interpreter)
+    , prev_(nullptr)
 {
-    env_.emplace_back();
-    FK_DEBUG("entered new scope '{}'", scope());
+    prev_ = std::move(interpreter->current_env_);
+    interpreter->current_env_ = make_env(enclosing);
+    FK_DEBUG("new scope created from {} to {} through {}", prev_->scope(), interpreter_->current_env_->scope(), enclosing->scope());
 }
 
-void fk::lang::Interpreter::leave_current_scope() noexcept
+fk::lang::Interpreter::Scope::~Scope()
 {
-    FK_DEBUG("leaving scope '{}'", scope());
-    env_.pop_back();
-}
-
-fk::lang::Environment& fk::lang::Interpreter::current_scope() noexcept
-{
-    return env_.back();
-}
-
-fk::lang::Environment& fk::lang::Interpreter::global_scope() noexcept
-{
-    return env_.front();
-}
-
-size_t fk::lang::Interpreter::scope() const noexcept
-{
-    return env_.size() - 1;
+    FK_DEBUG("scope exiting from {} to {}", interpreter_->current_env_->scope(), prev_->scope());
+    interpreter_->current_env_ = std::move(prev_);
 }

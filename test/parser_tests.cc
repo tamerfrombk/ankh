@@ -1,4 +1,3 @@
-#include "fak/lang/expr.h"
 #include <catch/catch.hpp>
 
 #include <string>
@@ -6,6 +5,10 @@
 
 #include <fak/lang/token.h>
 #include <fak/lang/parser.h>
+#include <fak/lang/expr.h>
+#include <fak/lang/statement.h>
+#include <fak/lang/lambda.h>
+
 #include <fak/lang/error_handler.h>
 
 #define PARSER_TEST(description) TEST_CASE(description, "[parser]")
@@ -490,6 +493,30 @@ PARSER_TEST("parse language expressions")
         auto callee_name = fk::lang::instance<fk::lang::IdentifierExpression>(callee->callee);
         REQUIRE(callee_name != nullptr);
         REQUIRE(callee_name->name.str == "a");
+    }
+
+    SECTION("parse lambda expression")
+    {
+        const std::string source =
+        R"(
+            lambda := def (a, b) {
+                return a + b
+            }
+        )";
+
+        auto program = fk::lang::parse(source, error_handler.get());
+
+        REQUIRE(program.size() == 1);
+        REQUIRE(error_handler->error_count() == 0);
+
+        auto stmt = fk::lang::instance<fk::lang::VariableDeclaration>(program[0]);
+        REQUIRE(stmt != nullptr);
+        
+        auto lambda = fk::lang::instance<fk::lang::LambdaExpression>(stmt->initializer);
+        REQUIRE(lambda != nullptr);
+        REQUIRE(lambda->params.size() == 2);
+        REQUIRE(lambda->body != nullptr);
+        REQUIRE(!lambda->generated_name.empty());
     }
 
     SECTION("parse unary !")

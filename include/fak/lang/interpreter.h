@@ -6,6 +6,7 @@
 
 #include <fak/lang/expr.h>
 #include <fak/lang/statement.h>
+#include <fak/lang/lambda.h>
 #include <fak/lang/env.h>
 #include <fak/lang/callable.h>
 
@@ -20,6 +21,17 @@ public:
 
     void interpret(const Program& program);
 
+    ExprResult evaluate(const ExpressionPtr& expr);
+    void execute(const StatementPtr& stmt);
+
+    inline Environment& current_scope()
+    {
+        return *current_env_;
+    }
+
+    void execute_block(const BlockStatement *stmt, Environment *environment);
+
+private:
     virtual ExprResult visit(BinaryExpression *expr) override;
     virtual ExprResult visit(UnaryExpression *expr) override;
     virtual ExprResult visit(LiteralExpression *expr) override;
@@ -28,6 +40,7 @@ public:
     virtual ExprResult visit(AndExpression *expr) override;
     virtual ExprResult visit(OrExpression *expr) override;
     virtual ExprResult visit(CallExpression *expr) override;
+    virtual ExprResult visit(LambdaExpression *expr) override;
 
     virtual void visit(PrintStatement *stmt) override;
     virtual void visit(ExpressionStatement *stmt) override;
@@ -39,18 +52,17 @@ public:
     virtual void visit(FunctionDeclaration *stmt) override;
     virtual void visit(ReturnStatement *stmt) override;
 
-    ExprResult evaluate(const ExpressionPtr& expr);
-    void execute(const StatementPtr& stmt);
-
-    Environment& current_scope() noexcept;
 private:
-    void enter_new_scope() noexcept;
-    void leave_current_scope() noexcept;
-    Environment& global_scope() noexcept;
-    size_t scope() const noexcept;
+    EnvironmentPtr current_env_;
 
-private:
-    std::vector<Environment> env_;
+    class Scope {
+    public:
+        Scope(fk::lang::Interpreter *interpreter, fk::lang::Environment *enclosing);
+        ~Scope();
+    private:
+        fk::lang::Interpreter *interpreter_;
+        fk::lang::EnvironmentPtr prev_;
+    };
 
     // TODO: this assumes all functions are in global namespace
     // That's OK for now but needs to be revisited when implementing modules

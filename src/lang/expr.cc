@@ -75,6 +75,8 @@ std::string fk::lang::ExprResult::stringify() const noexcept
         return callable->name();
     case fk::lang::ExprResultType::RT_NIL:
         return "nil";
+    case fk::lang::ExprResultType::RT_EXIT_CODE:
+        return std::to_string(n);
     default:
         FK_FATAL("stringify(): unknown expression result type!");
     }

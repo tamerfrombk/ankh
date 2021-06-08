@@ -1,11 +1,14 @@
 #include <algorithm>
 #include <initializer_list>
+#include <random>
 
 #include <fak/lang/parser.h>
 #include <fak/lang/lexer.h>
 #include <fak/lang/token.h>
 #include <fak/lang/error_handler.h>
-#include <fak/lang/parse_exception.h>
+#include <fak/lang/exceptions.h>
+#include <fak/lang/lambda.h>
+
 #include <fak/log.h>
 
 // desugar for loop into while loop
@@ -120,7 +123,7 @@ static fk::lang::StatementPtr desugar_inc_dec(const fk::lang::Token& op, fk::lan
         const std::string opstr = op.type == fk::lang::TokenType::INC
             ? "increment"
             : "decrement";
-        throw fk::lang::ParseException("invalid " + opstr + " target");
+        fk::lang::panic<fk::lang::ParseException>("invalid {} target", opstr);
     }
 
 
@@ -138,6 +141,25 @@ static fk::lang::StatementPtr desugar_inc_dec(const fk::lang::Token& op, fk::lan
 
     // target = target + 1
     return fk::lang::make_statement<fk::lang::AssignmentStatement>(identifier->name, std::move(right));
+}
+
+static char generate_random_alpha_char() noexcept
+{
+    static std::random_device rd;
+    static std::mt19937 mt(rd());
+    static std::uniform_int_distribution dist(0, 26);
+
+    return 'A' + dist(mt);
+}
+
+static std::string generate_lambda_name() noexcept
+{
+    std::string name("lambda$");
+    for (int i = 0; i < 5; ++i) {
+        name += generate_random_alpha_char();
+    }
+
+    return name;
 }
 
 fk::lang::Program fk::lang::parse(const std::string& source, fk::lang::ErrorHandler *error_handler) noexcept
@@ -184,7 +206,7 @@ fk::lang::StatementPtr fk::lang::Parser::parse_variable_declaration(ExpressionPt
 {
     IdentifierExpression *identifier = instance<IdentifierExpression>(target);
     if (identifier == nullptr) {
-        throw ParseException("invalid variable declaration target");
+        panic<ParseException>("invalid variable declaration target");
     }
 
     consume(TokenType::WALRUS, "':=' expected in variable declaration");
@@ -219,7 +241,7 @@ fk::lang::StatementPtr fk::lang::Parser::assignment(ExpressionPtr target)
 {
     IdentifierExpression *identifier = instance<IdentifierExpression>(target);
     if (identifier == nullptr) {
-        throw ParseException("invalid assignment target");
+        panic<ParseException>("invalid assignment target");
     }
 
     if (match({ 
@@ -468,7 +490,7 @@ fk::lang::ExpressionPtr fk::lang::Parser::call()
     }
 
     if (!instanceof<IdentifierExpression>(expr)) {
-        throw ParseException("<identifier> expected as function name");
+        panic<ParseException>("<identifier> expected as function name");
     }
 
     ExpressionPtr callable = std::move(expr);
@@ -514,7 +536,32 @@ fk::lang::ExpressionPtr fk::lang::Parser::primary()
         return make_expression<ParenExpression>(std::move(expr));
     }
 
-    throw ParseException("primary expression expected");
+    if (match(TokenType::DEF)) {
+        return lambda();
+    }
+
+    panic<ParseException>("primary expression expected");
+}
+
+fk::lang::ExpressionPtr fk::lang::Parser::lambda()
+{
+    consume(TokenType::LPAREN, "starting '(' expected in lambda expression");
+
+    std::vector<Token> params;
+    if (!check(TokenType::RPAREN)) {
+        do {
+            Token token = consume(TokenType::IDENTIFIER, "<identifier> expected in lambda parameter declaration");
+            params.push_back(token);
+        } while (match(TokenType::COMMA));
+    }
+
+    consume(TokenType::RPAREN, "terminating ')' expected in lambda expression");
+
+    StatementPtr body = block();
+
+    const std::string name = generate_lambda_name();
+
+    return make_expression<LambdaExpression>(name, std::move(params), std::move(body));
 }
 
 const fk::lang::Token& fk::lang::Parser::prev() const noexcept
@@ -578,8 +625,7 @@ fk::lang::Token fk::lang::Parser::consume(TokenType type, const std::string& msg
 {
     if (!match(type)) {
         const Token& current = curr();
-        std::string error_message("syntax error: " + msg + " instead of '" + current.str + "'");
-        throw fk::lang::ParseException(error_message);
+        panic<ParseException>("syntax error: '{}' instead of '{}'", msg, current.str);
     }
 
     return prev();
@@ -595,7 +641,8 @@ void fk::lang::Parser::synchronize_next_statement() noexcept
         TokenType::FOR,
         TokenType::FK_RETURN,
         TokenType::INC,
-        TokenType::DEC
+        TokenType::DEC,
+        TokenType::DEF
     };
 
     while (!check(statement_initializer_tokens)) {

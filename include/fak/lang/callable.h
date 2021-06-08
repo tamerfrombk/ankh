@@ -6,7 +6,7 @@
 
 #include <fak/lang/expr.h>
 #include <fak/lang/statement.h>
-
+#include <fak/lang/env.h>
 
 namespace fk::lang {
 
@@ -35,7 +35,7 @@ class Function
     : public Callable
 {
 public:
-    Function(Interpreter *interpreter, FunctionDeclaration *decl);
+    Function(Interpreter *interpreter, FunctionDeclaration *decl, EnvironmentPtr closure);
     
     virtual std::string name() const noexcept override;
 
@@ -46,6 +46,25 @@ public:
 private:
     Interpreter *interpreter_;
     FunctionDeclaration *decl_;
+    EnvironmentPtr closure_;
+};
+
+class Lambda
+    : public Callable
+{
+public:
+    Lambda(Interpreter *interpreter, LambdaExpression *decl, EnvironmentPtr closure);
+    
+    virtual std::string name() const noexcept override;
+
+    virtual size_t arity() const noexcept override;
+
+    virtual void invoke(const std::vector<ExpressionPtr>& args) override;
+
+private:
+    Interpreter *interpreter_;
+    LambdaExpression *decl_;
+    EnvironmentPtr closure_;
 };
 
 }

@@ -2,9 +2,12 @@
 
 #include <fak/lang/interpreter.h>
 
-fk::lang::Function::Function(Interpreter *interpreter, FunctionDeclaration *decl)
+#include <fak/log.h>
+
+fk::lang::Function::Function(Interpreter *interpreter, FunctionDeclaration *decl, EnvironmentPtr closure)
     : interpreter_(interpreter)
     , decl_(decl)
+    , closure_(closure)
 {}
     
 std::string fk::lang::Function::name() const noexcept
@@ -19,16 +22,42 @@ size_t fk::lang::Function::arity() const noexcept
 
 void fk::lang::Function::invoke(const std::vector<ExpressionPtr>& args)
 {
+    Environment environment(closure_.get());
+    FK_DEBUG("closure environment {} created", environment.scope());
     for (size_t i = 0; i < args.size(); ++i) {
         const ExprResult arg = interpreter_->evaluate(args[i]);
-        interpreter_->current_scope().assign(decl_->params[i].str, arg);
+        environment.put(decl_->params[i].str, arg);
     }
 
-    // Here, we avoid calling execute(declaration->body) directly because visiting a block statement will
-    // create a new additional environment we don't want. When we implement function calls, we will be controlling
-    // the environment of the child block so we execute its statements directly here.
     BlockStatement *block = static_cast<BlockStatement*>(decl_->body.get());
-    for (const auto& stmt : block->statements) {
-        interpreter_->execute(stmt);
+    interpreter_->execute_block(block, &environment);
+}
+
+fk::lang::Lambda::Lambda(Interpreter *interpreter, LambdaExpression *decl, EnvironmentPtr closure)
+    : interpreter_(interpreter)
+    , decl_(decl)
+    , closure_(closure)
+{}
+
+std::string fk::lang::Lambda::name() const noexcept
+{
+    return decl_->generated_name;
+}
+
+size_t fk::lang::Lambda::arity() const noexcept
+{
+    return decl_->params.size();
+}
+
+void fk::lang::Lambda::invoke(const std::vector<ExpressionPtr>& args)
+{
+    Environment environment(closure_.get());
+    FK_DEBUG("closure environment {} created", environment.scope());
+    for (size_t i = 0; i < args.size(); ++i) {
+        const ExprResult arg = interpreter_->evaluate(args[i]);
+        environment.put(decl_->params[i].str, arg);
     }
+
+    BlockStatement *block = static_cast<BlockStatement*>(decl_->body.get());
+    interpreter_->execute_block(block, &environment);
 }

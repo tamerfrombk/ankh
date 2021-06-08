@@ -6,8 +6,8 @@
 
 #include <fak/lang/expr.h>
 #include <fak/lang/statement.h>
+#include <fak/lang/lambda.h>
 #include <fak/lang/token.h>
-#include <fak/log.h>
 
 namespace fk::internal {
 
@@ -66,6 +66,28 @@ public:
             result.pop_back(); // remove the extra comma
         }
         result += ")";
+
+        return fk::lang::ExprResult::string(result);
+    }
+
+    inline virtual fk::lang::ExprResult visit(fk::lang::LambdaExpression *lambda) override
+    {
+        std::string result("def ");
+
+        result += lambda->generated_name;
+        result += '(';
+        for (const auto& param : lambda->params) {
+            result += stringify(param);
+            result += ", ";
+        }
+
+        if (lambda->params.size() > 0) {
+            result.pop_back(); // remove the trailing space
+            result.pop_back(); // remove the trailing comma
+        }
+        result += ") ";
+
+        result += stringify(lambda->body);
 
         return fk::lang::ExprResult::string(result);
     }
