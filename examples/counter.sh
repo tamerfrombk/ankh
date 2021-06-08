@@ -5,8 +5,6 @@ def makeCounter() {
   def count() {
     ++i
     print i
-
-    return
   }
 
   return count

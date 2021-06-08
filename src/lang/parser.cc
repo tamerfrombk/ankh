@@ -162,6 +162,21 @@ static std::string generate_lambda_name() noexcept
     return name;
 }
 
+static bool block_has_return_statement(const fk::lang::BlockStatement *stmt)
+{
+    for (const auto& st : stmt->statements) {
+        if (auto block = fk::lang::instance<fk::lang::BlockStatement>(st); block != nullptr) {
+            return block_has_return_statement(block);
+        }
+
+        if (fk::lang::instanceof<fk::lang::ReturnStatement>(st)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 fk::lang::Program fk::lang::parse(const std::string& source, fk::lang::ErrorHandler *error_handler) noexcept
 {
     const std::vector<fk::lang::Token> tokens = fk::lang::scan(source, error_handler);
@@ -185,6 +200,7 @@ fk::lang::Program fk::lang::Parser::parse() noexcept
         try {
             stmts.push_back(declaration());    
         } catch (const fk::lang::ParseException& e) {
+            FK_DEBUG("parse exception: {}", e.what());
             error_handler_->report_error({e.what()});
             synchronize_next_statement();
         }
@@ -233,6 +249,16 @@ fk::lang::StatementPtr fk::lang::Parser::parse_function_declaration()
     consume(TokenType::RPAREN, "')' expected to terminate function declaration parameters");
 
     StatementPtr body = block();
+    
+    // check to see we have a return statement inside the block
+    if (BlockStatement* block = static_cast<BlockStatement*>(body.get()); !block_has_return_statement(block)) {
+        FK_DEBUG("function '{}' definition doesn't have a return statement so 'return nil' will be injected", name.str);
+        
+        // TODO: figure out the line and column positions
+        // Insert a "return nil" as the last statement in the block
+        auto nil = make_expression<LiteralExpression>(Token{"nil", TokenType::NIL, 0, 0});
+        block->statements.push_back(make_statement<ReturnStatement>(std::move(nil)));
+    }
 
     return make_statement<FunctionDeclaration>(std::move(name), std::move(params), std::move(body));
 }

@@ -353,7 +353,65 @@ PARSER_TEST("parse language statements")
         REQUIRE(return_stmt != nullptr);
         REQUIRE(return_stmt->expr != nullptr);
     }
-    
+
+    SECTION("return statement injected into return-less function")
+    {
+        const std::string source =
+            R"(
+                def foo(a, b) {
+                    print a + b
+                }
+            )";
+
+        auto program = fk::lang::parse(source, error_handler.get());
+
+        REQUIRE(program.size() == 1);
+        REQUIRE(error_handler->error_count() == 0);
+
+        auto fn = fk::lang::instance<fk::lang::FunctionDeclaration>(program[0]);
+
+        auto body = fk::lang::instance<fk::lang::BlockStatement>(fn->body);
+        REQUIRE(body->statements.size() == 2);
+
+        REQUIRE(fk::lang::instanceof<fk::lang::PrintStatement>(body->statements[0]));
+
+        auto return_stmt = fk::lang::instance<fk::lang::ReturnStatement>(body->statements[1]);
+        REQUIRE(return_stmt != nullptr);
+        
+        auto nil = fk::lang::instance<fk::lang::LiteralExpression>(return_stmt->expr);
+        REQUIRE(nil != nullptr);
+        REQUIRE(nil->literal.str == "nil");
+    }
+
+    SECTION("return statement NOT injected into function with return")
+    {
+        const std::string source =
+            R"(
+                def foo(a, b) {
+                    s := a + b
+                    {
+                        return s
+                    }
+                }
+            )";
+
+        auto program = fk::lang::parse(source, error_handler.get());
+
+        REQUIRE(program.size() == 1);
+        REQUIRE(error_handler->error_count() == 0);
+
+        auto fn = fk::lang::instance<fk::lang::FunctionDeclaration>(program[0]);
+
+        auto body = fk::lang::instance<fk::lang::BlockStatement>(fn->body);
+        REQUIRE(body->statements.size() == 2);
+
+        REQUIRE(fk::lang::instanceof<fk::lang::VariableDeclaration>(body->statements[0]));
+
+        auto block = fk::lang::instance<fk::lang::BlockStatement>(body->statements[1]);
+        REQUIRE(block != nullptr);
+        REQUIRE(block->statements.size() == 1);
+        REQUIRE(fk::lang::instanceof<fk::lang::ReturnStatement>(block->statements[0]));
+    }
 }
 
 PARSER_TEST("parse language expressions")
@@ -562,5 +620,4 @@ PARSER_TEST("parse language expressions")
         test_boolean_binary_expression<fk::lang::AndExpression>("&&", error_handler_ptr);
         test_boolean_binary_expression<fk::lang::OrExpression>("||", error_handler_ptr);
     }
-
 }
