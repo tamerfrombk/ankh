@@ -621,3 +621,12 @@ PARSER_TEST("parse language expressions")
         test_boolean_binary_expression<fk::lang::OrExpression>("||", error_handler_ptr);
     }
 }
+
+PARSER_TEST("test parse statement without a empty line at the end does not infinite loop")
+{
+    auto error_handler = std::make_unique<fk::lang::ErrorHandler>();
+    auto program = fk::lang::parse("1 + 2", error_handler.get());
+
+    REQUIRE(program.size() == 1);
+    REQUIRE(error_handler->error_count() == 0);
+}

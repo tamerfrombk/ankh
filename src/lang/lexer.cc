@@ -32,7 +32,9 @@ fk::lang::Token fk::lang::Lexer::next() noexcept
     skip_whitespace();
 
     if (is_eof()) {
-        return tokenize("EOF", TokenType::FK_EOF);
+        // We avoid using tokenize() because we don't need line and col
+        // calculations on the sentinel EOF token
+        return { "EOF", TokenType::FK_EOF, line_, col_ };
     }
 
     const char c = advance();
@@ -272,7 +274,10 @@ bool fk::lang::is_keyword(const std::string& str) noexcept
 
 std::vector<fk::lang::Token> fk::lang::scan(const std::string& source, fk::lang::ErrorHandler *error_handler) noexcept
 {
-    fk::lang::Lexer lexer(source, error_handler);
+    // The new line is added here so that that while loop below will continue one last iteration
+    // after the last character in the actual source and emit a EOF token.
+    // It didn't need to be a new line; any whitespace character would have worked as well
+    fk::lang::Lexer lexer(source + "\n", error_handler);
 
     std::vector<fk::lang::Token> tokens;
     while (!lexer.is_eof()) {
