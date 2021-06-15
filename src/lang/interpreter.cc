@@ -162,13 +162,23 @@ static fk::lang::ExprResult compare(const fk::lang::ExprResult& left, const fk::
     panic(left, right, "unknown overload of comparison operator");
 }
 
+template <class Compare>
+static fk::lang::ExprResult logical(const fk::lang::ExprResult& left, const fk::lang::ExprResult& right, Compare cmp)
+{
+    if (operands_are(fk::lang::ExprResultType::RT_BOOL, {left, right})) {
+        return fk::lang::ExprResult::boolean(cmp(left.n, right.n));
+    }
+
+    panic(left, right, "unknown overload of comparison operator");
+}
+
 static bool truthy(const fk::lang::ExprResult& result) noexcept
 {
     if (result.type == fk::lang::ExprResultType::RT_BOOL) {
         return result.b;
     }
 
-    fk::lang::panic<fk::lang::InterpretationException>("{} is not a boolean expression", result.stringify());
+    fk::lang::panic<fk::lang::InterpretationException>("'{}' is not a boolean expression", result.stringify());
 }
 
 static void print(const fk::lang::ExprResult& result)
@@ -216,6 +226,10 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(BinaryExpression *expr)
         return plus(left, right);
     case TokenType::STAR:
         return arithmetic(left, right, std::multiplies<>{});
+    case TokenType::AND:
+        return logical(left, right, std::logical_and<>{});
+    case TokenType::OR:
+        return logical(left, right, std::logical_or<>{});
     case TokenType::FSLASH:
         // TODO: right now, dividing by 0 yields 'inf' revisit this and make sure that's the behavior we want for the language
         return arithmetic(left, right, std::divides<>{});
@@ -270,26 +284,6 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(IdentifierExpression *expr)
     ::panic("identifier '{}' not defined", expr->name.str);
 }
 
-fk::lang::ExprResult fk::lang::Interpreter::visit(AndExpression *expr)
-{
-    const ExprResult left = evaluate(expr->left);
-    if (!truthy(left)) {
-        return left;
-    }
-
-    return evaluate(expr->right);
-}
-
-fk::lang::ExprResult fk::lang::Interpreter::visit(OrExpression *expr)
-{
-    const ExprResult left = evaluate(expr->left);
-    if (truthy(left)) {
-        return left;
-    }
-
-    return evaluate(expr->right);
-}
-
 fk::lang::ExprResult fk::lang::Interpreter::visit(CallExpression *expr)
 {
     const ExprResult callee = evaluate(expr->callee);
@@ -327,7 +321,9 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(LambdaExpression *expr)
     
     functions_[name] = std::move(callable);
     
-    current_env_->put(name, result);
+    if (!current_env_->declare(name, result)) {
+        ::panic("'{}' is already defined", name);
+    }
 
     FK_DEBUG("function '{}' added to scope {}", name, current_env_->scope());
 
@@ -355,7 +351,9 @@ void fk::lang::Interpreter::visit(VariableDeclaration *stmt)
 
     FK_DEBUG("DECLARATION '{}' = '{}'", stmt->name.str, result.stringify());
 
-    current_env_->put(stmt->name.str, result);
+    if (!current_env_->declare(stmt->name.str, result)) {
+        ::panic("'{}' is already defined", stmt->name.str);
+    }
 }
 
 void fk::lang::Interpreter::visit(AssignmentStatement *stmt)
@@ -413,7 +411,9 @@ void fk::lang::Interpreter::visit(fk::lang::FunctionDeclaration *stmt)
     
     functions_[name] = std::move(callable);
     
-    current_env_->put(name, result);
+    if (!current_env_->declare(name, result)) {
+        ::panic("'{}' is already defined", name);
+    }
 
     FK_DEBUG("function '{}' added to scope {}", name, current_env_->scope());
 }

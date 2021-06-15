@@ -26,7 +26,9 @@ void fk::lang::Function::invoke(const std::vector<ExpressionPtr>& args)
     FK_DEBUG("closure environment {} created", environment.scope());
     for (size_t i = 0; i < args.size(); ++i) {
         const ExprResult arg = interpreter_->evaluate(args[i]);
-        environment.put(decl_->params[i].str, arg);
+        if (!environment.declare(decl_->params[i].str, arg)) {
+            FK_FATAL("function parameter '{}' should always be declarable");
+        }
     }
 
     BlockStatement *block = static_cast<BlockStatement*>(decl_->body.get());
@@ -55,7 +57,9 @@ void fk::lang::Lambda::invoke(const std::vector<ExpressionPtr>& args)
     FK_DEBUG("closure environment {} created", environment.scope());
     for (size_t i = 0; i < args.size(); ++i) {
         const ExprResult arg = interpreter_->evaluate(args[i]);
-        environment.put(decl_->params[i].str, arg);
+        if (!environment.declare(decl_->params[i].str, arg)) {
+            FK_FATAL("function parameter '{}' should always be declarable");
+        }
     }
 
     BlockStatement *block = static_cast<BlockStatement*>(decl_->body.get());

@@ -15,8 +15,6 @@ struct UnaryExpression;
 struct LiteralExpression;
 struct ParenExpression;
 struct IdentifierExpression;
-struct AndExpression;
-struct OrExpression;
 struct CallExpression;
 struct LambdaExpression;
 
@@ -31,8 +29,6 @@ struct ExpressionVisitor {
     virtual R visit(LiteralExpression *expr) = 0;
     virtual R visit(ParenExpression *expr) = 0;
     virtual R visit(IdentifierExpression *expr) = 0;
-    virtual R visit(AndExpression *expr) = 0;
-    virtual R visit(OrExpression *expr) = 0;
     virtual R visit(CallExpression *expr) = 0;
     virtual R visit(LambdaExpression *expr) = 0;
 };
@@ -40,7 +36,6 @@ struct ExpressionVisitor {
 using Number = double;
 
 enum class ExprResultType {
-    RT_EXIT_CODE,
     RT_STRING,
     RT_NUMBER,
     RT_BOOL,
@@ -52,13 +47,12 @@ std::string expr_result_type_str(ExprResultType type) noexcept;
 
 struct ExprResult {
 
-    // TODO: unionize these fields. Right now, getting implicitly deleted destructor error because of union
-    // and I don't want to block myself figuring it out right now.
     std::string str;
-    Number      n;
-    bool        b;
-    int         exit_code;
-    Callable    *callable;
+    union {
+        Number      n;
+        bool        b;
+        Callable    *callable;
+    };
 
     ExprResultType type;
 
@@ -151,34 +145,6 @@ struct IdentifierExpression
 
     IdentifierExpression(Token name)
         : name(std::move(name)) {}
-
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
-    {
-        return visitor->visit(this);
-    }
-};
-
-struct AndExpression 
-    : public Expression 
-{
-    ExpressionPtr left, right;
-
-    AndExpression(ExpressionPtr left, ExpressionPtr right)
-        : left(std::move(left)), right(std::move(right)) {}
-
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
-    {
-        return visitor->visit(this);
-    }
-};
-
-struct OrExpression 
-    : public Expression 
-{
-    ExpressionPtr left, right;
-
-    OrExpression(ExpressionPtr left, ExpressionPtr right)
-        : left(std::move(left)), right(std::move(right)) {}
 
     virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
     {

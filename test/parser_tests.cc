@@ -31,10 +31,9 @@ static void test_binary_expression_parse(const std::string& op, fk::lang::ErrorH
     REQUIRE(binary->op.str == op);
 }
 
-template <class Boolean>
 static void test_boolean_binary_expression(const std::string& op, fk::lang::ErrorHandler *error_handler) noexcept
 {
-    const std::string source("1" + op + "2" + "\n");
+    const std::string source("true" + op + "false" + "\n");
     
     auto program = fk::lang::parse(source, error_handler);
     REQUIRE(program.size() == 1);
@@ -43,7 +42,7 @@ static void test_boolean_binary_expression(const std::string& op, fk::lang::Erro
     auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
     REQUIRE(stmt != nullptr);
 
-    auto binary = fk::lang::instance<Boolean>(stmt->expr);
+    auto binary = fk::lang::instance<fk::lang::BinaryExpression>(stmt->expr);
     REQUIRE(binary != nullptr);
     REQUIRE(binary->left != nullptr);
     REQUIRE(binary->right != nullptr);
@@ -614,11 +613,11 @@ PARSER_TEST("parse language expressions")
         test_binary_expression_parse("==", error_handler_ptr);
     }
 
-    SECTION("parse boolean binary")
+    SECTION("parse logical")
     {
         auto error_handler_ptr = error_handler.get();
-        test_boolean_binary_expression<fk::lang::AndExpression>("&&", error_handler_ptr);
-        test_boolean_binary_expression<fk::lang::OrExpression>("||", error_handler_ptr);
+        test_boolean_binary_expression("&&", error_handler_ptr);
+        test_boolean_binary_expression("||", error_handler_ptr);
     }
 }
 

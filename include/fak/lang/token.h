@@ -87,3 +87,20 @@ inline std::ostream& operator<<(std::ostream& os, const Token& t) noexcept
 }
 
 }
+
+template<>
+struct fmt::formatter<fk::lang::Token>
+{
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
+
+    template <typename FormatContext>
+    auto format(const fk::lang::Token& token, FormatContext& ctx)
+    {
+        return fmt::format_to(ctx.out(), "({}, {}, {}, {})", 
+            token_type_str(token.type), token.str, token.line, token.col);
+    }
+};

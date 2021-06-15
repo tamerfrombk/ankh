@@ -10,8 +10,6 @@ fk::lang::Environment::Environment(fk::lang::Environment *enclosing)
 
 bool fk::lang::Environment::assign(const std::string& name, const ExprResult& result) noexcept
 {
-    // TODO: this contains check bothers me and forces me to implement put()
-    // Figure out if this is strictly necessary
     if (contains(name)) {
         FK_DEBUG("ASSIGNMENT '{}' = '{}' @ scope '{}'", name, result.stringify(), scope());
 
@@ -28,11 +26,17 @@ bool fk::lang::Environment::assign(const std::string& name, const ExprResult& re
     return false;
 }
 
-void fk::lang::Environment::put(const std::string& name, const ExprResult& result) noexcept
+bool fk::lang::Environment::declare(const std::string& name, const ExprResult& result) noexcept
 {
-    FK_DEBUG("PUT '{} = '{}' @ scope '{}'", name, result.stringify(), scope());
+    FK_DEBUG("PUT '{}' = '{}' @ scope '{}'", name, result.stringify(), scope());
+    if (contains(name)) {
+        FK_DEBUG("'{}' cannot be declared because it already exists in scope {}", name, scope());
+        return false;
+    }
 
     values_[name] = result;
+
+    return true;
 }
 
 std::optional<fk::lang::ExprResult> fk::lang::Environment::value(const std::string& name) const noexcept

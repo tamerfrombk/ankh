@@ -37,8 +37,6 @@ private:
     virtual ExprResult visit(LiteralExpression *expr) override;
     virtual ExprResult visit(ParenExpression *expr) override;
     virtual ExprResult visit(IdentifierExpression *expr) override;
-    virtual ExprResult visit(AndExpression *expr) override;
-    virtual ExprResult visit(OrExpression *expr) override;
     virtual ExprResult visit(CallExpression *expr) override;
     virtual ExprResult visit(LambdaExpression *expr) override;
 

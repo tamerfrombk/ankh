@@ -1,3 +1,4 @@
+#include "fak/lang/expr.h"
 #include <algorithm>
 #include <initializer_list>
 #include <random>
@@ -424,8 +425,9 @@ fk::lang::ExpressionPtr fk::lang::Parser::parse_or()
 {
     fk::lang::ExpressionPtr left = parse_and();
     while (match(fk::lang::TokenType::OR)) {
+        const Token& op = prev();
         fk::lang::ExpressionPtr right = parse_and();
-        left = make_expression<fk::lang::OrExpression>(std::move(left), std::move(right));
+        left = make_expression<fk::lang::BinaryExpression>(std::move(left), op, std::move(right));
     }
 
     return left;
@@ -435,8 +437,9 @@ fk::lang::ExpressionPtr fk::lang::Parser::parse_and()
 {
     fk::lang::ExpressionPtr left = equality();
     while (match(fk::lang::TokenType::AND)) {
+        const Token& op = prev();
         fk::lang::ExpressionPtr right = equality();
-        left = make_expression<fk::lang::AndExpression>(std::move(left), std::move(right));
+        left = make_expression<fk::lang::BinaryExpression>(std::move(left), op, std::move(right));
     }
 
     return left;

@@ -5,10 +5,10 @@
 
 namespace fk::lang {
 
-// TODO: this is here instead of in lang/expr.h because we need both expression and statement constructs
-// to create a lambda and including this in expr.h will create a circular include problem between expr.h and statement.h
-// since statement.h relies on expr.h
-
+// This is here instead of in lang/expr.h because we need both expression and statement constructs
+// to create a lambda
+// Including this in expr.h will create a circular include problem between expr.h and statement.h
+// since statement.h relies on expr.h which would rely and statement.h and so on
 struct LambdaExpression 
     : public Expression 
 {

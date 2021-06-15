@@ -41,16 +41,6 @@ public:
         return fk::lang::ExprResult::string(expr->name.str);
     }
 
-    inline virtual fk::lang::ExprResult visit(fk::lang::AndExpression *expr) override
-    {
-        return fk::lang::ExprResult::string(binary(expr->left, "&&", expr->right));
-    }
-
-    inline virtual fk::lang::ExprResult visit(fk::lang::OrExpression *expr) override
-    {
-        return fk::lang::ExprResult::string(binary(expr->left, "||", expr->right));
-    }
-
     inline virtual fk::lang::ExprResult visit(fk::lang::CallExpression *expr) override
     {
         std::string result = stringify(expr->callee);

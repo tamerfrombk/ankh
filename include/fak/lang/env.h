@@ -18,7 +18,7 @@ public:
 
     FK_NO_DISCARD bool assign(const std::string& name, const ExprResult& result) noexcept;
 
-    void put(const std::string& name, const ExprResult& result) noexcept;
+    FK_NO_DISCARD bool declare(const std::string& name, const ExprResult& result) noexcept;
 
     std::optional<ExprResult> value(const std::string& name) const noexcept;
 

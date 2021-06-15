@@ -7,7 +7,6 @@
 std::string fk::lang::expr_result_type_str(fk::lang::ExprResultType type) noexcept
 {
     switch (type) {
-    case fk::lang::ExprResultType::RT_EXIT_CODE: return "EXIT_CODE";
     case fk::lang::ExprResultType::RT_STRING:    return "STRING";
     case fk::lang::ExprResultType::RT_NUMBER:    return "NUMBER";
     case fk::lang::ExprResultType::RT_BOOL:      return "BOOL";
@@ -75,8 +74,6 @@ std::string fk::lang::ExprResult::stringify() const noexcept
         return callable->name();
     case fk::lang::ExprResultType::RT_NIL:
         return "nil";
-    case fk::lang::ExprResultType::RT_EXIT_CODE:
-        return std::to_string(n);
     default:
         FK_FATAL("stringify(): unknown expression result type!");
     }
