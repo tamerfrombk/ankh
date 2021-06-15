@@ -162,14 +162,13 @@ static fk::lang::ExprResult compare(const fk::lang::ExprResult& left, const fk::
     panic(left, right, "unknown overload of comparison operator");
 }
 
-// TODO: rethink truthiness -- do we really only want boolean expressions?
 static bool truthy(const fk::lang::ExprResult& result) noexcept
 {
     if (result.type == fk::lang::ExprResultType::RT_BOOL) {
         return result.b;
     }
 
-    return false;
+    fk::lang::panic<fk::lang::InterpretationException>("{} is not a boolean expression", result.stringify());
 }
 
 static void print(const fk::lang::ExprResult& result)
