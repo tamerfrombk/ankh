@@ -671,7 +671,7 @@ void fk::lang::Parser::synchronize_next_statement() noexcept
         TokenType::DEF
     };
 
-    while (!check(statement_initializer_tokens)) {
+    while (!is_eof() && !check(statement_initializer_tokens)) {
         advance();
     }
 }
