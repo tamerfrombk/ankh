@@ -7,14 +7,11 @@
 
 namespace fk::lang {
 
-// forward declarations
-struct ErrorHandler;
-
 class Lexer {
 public:
-    Lexer(std::string text, ErrorHandler *error_handler);
+    Lexer(std::string text);
 
-    Token next() noexcept;
+    Token next();
     Token peek() noexcept;
 
     bool is_eof() const noexcept;
@@ -24,8 +21,8 @@ private:
     void skip_comment() noexcept;
     
     Token scan_alnum() noexcept;
-    Token scan_string() noexcept;
-    Token scan_number() noexcept;
+    Token scan_string();
+    Token scan_number();
     Token scan_compound_operator(char expected, TokenType then, TokenType otherwise) noexcept;
 
     char prev() const noexcept;
@@ -41,12 +38,10 @@ private:
     size_t cursor_;
     size_t line_;
     size_t col_;
-
-    ErrorHandler *error_handler_;
 };
 
 bool is_keyword(const std::string& str) noexcept;
 
-std::vector<Token> scan(const std::string& source, ErrorHandler *error_handler) noexcept;
+std::vector<Token> scan(const std::string& source);
 
 }

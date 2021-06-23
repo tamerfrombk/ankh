@@ -8,7 +8,6 @@
 #include <fak/fak.h>
 
 #include <fak/lang/parser.h>
-#include <fak/lang/error_handler.h>
 #include <fak/lang/interpreter.h>
 #include <fak/lang/exceptions.h>
 
@@ -16,25 +15,23 @@
 
 #include <fmt/color.h>
 
-static void print_error(const char *msg)
+static void print_error(const char *msg) noexcept
 {
     fmt::print(fg(fmt::color::red) | fmt::emphasis::bold, "{}\n", msg);
 }
 
-static void print_error(const std::string& msg)
+static void print_error(const std::string& msg) noexcept
 {
     print_error(msg.c_str());
 }
 
 static int execute(fk::lang::Interpreter& interpreter, const std::string& script) noexcept
 {
-    auto error_handler = std::make_unique<fk::lang::ErrorHandler>();
-
-    const fk::lang::Program program = fk::lang::parse(script, error_handler.get());
-    if (error_handler->error_count() > 0) {
-        const auto& errors = error_handler->errors();
+    const fk::lang::Program program = fk::lang::parse(script);
+    if (program.has_errors()) {
+        const auto& errors = program.errors();
         for (const auto& e : errors) {
-           print_error(e.msg);
+           print_error(e);
         }
         return EXIT_FAILURE;
     }

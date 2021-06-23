@@ -1,4 +1,3 @@
-#include "fak/lang/expr.h"
 #include <algorithm>
 #include <initializer_list>
 #include <random>
@@ -6,7 +5,6 @@
 #include <fak/lang/parser.h>
 #include <fak/lang/lexer.h>
 #include <fak/lang/token.h>
-#include <fak/lang/error_handler.h>
 #include <fak/lang/exceptions.h>
 #include <fak/lang/lambda.h>
 
@@ -178,36 +176,35 @@ static bool block_has_return_statement(const fk::lang::BlockStatement *stmt)
     return false;
 }
 
-fk::lang::Program fk::lang::parse(const std::string& source, fk::lang::ErrorHandler *error_handler) noexcept
+fk::lang::Program fk::lang::parse(const std::string& source)
 {
-    const std::vector<fk::lang::Token> tokens = fk::lang::scan(source, error_handler);
+    const std::vector<fk::lang::Token> tokens = fk::lang::scan(source);
 
-    fk::lang::Parser parser(tokens, error_handler);
+    fk::lang::Parser parser(tokens);
 
     return parser.parse();
 }
 
-fk::lang::Parser::Parser(const std::vector<Token>& tokens, ErrorHandler *error_handler)
+fk::lang::Parser::Parser(const std::vector<Token>& tokens)
     : tokens_(tokens) 
     , cursor_(0)
-    , error_handler_(error_handler)
 {}
 
 fk::lang::Program fk::lang::Parser::parse() noexcept
 {
     // PERFORMANCE: see if we can reserve some room up front
-    Program stmts;
+    Program program;
     while (!is_eof()) {
         try {
-            stmts.push_back(declaration());    
+            program.add_statement(declaration());    
         } catch (const fk::lang::ParseException& e) {
             FK_DEBUG("parse exception: {}", e.what());
-            error_handler_->report_error({e.what()});
+            program.add_error(e.what());
             synchronize_next_statement();
         }
     }
 
-    return stmts;
+    return program;
 }
 
 fk::lang::StatementPtr fk::lang::Parser::declaration()

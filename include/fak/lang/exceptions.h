@@ -9,6 +9,13 @@
 
 namespace fk::lang {
 
+struct ScanException
+    : public std::runtime_error
+{
+    explicit ScanException(const std::string& msg)
+        : std::runtime_error(msg) {}
+};
+
 struct InterpretationException
     : public std::runtime_error
 {

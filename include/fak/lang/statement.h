@@ -44,7 +44,6 @@ struct Statement
 };
 
 using StatementPtr = std::unique_ptr<Statement>;
-using Program     = std::vector<StatementPtr>;
 
 template <class T, class... Args>
 StatementPtr make_statement(Args&&... args)

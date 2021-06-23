@@ -9,17 +9,14 @@
 #include <fak/lang/statement.h>
 #include <fak/lang/lambda.h>
 
-#include <fak/lang/error_handler.h>
-
 #define PARSER_TEST(description) TEST_CASE(description, "[parser]")
 
-static void test_binary_expression_parse(const std::string& op, fk::lang::ErrorHandler *error_handler) noexcept
+static void test_binary_expression_parse(const std::string& op) noexcept
 {
     const std::string source("1" + op + "2" + "\n");
     
-    auto program = fk::lang::parse(source, error_handler);
+    auto program = fk::lang::parse(source);
     REQUIRE(program.size() == 1);
-    REQUIRE(error_handler->error_count() == 0);
 
     auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
     REQUIRE(stmt != nullptr);
@@ -31,13 +28,12 @@ static void test_binary_expression_parse(const std::string& op, fk::lang::ErrorH
     REQUIRE(binary->op.str == op);
 }
 
-static void test_boolean_binary_expression(const std::string& op, fk::lang::ErrorHandler *error_handler) noexcept
+static void test_boolean_binary_expression(const std::string& op) noexcept
 {
     const std::string source("true" + op + "false" + "\n");
     
-    auto program = fk::lang::parse(source, error_handler);
+    auto program = fk::lang::parse(source);
     REQUIRE(program.size() == 1);
-    REQUIRE(error_handler->error_count() == 0);
 
     auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
     REQUIRE(stmt != nullptr);
@@ -48,14 +44,13 @@ static void test_boolean_binary_expression(const std::string& op, fk::lang::Erro
     REQUIRE(binary->right != nullptr);
 }
 
-static void test_unary_expression(const std::string& op, fk::lang::ErrorHandler *error_handler) noexcept
+static void test_unary_expression(const std::string& op) noexcept
 {
     const std::string source(op + "3" + "\n");
 
-    auto program = fk::lang::parse(source, error_handler);
+    auto program = fk::lang::parse(source);
 
     REQUIRE(program.size() == 1);
-    REQUIRE(error_handler->error_count() == 0);
 
     auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
     REQUIRE(stmt != nullptr);
@@ -68,8 +63,6 @@ static void test_unary_expression(const std::string& op, fk::lang::ErrorHandler 
 
 PARSER_TEST("parse language statements")
 {
-    auto error_handler = std::make_unique<fk::lang::ErrorHandler>();
-
     SECTION("parse expression statement")
     {
         const std::string source =
@@ -77,10 +70,9 @@ PARSER_TEST("parse language statements")
             1 + 2
         )";
 
-        auto program = fk::lang::parse(source, error_handler.get());
+        auto program = fk::lang::parse(source);
 
         REQUIRE(program.size() == 1);
-        REQUIRE(error_handler->error_count() == 0);
 
         auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
@@ -96,10 +88,9 @@ PARSER_TEST("parse language statements")
             i := 1
         )";
 
-        auto program = fk::lang::parse(source, error_handler.get());
+        auto program = fk::lang::parse(source);
 
         REQUIRE(program.size() == 1);
-        REQUIRE(error_handler->error_count() == 0);
 
         auto declaration = fk::lang::instance<fk::lang::VariableDeclaration>(program[0]);
         REQUIRE(declaration != nullptr);
@@ -120,10 +111,9 @@ PARSER_TEST("parse language statements")
             i = 3
         )";
 
-        auto program = fk::lang::parse(source, error_handler.get());
+        auto program = fk::lang::parse(source);
 
         REQUIRE(program.size() == 2);
-        REQUIRE(error_handler->error_count() == 0);
 
         auto assignment = fk::lang::instance<fk::lang::AssignmentStatement>(program[1]);
         REQUIRE(assignment != nullptr);
@@ -144,10 +134,9 @@ PARSER_TEST("parse language statements")
             ++i
         )";
 
-        auto program = fk::lang::parse(source, error_handler.get());
+        auto program = fk::lang::parse(source);
 
         REQUIRE(program.size() == 2);
-        REQUIRE(error_handler->error_count() == 0);
 
         auto assignment = fk::lang::instance<fk::lang::AssignmentStatement>(program[1]);
         REQUIRE(assignment != nullptr);
@@ -167,10 +156,9 @@ PARSER_TEST("parse language statements")
             --i
         )";
 
-        auto program = fk::lang::parse(source, error_handler.get());
+        auto program = fk::lang::parse(source);
 
         REQUIRE(program.size() == 2);
-        REQUIRE(error_handler->error_count() == 0);
 
         auto assignment = fk::lang::instance<fk::lang::AssignmentStatement>(program[1]);
         REQUIRE(assignment != nullptr);
@@ -189,10 +177,9 @@ PARSER_TEST("parse language statements")
             print "hello"
         )";
 
-        auto program = fk::lang::parse(source, error_handler.get());
+        auto program = fk::lang::parse(source);
 
         REQUIRE(program.size() == 1);
-        REQUIRE(error_handler->error_count() == 0);
 
         auto print = fk::lang::instance<fk::lang::PrintStatement>(program[0]);
         REQUIRE(print != nullptr);
@@ -212,10 +199,9 @@ PARSER_TEST("parse language statements")
             }
         )";
 
-        auto program = fk::lang::parse(source, error_handler.get());
+        auto program = fk::lang::parse(source);
 
         REQUIRE(program.size() == 1);
-        REQUIRE(error_handler->error_count() == 0);
 
         auto block = fk::lang::instance<fk::lang::BlockStatement>(program[0]);
         REQUIRE(block != nullptr);
@@ -232,10 +218,9 @@ PARSER_TEST("parse language statements")
             }
         )";
 
-        auto program = fk::lang::parse(source, error_handler.get());
+        auto program = fk::lang::parse(source);
 
         REQUIRE(program.size() == 1);
-        REQUIRE(error_handler->error_count() == 0);
 
         auto if_stmt = fk::lang::instance<fk::lang::IfStatement>(program[0]);
         REQUIRE(if_stmt != nullptr);
@@ -256,10 +241,9 @@ PARSER_TEST("parse language statements")
             }
         )";
 
-        auto program = fk::lang::parse(source, error_handler.get());
+        auto program = fk::lang::parse(source);
 
         REQUIRE(program.size() == 1);
-        REQUIRE(error_handler->error_count() == 0);
 
         auto if_stmt = fk::lang::instance<fk::lang::IfStatement>(program[0]);
         REQUIRE(if_stmt != nullptr);
@@ -281,10 +265,9 @@ PARSER_TEST("parse language statements")
             }
         )";
 
-        auto program = fk::lang::parse(source, error_handler.get());
+        auto program = fk::lang::parse(source);
 
         REQUIRE(program.size() == 2);
-        REQUIRE(error_handler->error_count() == 0);
 
         auto while_stmt = fk::lang::instance<fk::lang::WhileStatement>(program[1]);
         REQUIRE(while_stmt != nullptr);
@@ -304,10 +287,9 @@ PARSER_TEST("parse language statements")
             }
         )";
 
-        auto program = fk::lang::parse(source, error_handler.get());
+        auto program = fk::lang::parse(source);
 
         REQUIRE(program.size() == 1);
-        REQUIRE(error_handler->error_count() == 0);
 
         auto block = fk::lang::instance<fk::lang::BlockStatement>(program[0]);
         REQUIRE(block != nullptr);
@@ -333,10 +315,9 @@ PARSER_TEST("parse language statements")
             }
         )";
 
-        auto program = fk::lang::parse(source, error_handler.get());
+        auto program = fk::lang::parse(source);
 
         REQUIRE(program.size() == 1);
-        REQUIRE(error_handler->error_count() == 0);
 
         auto fn = fk::lang::instance<fk::lang::FunctionDeclaration>(program[0]);
         REQUIRE(fn != nullptr);
@@ -362,10 +343,9 @@ PARSER_TEST("parse language statements")
                 }
             )";
 
-        auto program = fk::lang::parse(source, error_handler.get());
+        auto program = fk::lang::parse(source);
 
         REQUIRE(program.size() == 1);
-        REQUIRE(error_handler->error_count() == 0);
 
         auto fn = fk::lang::instance<fk::lang::FunctionDeclaration>(program[0]);
 
@@ -394,10 +374,9 @@ PARSER_TEST("parse language statements")
                 }
             )";
 
-        auto program = fk::lang::parse(source, error_handler.get());
+        auto program = fk::lang::parse(source);
 
         REQUIRE(program.size() == 1);
-        REQUIRE(error_handler->error_count() == 0);
 
         auto fn = fk::lang::instance<fk::lang::FunctionDeclaration>(program[0]);
 
@@ -415,8 +394,6 @@ PARSER_TEST("parse language statements")
 
 PARSER_TEST("parse language expressions")
 {
-    auto error_handler = std::make_unique<fk::lang::ErrorHandler>();
-
     SECTION("parse primary")
     {
         const std::string source =
@@ -428,12 +405,12 @@ PARSER_TEST("parse language expressions")
             nil
         )";
 
-        auto program = fk::lang::parse(source, error_handler.get());
+        auto program = fk::lang::parse(source);
 
         REQUIRE(program.size() == 5);
-        REQUIRE(error_handler->error_count() == 0);
 
-        for (const auto& stmt : program) {
+        const auto& statements = program.statements();
+        for (const auto& stmt : statements) {
             auto literal = fk::lang::instance<fk::lang::ExpressionStatement>(stmt);
             REQUIRE(literal != nullptr);
             REQUIRE(fk::lang::instanceof<fk::lang::LiteralExpression>(literal->expr));
@@ -447,10 +424,9 @@ PARSER_TEST("parse language expressions")
             ( "an expression" )
         )";
 
-        auto program = fk::lang::parse(source, error_handler.get());
+        auto program = fk::lang::parse(source);
 
         REQUIRE(program.size() == 1);
-        REQUIRE(error_handler->error_count() == 0);
 
         auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
@@ -465,10 +441,9 @@ PARSER_TEST("parse language expressions")
             a
         )";
 
-        auto program = fk::lang::parse(source, error_handler.get());
+        auto program = fk::lang::parse(source);
 
         REQUIRE(program.size() == 1);
-        REQUIRE(error_handler->error_count() == 0);
 
         auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
@@ -483,10 +458,9 @@ PARSER_TEST("parse language expressions")
             a()
         )";
 
-        auto program = fk::lang::parse(source, error_handler.get());
+        auto program = fk::lang::parse(source);
 
         REQUIRE(program.size() == 1);
-        REQUIRE(error_handler->error_count() == 0);
 
         auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
@@ -507,10 +481,9 @@ PARSER_TEST("parse language expressions")
             a(1, 2)
         )";
 
-        auto program = fk::lang::parse(source, error_handler.get());
+        auto program = fk::lang::parse(source);
 
         REQUIRE(program.size() == 1);
-        REQUIRE(error_handler->error_count() == 0);
 
         auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
@@ -531,10 +504,9 @@ PARSER_TEST("parse language expressions")
             a(1, 2)()
         )";
 
-        auto program = fk::lang::parse(source, error_handler.get());
+        auto program = fk::lang::parse(source);
 
         REQUIRE(program.size() == 1);
-        REQUIRE(error_handler->error_count() == 0);
 
         auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
@@ -561,10 +533,9 @@ PARSER_TEST("parse language expressions")
             }
         )";
 
-        auto program = fk::lang::parse(source, error_handler.get());
+        auto program = fk::lang::parse(source);
 
         REQUIRE(program.size() == 1);
-        REQUIRE(error_handler->error_count() == 0);
 
         auto stmt = fk::lang::instance<fk::lang::VariableDeclaration>(program[0]);
         REQUIRE(stmt != nullptr);
@@ -578,54 +549,46 @@ PARSER_TEST("parse language expressions")
 
     SECTION("parse unary !")
     {
-        auto error_handler_ptr = error_handler.get();
-        test_unary_expression("!", error_handler_ptr);
-        test_unary_expression("-", error_handler_ptr);
+        test_unary_expression("!");
+        test_unary_expression("-");
     } 
 
     SECTION("parse factor")
     {
-        auto error_handler_ptr = error_handler.get();
-        test_binary_expression_parse("*", error_handler_ptr);
-        test_binary_expression_parse("/", error_handler_ptr);
+        test_binary_expression_parse("*");
+        test_binary_expression_parse("/");
     }
 
     SECTION("parse term")
     {
-        auto error_handler_ptr = error_handler.get();
-        test_binary_expression_parse("-", error_handler_ptr);
-        test_binary_expression_parse("+", error_handler_ptr);
+        test_binary_expression_parse("-");
+        test_binary_expression_parse("+");
     }
 
     SECTION("parse comparison")
     {
-        auto error_handler_ptr = error_handler.get();
-        test_binary_expression_parse(">", error_handler_ptr);
-        test_binary_expression_parse(">=", error_handler_ptr);
-        test_binary_expression_parse("<", error_handler_ptr);
-        test_binary_expression_parse("<=", error_handler_ptr);
+        test_binary_expression_parse(">");
+        test_binary_expression_parse(">=");
+        test_binary_expression_parse("<");
+        test_binary_expression_parse("<=");
     }
 
     SECTION("parse equality")
     {
-        auto error_handler_ptr = error_handler.get();
-        test_binary_expression_parse("!=", error_handler_ptr);
-        test_binary_expression_parse("==", error_handler_ptr);
+        test_binary_expression_parse("!=");
+        test_binary_expression_parse("==");
     }
 
     SECTION("parse logical")
     {
-        auto error_handler_ptr = error_handler.get();
-        test_boolean_binary_expression("&&", error_handler_ptr);
-        test_boolean_binary_expression("||", error_handler_ptr);
+        test_boolean_binary_expression("&&");
+        test_boolean_binary_expression("||");
     }
 }
 
 PARSER_TEST("test parse statement without a empty line at the end does not infinite loop")
 {
-    auto error_handler = std::make_unique<fk::lang::ErrorHandler>();
-    auto program = fk::lang::parse("1 + 2", error_handler.get());
+    auto program = fk::lang::parse("1 + 2");
 
     REQUIRE(program.size() == 1);
-    REQUIRE(error_handler->error_count() == 0);
 }

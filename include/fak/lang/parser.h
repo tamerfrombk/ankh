@@ -6,16 +6,14 @@
 #include <fak/lang/expr.h>
 #include <fak/lang/statement.h>
 #include <fak/lang/token.h>
+#include <fak/lang/program.h>
 
 namespace fk::lang {
-
-// forward declarations
-struct ErrorHandler;
 
 class Parser 
 {
 public:
-    explicit Parser(const std::vector<Token>& tokens, ErrorHandler *error_handler);
+    explicit Parser(const std::vector<Token>& tokens);
 
     Program parse() noexcept;
 
@@ -65,8 +63,6 @@ private:
 private:
     std::vector<Token> tokens_;
     size_t cursor_;
-
-    ErrorHandler *error_handler_;
 };
 
 template <class ExpectedType, class Ptr>
@@ -81,6 +77,6 @@ bool instanceof(const Ptr& ptr) noexcept
     return instance<ExpectedType>(ptr) != nullptr;
 }
 
-Program parse(const std::string& source, ErrorHandler *error_handler) noexcept;
+Program parse(const std::string& source);
 
 }

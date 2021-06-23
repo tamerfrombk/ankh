@@ -1,9 +1,9 @@
-#include "fak/lang/token.h"
 #include <cctype>
 #include <unordered_map>
 
 #include <fak/lang/lexer.h>
-#include <fak/lang/error_handler.h>
+#include <fak/lang/exceptions.h>
+
 #include <fak/log.h>
 
 static const std::unordered_map<std::string, fk::lang::TokenType> KEYWORDS = {
@@ -19,15 +19,14 @@ static const std::unordered_map<std::string, fk::lang::TokenType> KEYWORDS = {
     , { "return", fk::lang::TokenType::FK_RETURN }
 };
 
-fk::lang::Lexer::Lexer(std::string text, fk::lang::ErrorHandler *error_handler)
+fk::lang::Lexer::Lexer(std::string text)
     : text_(std::move(text))
     , cursor_(0)
     , line_(1)
     , col_(1)
-    , error_handler_(error_handler)
 {}
 
-fk::lang::Token fk::lang::Lexer::next() noexcept
+fk::lang::Token fk::lang::Lexer::next()
 {
     skip_whitespace();
 
@@ -84,15 +83,13 @@ fk::lang::Token fk::lang::Lexer::next() noexcept
             advance(); // eat the '&'
             return tokenize("&&", TokenType::AND);
         }
-        error_handler_->report_error({"'&' is not a valid token; did you mean '&&' ?"});
-        return tokenize("&", TokenType::UNKNOWN);
+        panic<ScanException>("'&' is not a valid token; did you mean '&&' ?");
     } else if (c == '|') {
         if (curr() == '|') {
             advance(); // eat the '|'
             return tokenize("||", TokenType::OR);
         }
-        error_handler_->report_error({"'|' is not a valid token; did you mean '||' ?"});
-        return tokenize("|", TokenType::UNKNOWN);
+        panic<ScanException>("'|' is not a valid token; did you mean '||' ?");
     } else if (c == ';') {
         return tokenize(";", TokenType::SEMICOLON);
     } else if (c == ',') {
@@ -102,11 +99,9 @@ fk::lang::Token fk::lang::Lexer::next() noexcept
             advance(); // eat the '='
             return tokenize(":=", TokenType::WALRUS);
         }
-        error_handler_->report_error({"':' is not a valid token; did you mean ':=' ?"});
-        return tokenize(":", TokenType::UNKNOWN);
+        panic<ScanException>("':' is not a valid token; did you mean ':=' ?");
     } else {
-        error_handler_->report_error({"unknown token!"});
-        return tokenize(c, TokenType::UNKNOWN);
+        panic<ScanException>("unknown token!");
     }
 }
 
@@ -164,16 +159,16 @@ fk::lang::Token fk::lang::Lexer::scan_alnum() noexcept
     return tokenize(token, type);
 }
 
-fk::lang::Token fk::lang::Lexer::scan_string() noexcept
+fk::lang::Token fk::lang::Lexer::scan_string()
 {
+    // TODO: handle escape sequences within strings
     std::string str;
     while (!is_eof()) {
         char c = advance();
         if (c == '"') {
             break;
         } else if (is_eof()) {
-            error_handler_->report_error({"terminal \" not found"});
-            return { str, TokenType::UNKNOWN, line_, col_ };
+            panic<ScanException>("terminal \" not found");
         } else {
             str += c;
         }
@@ -182,7 +177,7 @@ fk::lang::Token fk::lang::Lexer::scan_string() noexcept
     return tokenize(str, TokenType::STRING);
 }
 
-fk::lang::Token fk::lang::Lexer::scan_number() noexcept
+fk::lang::Token fk::lang::Lexer::scan_number()
 {
     std::string num(1, prev());
 
@@ -194,8 +189,7 @@ fk::lang::Token fk::lang::Lexer::scan_number() noexcept
             advance();
         } else if (c == '.') {
             if (decimal_found) {
-                error_handler_->report_error({"'.' lexeme not expected"});
-                return { ".", TokenType::UNKNOWN, line_, col_ };
+                panic<ScanException>("'.' lexeme not expected");
             }
             num += c;
             decimal_found = true;
@@ -272,12 +266,12 @@ bool fk::lang::is_keyword(const std::string& str) noexcept
     return KEYWORDS.find(str) != KEYWORDS.cend();
 }
 
-std::vector<fk::lang::Token> fk::lang::scan(const std::string& source, fk::lang::ErrorHandler *error_handler) noexcept
+std::vector<fk::lang::Token> fk::lang::scan(const std::string& source)
 {
     // The new line is added here so that that while loop below will continue one last iteration
     // after the last character in the actual source and emit a EOF token.
     // It didn't need to be a new line; any whitespace character would have worked as well
-    fk::lang::Lexer lexer(source + "\n", error_handler);
+    fk::lang::Lexer lexer(source + "\n");
 
     std::vector<fk::lang::Token> tokens;
     while (!lexer.is_eof()) {

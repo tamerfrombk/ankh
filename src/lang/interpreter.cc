@@ -192,7 +192,8 @@ fk::lang::Interpreter::Interpreter()
 
 void fk::lang::Interpreter::interpret(const Program& program)
 {
-    for (const auto& stmt : program) {
+    const auto& statements = program.statements();
+    for (const auto& stmt : statements) {
 #ifndef NDEBUG
         fk::internal::PrettyPrinter printer;
         const std::string pretty = stmt->accept(&printer);

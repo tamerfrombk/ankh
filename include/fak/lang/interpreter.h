@@ -6,6 +6,7 @@
 
 #include <fak/lang/expr.h>
 #include <fak/lang/statement.h>
+#include <fak/lang/program.h>
 #include <fak/lang/lambda.h>
 #include <fak/lang/env.h>
 #include <fak/lang/callable.h>
