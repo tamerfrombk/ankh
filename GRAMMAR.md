@@ -8,7 +8,7 @@ function_declaration  → "def" identifier "(" params? ")" block
 params                → identifier ( "," identifier )*
 
 statement             → expression_statement
-                        | variable_declaration 
+                        | variable_declaration
                         | assignment
                         | inc_dec
                         | print_statement
@@ -32,20 +32,22 @@ return_statement      → "return" expression?
 expression            → or_expression
 or_expression         → and_expression ( "||" and_expression )*
 and_expression        → equality ( "&&" equality )*
-equality              → comparison ( ( "!=" | "==" ) comparison )* 
-comparison            → term ( ( ">" | ">=" | "<" | "<=" ) term )* 
-term                  → factor ( ( "-" | "+" ) factor )* 
-factor                → unary ( ( "/" | "*" ) unary )* 
+equality              → comparison ( ( "!=" | "==" ) comparison )*
+comparison            → term ( ( ">" | ">=" | "<" | "<=" ) term )*
+term                  → factor ( ( "-" | "+" ) factor )*
+factor                → unary ( ( "/" | "*" ) unary )*
 unary                 → ( "!" | "-" ) unary | call
 call                  → primary "(" args? ")"
-args                  → expression ( "," expression )* 
+args                  → expression ( "," expression )*
 primary               → literal
-                        | "(" expression ")" 
+                        | "(" expression ")"
                         | identifier
                         | lambda
+                        | command
 
 literal               → number | string | "true" | "false" | "nil"
 lambda                → def "(" params? ")" block
+command               → "$" "(" [alnum]+ ")"
 identifier            → (_ | [a-z][A-Z]) (_ | [a-z][A-Z] | [0-9])*
 string                → "[ascii]*"
 number                → [0-9]\.?[0-9]+

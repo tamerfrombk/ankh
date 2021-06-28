@@ -86,6 +86,8 @@ std::string fk::lang::token_type_str(fk::lang::TokenType type) noexcept
         return "NUMBER";
     case fk::lang::TokenType::STRING:
         return "STRING";
+    case fk::lang::TokenType::COMMAND:
+        return "COMMAND";
     case fk::lang::TokenType::FK_EOF:
         return "EOF";
     case fk::lang::TokenType::UNKNOWN:

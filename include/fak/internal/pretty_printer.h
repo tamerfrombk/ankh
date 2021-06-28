@@ -9,6 +9,10 @@
 #include <fak/lang/lambda.h>
 #include <fak/lang/token.h>
 
+#include <fak/def.h>
+#include <fak/log.h>
+
+
 namespace fk::internal {
 
 class PrettyPrinter
@@ -80,6 +84,11 @@ public:
         result += stringify(lambda->body);
 
         return fk::lang::ExprResult::string(result);
+    }
+
+    inline virtual fk::lang::ExprResult visit(fk::lang::CommandExpression *cmd) override
+    {
+        return fk::lang::ExprResult::string("$(" + stringify(cmd->cmd) + ")");
     }
 
     inline virtual std::string visit(fk::lang::PrintStatement *stmt) override

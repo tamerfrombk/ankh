@@ -4,10 +4,11 @@
 #include <vector>
 
 #include <fak/lang/token.h>
-#include <fak/lang/parser.h>
+#include <fak/lang/exceptions.h>
 #include <fak/lang/expr.h>
 #include <fak/lang/statement.h>
 #include <fak/lang/lambda.h>
+#include <fak/lang/parser.h>
 
 #define PARSER_TEST(description) TEST_CASE(description, "[parser]")
 
@@ -583,6 +584,38 @@ PARSER_TEST("parse language expressions")
     {
         test_boolean_binary_expression("&&");
         test_boolean_binary_expression("||");
+    }
+
+    SECTION("parse command")
+    {
+        const std::string source =
+        R"(
+            $(echo hello)
+        )";
+
+        auto program = fk::lang::parse(source);
+
+        REQUIRE(program.size() == 1);
+
+        auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+        REQUIRE(stmt != nullptr);
+        
+        auto cmd = fk::lang::instance<fk::lang::CommandExpression>(stmt->expr);
+        REQUIRE(cmd != nullptr);
+        REQUIRE(cmd->cmd.str == "echo hello");
+        REQUIRE(cmd->cmd.type == fk::lang::TokenType::COMMAND);
+    }
+
+    SECTION("parse empty command")
+    {
+        const std::string source =
+        R"(
+            $()
+        )";
+
+        auto program = fk::lang::parse(source);
+
+        REQUIRE(program.has_errors());
     }
 }
 

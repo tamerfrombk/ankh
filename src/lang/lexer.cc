@@ -100,6 +100,8 @@ fk::lang::Token fk::lang::Lexer::next()
             return tokenize(":=", TokenType::WALRUS);
         }
         panic<ScanException>("':' is not a valid token; did you mean ':=' ?");
+    } else if (c == '$') {
+        return scan_command();
     } else {
         panic<ScanException>("unknown token!");
     }
@@ -211,6 +213,29 @@ fk::lang::Token fk::lang::Lexer::scan_compound_operator(char expected, TokenType
     }
 
     return tokenize(before, otherwise);
+}
+
+fk::lang::Token fk::lang::Lexer::scan_command()
+{ 
+    if (curr() != '(') {
+        panic<ScanException>("'(' token is expected after '$' for command");
+    }
+
+    advance(); // eat the '('
+
+    std::string value;
+    while (!is_eof()) {
+        char c = advance();
+        if (c == ')') {
+            break;
+        } else if (is_eof()) {
+            panic<ScanException>("terminal ')' not found");
+        } else {
+            value += c;
+        }
+    }
+
+    return tokenize(value, TokenType::COMMAND);
 }
 
 char fk::lang::Lexer::prev() const noexcept

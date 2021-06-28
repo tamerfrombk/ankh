@@ -234,3 +234,32 @@ LEXER_TEST("lex unary |")
     
     REQUIRE_THROWS_AS(fk::lang::scan(source), fk::lang::ScanException);
 }
+
+LEXER_TEST("scan command operator") 
+{
+    const std::string source = R"(
+        $(echo hello)
+    )";
+    
+    auto tokens = fk::lang::scan(source);
+
+    REQUIRE((tokens[0].str == "echo hello" && tokens[0].type == fk::lang::TokenType::COMMAND));
+}
+
+LEXER_TEST("scan command operator missing initial (") 
+{
+    const std::string source = R"(
+        $echo hello)
+    )";
+    
+    REQUIRE_THROWS_AS(fk::lang::scan(source), fk::lang::ScanException);
+}
+
+LEXER_TEST("scan command operator missing terminal (") 
+{
+    const std::string source = R"(
+        $(echo hello
+    )";
+    
+    REQUIRE_THROWS_AS(fk::lang::scan(source), fk::lang::ScanException);
+}

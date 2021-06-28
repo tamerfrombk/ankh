@@ -540,30 +540,39 @@ fk::lang::ExpressionPtr fk::lang::Parser::call()
 fk::lang::ExpressionPtr fk::lang::Parser::primary()
 {
     if (match({ 
-        fk::lang::TokenType::NUMBER
-        , fk::lang::TokenType::STRING
-        , fk::lang::TokenType::FK_TRUE
-        , fk::lang::TokenType::FK_FALSE
-        , fk::lang::TokenType::NIL
+        TokenType::NUMBER
+        , TokenType::STRING
+        , TokenType::FK_TRUE
+        , TokenType::FK_FALSE
+        , TokenType::NIL
         })
     ) {
         return make_expression<LiteralExpression>(prev());
     }
 
-    if (match(fk::lang::TokenType::IDENTIFIER)) {
+    if (match(TokenType::IDENTIFIER)) {
         return make_expression<IdentifierExpression>(prev());
     }
 
-    if (match(fk::lang::TokenType::LPAREN)) {
-        fk::lang::ExpressionPtr expr = expression();
+    if (match(TokenType::LPAREN)) {
+        ExpressionPtr expr = expression();
         
-        consume(fk::lang::TokenType::RPAREN, "terminating ')' in parenthetic expression expected");
+        consume(TokenType::RPAREN, "terminating ')' in parenthetic expression expected");
 
         return make_expression<ParenExpression>(std::move(expr));
     }
 
     if (match(TokenType::DEF)) {
         return lambda();
+    }
+
+    if (match(TokenType::COMMAND)) {
+        const Token& cmd = prev();
+        if (cmd.str.empty()) {
+            panic<ParseException>("{}:{} command is empty", cmd.line, cmd.col);
+        }
+
+        return make_expression<CommandExpression>(cmd);
     }
 
     panic<ParseException>("primary expression expected");

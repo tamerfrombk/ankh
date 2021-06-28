@@ -24,6 +24,7 @@ private:
     Token scan_string();
     Token scan_number();
     Token scan_compound_operator(char expected, TokenType then, TokenType otherwise) noexcept;
+    Token scan_command();
 
     char prev() const noexcept;
     char curr() const noexcept;

@@ -331,6 +331,28 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(LambdaExpression *expr)
     return result;
 }
 
+fk::lang::ExprResult fk::lang::Interpreter::visit(fk::lang::CommandExpression *expr)
+{
+    FK_DEBUG("executing {}", expr->cmd.str);
+
+    // TODO: popen() uses the underlying shell to invoke commands
+    // This limits the language from being used as a shell itself
+    // Come back and explore if that's something we want to consider doing
+    std::FILE *fp = popen(expr->cmd.str.c_str(), "r");
+    if (fp == nullptr) {
+        FK_FATAL("popen: unable to launch {}", expr->cmd.str);
+    }
+
+    char buf[512];
+    std::string output;
+    while (std::fread(buf, sizeof(buf[0]), sizeof(buf), fp) > 0) {
+        output += buf;
+    }
+    fclose(fp);
+
+    return fk::lang::ExprResult::string(output);
+}
+
 void fk::lang::Interpreter::visit(PrintStatement *stmt)
 {
     const ExprResult result = evaluate(stmt->expr);

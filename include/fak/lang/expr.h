@@ -17,6 +17,7 @@ struct ParenExpression;
 struct IdentifierExpression;
 struct CallExpression;
 struct LambdaExpression;
+struct CommandExpression;
 
 struct Callable;
 
@@ -31,6 +32,7 @@ struct ExpressionVisitor {
     virtual R visit(IdentifierExpression *expr) = 0;
     virtual R visit(CallExpression *expr) = 0;
     virtual R visit(LambdaExpression *expr) = 0;
+    virtual R visit(CommandExpression *expr) = 0;
 };
 
 using Number = double;
@@ -160,6 +162,20 @@ struct CallExpression
 
     CallExpression(ExpressionPtr name, std::vector<ExpressionPtr> args)
         : callee(std::move(name)), args(std::move(args)) {}
+
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
+    {
+        return visitor->visit(this);
+    }
+};
+
+struct CommandExpression 
+    : public Expression 
+{
+    Token cmd;
+
+    CommandExpression(Token cmd)
+        : cmd(std::move(cmd)) {}
 
     virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
     {

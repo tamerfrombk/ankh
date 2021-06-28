@@ -25,11 +25,6 @@ public:
     ExprResult evaluate(const ExpressionPtr& expr);
     void execute(const StatementPtr& stmt);
 
-    inline Environment& current_scope()
-    {
-        return *current_env_;
-    }
-
     void execute_block(const BlockStatement *stmt, Environment *environment);
 
 private:
@@ -40,6 +35,7 @@ private:
     virtual ExprResult visit(IdentifierExpression *expr) override;
     virtual ExprResult visit(CallExpression *expr) override;
     virtual ExprResult visit(LambdaExpression *expr) override;
+    virtual ExprResult visit(CommandExpression *cmd) override;
 
     virtual void visit(PrintStatement *stmt) override;
     virtual void visit(ExpressionStatement *stmt) override;

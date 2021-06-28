@@ -51,6 +51,7 @@ enum class TokenType {
     DEC,               // --
     NUMBER,
     STRING,
+    COMMAND,
     FK_EOF,
     UNKNOWN
 };
