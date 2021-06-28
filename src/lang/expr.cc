@@ -17,50 +17,6 @@ std::string fk::lang::expr_result_type_str(fk::lang::ExprResultType type) noexce
     }
 }
 
-fk::lang::ExprResult fk::lang::ExprResult::nil() 
-{
-    ExprResult e;
-    e.type = ExprResultType::RT_NIL;
-
-    return e;
-}
-
-fk::lang::ExprResult fk::lang::ExprResult::num(Number n) 
-{
-    ExprResult e;
-    e.type = ExprResultType::RT_NUMBER;
-    e.n  = n;
-
-    return e;
-}
-
-fk::lang::ExprResult fk::lang::ExprResult::string(std::string s) 
-{
-    ExprResult e;
-    e.type = ExprResultType::RT_STRING;
-    e.str  = std::move(s);
-
-    return e;
-}
-
-fk::lang::ExprResult fk::lang::ExprResult::boolean(bool b) 
-{
-    ExprResult e;
-    e.type = ExprResultType::RT_BOOL;
-    e.b    = b;
-
-    return e;
-}
-
-fk::lang::ExprResult fk::lang::ExprResult::call(Callable *callable)
-{
-    ExprResult e;
-    e.type = ExprResultType::RT_CALLABLE;
-    e.callable = callable;
-
-    return e;
-}
-
 std::string fk::lang::ExprResult::stringify() const noexcept
 {
     switch (type) {

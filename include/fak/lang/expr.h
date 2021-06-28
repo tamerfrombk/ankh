@@ -58,11 +58,11 @@ struct ExprResult {
 
     ExprResultType type;
 
-    static ExprResult nil();
-    static ExprResult num(Number n);
-    static ExprResult string(std::string s);
-    static ExprResult boolean(bool b);
-    static ExprResult call(Callable *callable);
+    ExprResult()                   :                      type(ExprResultType::RT_NIL) {}
+    ExprResult(std::string str)    : str(std::move(str)), type(ExprResultType::RT_STRING) {}
+    ExprResult(Number n)           : n(n)               , type(ExprResultType::RT_NUMBER) {}
+    ExprResult(bool b)             : b(b)               , type(ExprResultType::RT_BOOL) {}
+    ExprResult(Callable *callable) : callable(callable) , type(ExprResultType::RT_CALLABLE) {}
 
     std::string stringify() const noexcept;
 };

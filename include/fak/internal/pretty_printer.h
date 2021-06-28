@@ -22,27 +22,27 @@ class PrettyPrinter
 public:
     inline virtual fk::lang::ExprResult visit(fk::lang::BinaryExpression *expr) override
     {
-        return fk::lang::ExprResult::string(binary(expr->left, expr->op.str, expr->right));
+        return binary(expr->left, expr->op.str, expr->right);
     }
 
     inline virtual fk::lang::ExprResult visit(fk::lang::UnaryExpression *expr) override
     {
-        return fk::lang::ExprResult::string(expr->op.str + " " + stringify(expr->right));
+        return expr->op.str + " " + stringify(expr->right);
     }
 
     inline virtual fk::lang::ExprResult visit(fk::lang::LiteralExpression *expr) override
     {
-        return fk::lang::ExprResult::string(expr->literal.str);
+        return expr->literal.str;
     }
 
     inline virtual fk::lang::ExprResult visit(fk::lang::ParenExpression *expr) override
     {
-        return fk::lang::ExprResult::string("( " + stringify(expr->expr) + " )");
+        return "( " + stringify(expr->expr) + " )";
     }
 
     inline virtual fk::lang::ExprResult visit(fk::lang::IdentifierExpression *expr) override
     {
-        return fk::lang::ExprResult::string(expr->name.str);
+        return expr->name.str;
     }
 
     inline virtual fk::lang::ExprResult visit(fk::lang::CallExpression *expr) override
@@ -61,7 +61,7 @@ public:
         }
         result += ")";
 
-        return fk::lang::ExprResult::string(result);
+        return result;
     }
 
     inline virtual fk::lang::ExprResult visit(fk::lang::LambdaExpression *lambda) override
@@ -83,12 +83,12 @@ public:
 
         result += stringify(lambda->body);
 
-        return fk::lang::ExprResult::string(result);
+        return result;
     }
 
     inline virtual fk::lang::ExprResult visit(fk::lang::CommandExpression *cmd) override
     {
-        return fk::lang::ExprResult::string("$(" + stringify(cmd->cmd) + ")");
+        return "$(" + stringify(cmd->cmd) + ")";
     }
 
     inline virtual std::string visit(fk::lang::PrintStatement *stmt) override

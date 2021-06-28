@@ -85,7 +85,7 @@ static fk::lang::Number to_num(const std::string& s)
 static fk::lang::ExprResult negate(const fk::lang::ExprResult& result)
 {
     if (result.type == fk::lang::ExprResultType::RT_NUMBER) {
-        return fk::lang::ExprResult::num(-1 * result.n);
+        return -1 * result.n;
     }
 
     panic(result, "unary (-) operator expects a number expression");
@@ -94,7 +94,7 @@ static fk::lang::ExprResult negate(const fk::lang::ExprResult& result)
 static fk::lang::ExprResult invert(const fk::lang::ExprResult& result)
 {
     if (result.type == fk::lang::ExprResultType::RT_BOOL) {
-        return fk::lang::ExprResult::boolean(!(result.b));
+        return !(result.b);
     }
 
     panic(result, "(!) operator expects a boolean expression");
@@ -103,19 +103,19 @@ static fk::lang::ExprResult invert(const fk::lang::ExprResult& result)
 static fk::lang::ExprResult eqeq(const fk::lang::ExprResult& left, const fk::lang::ExprResult& right)
 {
     if (operands_are(fk::lang::ExprResultType::RT_NUMBER, {left, right})) {
-        return fk::lang::ExprResult::boolean(left.n == right.n);
+        return left.n == right.n;
     }
 
     if (operands_are(fk::lang::ExprResultType::RT_STRING, {left, right})) {
-        return fk::lang::ExprResult::boolean(left.str == right.str);
+        return left.str == right.str;
     }
 
     if (operands_are(fk::lang::ExprResultType::RT_BOOL, {left, right})) {
-        return fk::lang::ExprResult::boolean(left.b == right.b);
+        return left.b == right.b;
     }
 
     if (operands_are(fk::lang::ExprResultType::RT_NIL, {left, right})) {
-        return fk::lang::ExprResult::boolean(true);
+        return true;
     }
 
     panic(left, right, "unknown overload of (==) operator");
@@ -126,7 +126,7 @@ static fk::lang::ExprResult
 arithmetic(const fk::lang::ExprResult& left, const fk::lang::ExprResult& right, BinaryOperation op)
 {
     if (operands_are(fk::lang::ExprResultType::RT_NUMBER, {left, right})) {
-        return fk::lang::ExprResult::num(op(left.n, right.n));
+        return op(left.n, right.n);
     }
 
     panic(left, right, "unknown overload of arithmetic operator");
@@ -138,11 +138,11 @@ arithmetic(const fk::lang::ExprResult& left, const fk::lang::ExprResult& right, 
 static fk::lang::ExprResult plus(const fk::lang::ExprResult& left, const fk::lang::ExprResult& right)
 {
     if (operands_are(fk::lang::ExprResultType::RT_NUMBER, {left, right})) {
-        return fk::lang::ExprResult::num(left.n + right.n);
+        return left.n + right.n;
     }
 
     if (operands_are(fk::lang::ExprResultType::RT_STRING, {left, right})) {
-        return fk::lang::ExprResult::string(left.str + right.str);
+        return left.str + right.str;
     }
 
     panic(left, right, "unknown overload of (+) operator");
@@ -152,11 +152,11 @@ template <class Compare>
 static fk::lang::ExprResult compare(const fk::lang::ExprResult& left, const fk::lang::ExprResult& right, Compare cmp)
 {
     if (operands_are(fk::lang::ExprResultType::RT_NUMBER, {left, right})) {
-        return fk::lang::ExprResult::boolean(cmp(left.n, right.n));
+        return cmp(left.n, right.n);
     }
 
     if (operands_are(fk::lang::ExprResultType::RT_STRING, {left, right})) {
-        return fk::lang::ExprResult::boolean(cmp(left.str, right.str));
+        return cmp(left.str, right.str);
     }
 
     panic(left, right, "unknown overload of comparison operator");
@@ -166,7 +166,7 @@ template <class Compare>
 static fk::lang::ExprResult logical(const fk::lang::ExprResult& left, const fk::lang::ExprResult& right, Compare cmp)
 {
     if (operands_are(fk::lang::ExprResultType::RT_BOOL, {left, right})) {
-        return fk::lang::ExprResult::boolean(cmp(left.n, right.n));
+        return cmp(left.n, right.n);
     }
 
     panic(left, right, "unknown overload of comparison operator");
@@ -256,15 +256,15 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(LiteralExpression *expr)
 {
     switch (expr->literal.type) {
     case TokenType::NUMBER:
-        return ExprResult::num(to_num(expr->literal.str));
+        return to_num(expr->literal.str);
     case TokenType::STRING:
-        return ExprResult::string(expr->literal.str);
+        return expr->literal.str;
     case TokenType::FK_TRUE:
-        return ExprResult::boolean(true);
+        return true;
     case TokenType::FK_FALSE:
-        return ExprResult::boolean(false);
+        return false;
     case TokenType::NIL:
-        return ExprResult::nil();
+        return {};
     default:
         ::panic("unknown literal expression '{}''", expr->literal.str);
     }
@@ -318,7 +318,7 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(LambdaExpression *expr)
 
     CallablePtr callable = make_callable<Lambda>(this, expr, current_env_);
 
-    ExprResult result = ExprResult::call(callable.get());
+    ExprResult result { callable.get() };
     
     functions_[name] = std::move(callable);
     
@@ -350,7 +350,7 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(fk::lang::CommandExpression *e
     }
     fclose(fp);
 
-    return fk::lang::ExprResult::string(output);
+    return output;
 }
 
 void fk::lang::Interpreter::visit(PrintStatement *stmt)
@@ -431,7 +431,7 @@ void fk::lang::Interpreter::visit(fk::lang::FunctionDeclaration *stmt)
 
     CallablePtr callable = make_callable<Function>(this, stmt, current_env_);
 
-    ExprResult result = ExprResult::call(callable.get());
+    ExprResult result { callable.get() };
     
     functions_[name] = std::move(callable);
     
