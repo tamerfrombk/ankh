@@ -339,7 +339,8 @@ void fk::lang::Interpreter::visit(PrintStatement *stmt)
 
 void fk::lang::Interpreter::visit(ExpressionStatement *stmt)
 {
-    evaluate(stmt->expr);
+    const ExprResult result = evaluate(stmt->expr);
+    print(result);
 }
 
 void fk::lang::Interpreter::visit(VariableDeclaration *stmt)
