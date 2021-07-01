@@ -460,6 +460,9 @@ PARSER_TEST("parse language expressions")
         )";
 
         auto program = fk::lang::parse(source);
+        for (auto e : program.errors()) {
+            INFO(e);
+        }
 
         REQUIRE(program.size() == 1);
 
@@ -623,28 +626,83 @@ PARSER_TEST("parse language expressions")
         const std::string source =
         R"(
             [1, 2]
+        )";
+
+        auto program = fk::lang::parse(source);
+        REQUIRE(program.size() == 1);
+
+        auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+        REQUIRE(stmt != nullptr);
+
+        auto arr = fk::lang::instance<fk::lang::ArrayExpression>(stmt->expr);
+        REQUIRE(arr != nullptr);
+        REQUIRE(arr->elems.size() == 2);
+    }
+
+    SECTION("parse empty array")
+    {
+        const std::string source =
+        R"(
             []
         )";
 
         auto program = fk::lang::parse(source);
+        REQUIRE(program.size() == 1);
+        
+        auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+        REQUIRE(stmt != nullptr);
 
-        REQUIRE(program.size() == 2);
-        {
-            auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
-            REQUIRE(stmt != nullptr);
+        auto arr = fk::lang::instance<fk::lang::ArrayExpression>(stmt->expr);
+        REQUIRE(arr != nullptr);
+        REQUIRE(arr->elems.size() == 0);
+    }
 
-            auto arr = fk::lang::instance<fk::lang::ArrayExpression>(stmt->expr);
-            REQUIRE(arr != nullptr);
-            REQUIRE(arr->elems.size() == 2);
-        }
-        {
-            auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[1]);
-            REQUIRE(stmt != nullptr);
-            
-            auto arr = fk::lang::instance<fk::lang::ArrayExpression>(stmt->expr);
-            REQUIRE(arr != nullptr);
-            REQUIRE(arr->elems.size() == 0);
-        }
+    SECTION("interleave call and index expressions")
+    {
+        const std::string source =
+        R"(
+            foo()[0]
+        )";
+
+        auto program = fk::lang::parse(source);
+
+        REQUIRE(program.size() == 1);
+
+        auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+        REQUIRE(stmt != nullptr);
+        
+        auto idx = fk::lang::instance<fk::lang::IndexExpression>(stmt->expr);
+        REQUIRE(idx != nullptr);
+    }
+
+    SECTION("interleave index and call expressions")
+    {
+        const std::string source =
+        R"(
+            foo[0]()
+        )";
+
+        auto program = fk::lang::parse(source);
+
+        REQUIRE(program.size() == 1);
+
+        auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+        REQUIRE(stmt != nullptr);
+        
+        auto idx = fk::lang::instance<fk::lang::CallExpression>(stmt->expr);
+        REQUIRE(idx != nullptr);
+    }
+
+    SECTION("index with no index expression")
+    {
+        const std::string source =
+        R"(
+            foo[]
+        )";
+
+        auto program = fk::lang::parse(source);
+
+        REQUIRE(program.has_errors());
     }
 }
 
@@ -653,4 +711,16 @@ PARSER_TEST("test parse statement without a empty line at the end does not infin
     auto program = fk::lang::parse("1 + 2");
 
     REQUIRE(program.size() == 1);
+}
+
+TEST_CASE("parse two arrays as two separate statements rather than an index operation", "[parser][!mayfail]")
+{
+    const std::string source =
+    R"(
+        [1, 2]
+        [0]
+    )";
+
+    auto program = fk::lang::parse(source);
+    REQUIRE(program.size() == 2);
 }

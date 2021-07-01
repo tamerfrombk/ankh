@@ -36,8 +36,8 @@ equality              → comparison ( ( "!=" | "==" ) comparison )*
 comparison            → term ( ( ">" | ">=" | "<" | "<=" ) term )*
 term                  → factor ( ( "-" | "+" ) factor )*
 factor                → unary ( ( "/" | "*" ) unary )*
-unary                 → ( "!" | "-" ) unary | call
-call                  → primary "(" args? ")"
+unary                 → ( "!" | "-" ) unary | operable
+operable              → primary ( "(" args? ")" | "[" expression "]" )
 args                  → expression ( "," expression )*
 primary               → literal
                         | "(" expression ")"

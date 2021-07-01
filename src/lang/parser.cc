@@ -505,37 +505,49 @@ fk::lang::ExpressionPtr fk::lang::Parser::unary()
         return make_expression<UnaryExpression>(op, std::move(right));
     }
 
-    return call();
+    return operable();
 }
 
-fk::lang::ExpressionPtr fk::lang::Parser::call()
+fk::lang::ExpressionPtr fk::lang::Parser::operable()
 {
     ExpressionPtr expr = primary();
-    
-    if (!check(TokenType::LPAREN)) {
-        return expr;
-    }
+    while (check({ TokenType::LPAREN, TokenType::LBRACKET })) {    
+        if (match(TokenType::LPAREN)) {
+            if (!instanceof<IdentifierExpression>(expr) 
+            && !instanceof<CallExpression>(expr)
+            && !instanceof<IndexExpression>(expr)
+            ) {
+                panic<ParseException>("identifier, index, or another callable expected as callable");
+            }
 
-    if (!instanceof<IdentifierExpression>(expr)) {
-        panic<ParseException>("<identifier> expected as function name");
-    }
+            std::vector<ExpressionPtr> args;
+            if (!check(TokenType::RPAREN)) {
+                do {
+                    args.push_back(expression());
+                } while (match({ TokenType::COMMA }));
+            }
 
-    ExpressionPtr callable = std::move(expr);
-    while (match(TokenType::LPAREN)) {
-        std::vector<ExpressionPtr> args;
-        
-        if (!check(TokenType::RPAREN)) {
-            do {
-                args.push_back(expression());
-            } while (match({ TokenType::COMMA }));
+            consume(TokenType::RPAREN, "')' expected to terminate callable arguments");
+
+            expr = make_expression<CallExpression>(std::move(expr), std::move(args));
         }
+        if (match(TokenType::LBRACKET)) {
+            if (!instanceof<IdentifierExpression>(expr) 
+                && !instanceof<ArrayExpression>(expr) 
+                && !instanceof<CallExpression>(expr)
+            ) {
+                panic<ParseException>("identifier, callable, or array expression expected as index operation");
+            }
 
-        consume(TokenType::RPAREN, "')' expected to terminate function call arguments");
+            ExpressionPtr idx = expression();
 
-        callable = make_expression<CallExpression>(std::move(callable), std::move(args)); 
+            consume(TokenType::RBRACKET, "']' expected to terminate index operation");
+
+            expr = make_expression<IndexExpression>(std::move(expr), std::move(idx)); 
+        }
     }
 
-    return callable;
+    return expr;
 }
 
 fk::lang::ExpressionPtr fk::lang::Parser::primary()

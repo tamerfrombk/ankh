@@ -662,4 +662,33 @@ INTERPRETER_TEST("arrays")
         }
     }
 
+    SECTION("index expressions")
+    {
+        const std::string source = R"(
+            a := [1, 2]
+            a[0] + a[1]
+        )";
+
+        INFO(source);
+        
+        auto [program, results] = interpret(interpreter, source);
+        REQUIRE(!program.has_errors());
+
+        fk::lang::ExprResult actual_result = results.back();
+        REQUIRE(actual_result.type == fk::lang::ExprResultType::RT_NUMBER);
+        REQUIRE(actual_result.n == 3);
+    }
+
+    SECTION("index expressions, out of range")
+    {
+        const std::string source = R"(
+            a := [1, 2]
+            a[3]
+        )";
+
+        INFO(source);
+        
+        REQUIRE_THROWS(interpret(interpreter, source));
+    }
+
 }

@@ -107,6 +107,11 @@ public:
         return result;
     }
 
+    inline virtual fk::lang::ExprResult visit(fk::lang::IndexExpression *arr) override
+    {
+        return stringify(arr->indexee) + "[" + stringify(arr->index) + "]";
+    }
+
     inline virtual std::string visit(fk::lang::PrintStatement *stmt) override
     {
         return "print " + stringify(stmt->expr);

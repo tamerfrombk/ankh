@@ -43,7 +43,7 @@ private:
     ExpressionPtr term();
     ExpressionPtr factor();
     ExpressionPtr unary();
-    ExpressionPtr call();
+    ExpressionPtr operable();
     ExpressionPtr primary();
     ExpressionPtr lambda();
     ExpressionPtr parse_array();

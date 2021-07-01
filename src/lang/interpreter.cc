@@ -82,6 +82,12 @@ static fk::lang::Number to_num(const std::string& s)
     panic("'{}' could not be turned into a number due to {}", s, errno_msg);
 }
 
+static bool is_integer(fk::lang::Number n) noexcept
+{
+    double intpart;
+    return modf(n, &intpart) == 0.0;
+}
+
 static fk::lang::ExprResult negate(const fk::lang::ExprResult& result)
 {
     if (result.type == fk::lang::ExprResultType::RT_NUMBER) {
@@ -376,6 +382,25 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(ArrayExpression *expr)
     }
 
     return array;
+}
+
+fk::lang::ExprResult fk::lang::Interpreter::visit(fk::lang::IndexExpression *expr)
+{
+    const ExprResult index   = evaluate(expr->index);
+    if (index.type != ExprResultType::RT_NUMBER || !is_integer(index.n)) {
+        ::panic("index must be an integral numeric expression");
+    }
+
+    const ExprResult indexee = evaluate(expr->indexee);
+    if (indexee.type != ExprResultType::RT_ARRAY) {
+        ::panic("indexee must be an array");
+    }
+
+    if (index.n >= indexee.array.size()) {
+        ::panic("index {} must be less than array size {}", index.n, indexee.array.size());
+    }
+
+    return indexee.array[index.n];
 }
 
 void fk::lang::Interpreter::visit(PrintStatement *stmt)

@@ -187,6 +187,26 @@ LEXER_TEST("scan number tokens")
     REQUIRE(tokens[4] == fk::lang::Token{ "1.0", fk::lang::TokenType::NUMBER, 6, 9 });
 }
 
+LEXER_TEST("scan identifier tokens")
+{
+    const std::string source =
+    R"(
+        _foo
+        foo_bar
+        hello
+        hello2
+        zfh_3_2a
+    )";
+
+    auto tokens = fk::lang::scan(source);
+
+    REQUIRE(tokens[0] == fk::lang::Token{ "_foo", fk::lang::TokenType::IDENTIFIER, 2, 9 });
+    REQUIRE(tokens[1] == fk::lang::Token{ "foo_bar", fk::lang::TokenType::IDENTIFIER, 3, 9 });
+    REQUIRE(tokens[2] == fk::lang::Token{ "hello", fk::lang::TokenType::IDENTIFIER, 4, 9 });
+    REQUIRE(tokens[3] == fk::lang::Token{ "hello2", fk::lang::TokenType::IDENTIFIER, 5, 9 });
+    REQUIRE(tokens[4] == fk::lang::Token{ "zfh_3_2a", fk::lang::TokenType::IDENTIFIER, 6, 9 });
+}
+
 LEXER_TEST("lex non-terminated string")
 {
     const std::string source = R"(

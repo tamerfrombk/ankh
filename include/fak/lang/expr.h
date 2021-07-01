@@ -20,6 +20,7 @@ struct CallExpression;
 struct LambdaExpression;
 struct CommandExpression;
 struct ArrayExpression;
+struct IndexExpression;
 
 struct Callable;
 
@@ -36,6 +37,7 @@ struct ExpressionVisitor {
     virtual R visit(LambdaExpression *expr) = 0;
     virtual R visit(CommandExpression *expr) = 0;
     virtual R visit(ArrayExpression *expr) = 0;
+    virtual R visit(IndexExpression *expr) = 0;
 };
 
 using Number = double;
@@ -276,6 +278,21 @@ struct ArrayExpression
     size_t size() const noexcept
     {
         return elems.size();
+    }
+};
+
+struct IndexExpression 
+    : public Expression 
+{
+    ExpressionPtr indexee;
+    ExpressionPtr index;
+
+    IndexExpression(ExpressionPtr indexee, ExpressionPtr index)
+        : indexee(std::move(indexee)), index(std::move(index)) {}
+
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
+    {
+        return visitor->visit(this);
     }
 };
 

@@ -37,7 +37,7 @@ fk::lang::Token fk::lang::Lexer::next()
     }
 
     const char c = advance();
-    if (std::isalpha(c)) {
+    if (c == '_' || std::isalpha(c)) {
         return scan_alnum();
     } else if (std::isdigit(c)) {
         return scan_number();  
@@ -107,7 +107,7 @@ fk::lang::Token fk::lang::Lexer::next()
     } else if (c == '$') {
         return scan_command();
     } else {
-        panic<ScanException>("unknown token!");
+        panic<ScanException>("{}:{} unknown token or token initializer: '{}'", line_, col_, c);
     }
 }
 
@@ -150,7 +150,7 @@ fk::lang::Token fk::lang::Lexer::scan_alnum() noexcept
     std::string token(1, prev());
     while (!is_eof()) {
         char c = curr();
-        if (std::isalnum(c)) {
+        if (c == '_' || std::isalnum(c)) {
             token += c;
             advance();
         } else {
