@@ -22,10 +22,20 @@ public:
 
     void interpret(const Program& program);
 
-    ExprResult evaluate(const ExpressionPtr& expr);
+    virtual ExprResult evaluate(const ExpressionPtr& expr);
     void execute(const StatementPtr& stmt);
 
     void execute_block(const BlockStatement *stmt, Environment *environment);
+
+    inline const Environment& environment() const noexcept
+    {
+        return *current_env_;
+    }
+
+    inline const std::unordered_map<std::string, CallablePtr>& functions() const noexcept
+    {
+        return functions_;
+    }
 
 private:
     virtual ExprResult visit(BinaryExpression *expr) override;

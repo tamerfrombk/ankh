@@ -40,7 +40,7 @@ public:
         return statements_.size();
     }
 
-    const StatementPtr& operator[](size_t i) noexcept
+    const StatementPtr& operator[](size_t i) const noexcept
     {
         return statements_[i];
     }

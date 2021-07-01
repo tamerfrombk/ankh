@@ -593,8 +593,17 @@ fk::lang::ExpressionPtr fk::lang::Parser::lambda()
     consume(TokenType::RPAREN, "terminating ')' expected in lambda expression");
 
     StatementPtr body = block();
-
+    
     const std::string name = generate_lambda_name();
+    
+    if (BlockStatement* block = static_cast<BlockStatement*>(body.get()); !block_has_return_statement(block)) {
+        FK_DEBUG("lambda '{}' definition doesn't have a return statement so 'return nil' will be injected", name);
+        
+        // TODO: figure out the line and column positions
+        // Insert a "return nil" as the last statement in the block
+        auto nil = make_expression<LiteralExpression>(Token{"nil", TokenType::NIL, 0, 0});
+        block->statements.push_back(make_statement<ReturnStatement>(std::move(nil)));
+    }
 
     return make_expression<LambdaExpression>(name, std::move(params), std::move(body));
 }

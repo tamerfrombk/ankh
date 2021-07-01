@@ -132,6 +132,18 @@ arithmetic(const fk::lang::ExprResult& left, const fk::lang::ExprResult& right, 
     panic(left, right, "unknown overload of arithmetic operator");
 }
 
+static fk::lang::ExprResult division(const fk::lang::ExprResult& left, const fk::lang::ExprResult& right)
+{
+    if (operands_are(fk::lang::ExprResultType::RT_NUMBER, {left, right})) {
+        if (right.n == 0) {
+            panic("division by zero");
+        }
+        return left.n / right.n;
+    }
+
+    panic(left, right, "unknown overload of arithmetic operator");
+}
+
 // We handle + separately as it has two overloads for numbers and strings
 // The generic arithmetic() function overloads all of the general arithmetic operations
 // on only numbers
@@ -166,10 +178,10 @@ template <class Compare>
 static fk::lang::ExprResult logical(const fk::lang::ExprResult& left, const fk::lang::ExprResult& right, Compare cmp)
 {
     if (operands_are(fk::lang::ExprResultType::RT_BOOL, {left, right})) {
-        return cmp(left.n, right.n);
+        return cmp(left.b, right.b);
     }
 
-    panic(left, right, "unknown overload of comparison operator");
+    panic(left, right, "unknown overload of logical operator");
 }
 
 static bool truthy(const fk::lang::ExprResult& result) noexcept
@@ -232,8 +244,7 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(BinaryExpression *expr)
     case TokenType::OR:
         return logical(left, right, std::logical_or<>{});
     case TokenType::FSLASH:
-        // TODO: right now, dividing by 0 yields 'inf' revisit this and make sure that's the behavior we want for the language
-        return arithmetic(left, right, std::divides<>{});
+        return division(left, right);
     default:
         ::panic(left, right, "unknown binary operator '{}'", expr->op.str);
     }
@@ -277,6 +288,8 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(ParenExpression *expr)
 
 fk::lang::ExprResult fk::lang::Interpreter::visit(IdentifierExpression *expr)
 {
+    FK_DEBUG("evaluating identifier expression '{}'", expr->name.str);
+
     auto possible_value = current_env_->value(expr->name.str);
     if (possible_value.has_value()) {
         return possible_value.value();
@@ -287,6 +300,8 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(IdentifierExpression *expr)
 
 fk::lang::ExprResult fk::lang::Interpreter::visit(CallExpression *expr)
 {
+    FK_DEBUG("evaluating call expression");
+
     const ExprResult callee = evaluate(expr->callee);
     if (callee.type != ExprResultType::RT_CALLABLE) {
         ::panic("only functions and classes are callable");
@@ -361,6 +376,7 @@ void fk::lang::Interpreter::visit(PrintStatement *stmt)
 
 void fk::lang::Interpreter::visit(ExpressionStatement *stmt)
 {
+    FK_DEBUG("executing expression statement");
     const ExprResult result = evaluate(stmt->expr);
     print(result);
 }
@@ -424,6 +440,8 @@ void fk::lang::Interpreter::visit(WhileStatement *stmt)
 
 void fk::lang::Interpreter::visit(fk::lang::FunctionDeclaration *stmt)
 {
+    FK_DEBUG("evaluating function declaration of '{}'", stmt->name.str);
+
     const std::string& name = stmt->name.str;
     if (functions_.count(name) > 0) {
         ::panic("function '{}' is already declared", name);
@@ -444,6 +462,8 @@ void fk::lang::Interpreter::visit(fk::lang::FunctionDeclaration *stmt)
 
 void fk::lang::Interpreter::visit(ReturnStatement *stmt)
 {
+    FK_DEBUG("evaluating return statement");
+
     const ExprResult result = evaluate(stmt->expr);
 
     throw ReturnException(result);
