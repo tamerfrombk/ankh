@@ -1,9 +1,15 @@
 #!/usr/bin/env fak
 
-def join(a, b, c, joiner) {
+fn join(a, b, c, joiner) {
     return joiner(joiner(a, b), c)
 }
 
-print join("this ", "really ", "works!", def (a, b) {
+joiner := fn (a, b) { return a + b }
+
+print join("this ", "rellly ", "works!", joiner)
+
+# OR
+
+print join("this ", "also ", "works!", fn (a, b) {
     return a + b
 })

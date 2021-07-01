@@ -311,7 +311,7 @@ PARSER_TEST("parse language statements")
     {
         const std::string source =
         R"(
-            def sum(a, b, c) {
+            fn sum(a, b, c) {
                 return a + b + c
             }
         )";
@@ -339,7 +339,7 @@ PARSER_TEST("parse language statements")
     {
         const std::string source =
             R"(
-                def foo(a, b) {
+                fn foo(a, b) {
                     print a + b
                 }
             )";
@@ -367,7 +367,7 @@ PARSER_TEST("parse language statements")
     {
         const std::string source =
             R"(
-                def foo(a, b) {
+                fn foo(a, b) {
                     s := a + b
                     {
                         return s
@@ -532,7 +532,7 @@ PARSER_TEST("parse language expressions")
     {
         const std::string source =
         R"(
-            lambda := def (a, b) {
+            lambda := fn (a, b) {
                 return a + b
             }
         )";

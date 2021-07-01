@@ -76,8 +76,8 @@ std::string fk::lang::token_type_str(fk::lang::TokenType type) noexcept
         return "LET";
     case fk::lang::TokenType::COMMA:
         return "COMMA";
-    case fk::lang::TokenType::DEF:
-        return "DEF";
+    case fk::lang::TokenType::FN:
+        return "FN";
     case fk::lang::TokenType::FK_RETURN:
         return "RETURN";
     case fk::lang::TokenType::WALRUS:

@@ -45,7 +45,7 @@ enum class TokenType {
     SEMICOLON,         // ;
     LET,               // "let"
     COMMA,             // ,
-    DEF,               // "def"
+    FN,                // "fn"
     // prepended FK because RETURN is a macro defined in some library
     FK_RETURN,         // "return"
     WALRUS,            // :=

@@ -1,7 +1,7 @@
 #!/usr/bin/env fak
 
 # This function calculates the nth fibonnaci number recursively
-def fib(n) {
+fn fib(n) {
     # base case
     if n <= 1 { return n }
 

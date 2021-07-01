@@ -1,8 +1,8 @@
 #!/usr/bin/env fak
 
-def makeCounter() {
+fn makeCounter() {
   i := 0
-  def count() {
+  fn count() {
     ++i
     print i
   }

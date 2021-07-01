@@ -210,7 +210,7 @@ fk::lang::Program fk::lang::Parser::parse() noexcept
 
 fk::lang::StatementPtr fk::lang::Parser::declaration()
 {
-    if (match(fk::lang::TokenType::DEF)) {
+    if (match(fk::lang::TokenType::FN)) {
         return parse_function_declaration();
     }
 
@@ -575,7 +575,7 @@ fk::lang::ExpressionPtr fk::lang::Parser::primary()
         return make_expression<ParenExpression>(std::move(expr));
     }
 
-    if (match(TokenType::DEF)) {
+    if (match(TokenType::FN)) {
         return lambda();
     }
 
@@ -719,7 +719,7 @@ void fk::lang::Parser::synchronize_next_statement() noexcept
         TokenType::FK_RETURN,
         TokenType::INC,
         TokenType::DEC,
-        TokenType::DEF
+        TokenType::FN
     };
 
     while (!is_eof() && !check(statement_initializer_tokens)) {

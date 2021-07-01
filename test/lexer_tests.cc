@@ -129,7 +129,7 @@ LEXER_TEST("scan keyword tokens")
         else
         while
         for
-        def
+        fn
         return
     )";
 
@@ -143,7 +143,7 @@ LEXER_TEST("scan keyword tokens")
     REQUIRE(tokens[5] == fk::lang::Token{ "else", fk::lang::TokenType::ELSE, 7, 9 });
     REQUIRE(tokens[6] == fk::lang::Token{ "while", fk::lang::TokenType::WHILE, 8, 9 });
     REQUIRE(tokens[7] == fk::lang::Token{ "for", fk::lang::TokenType::FOR, 9, 9 });
-    REQUIRE(tokens[8] == fk::lang::Token{ "def", fk::lang::TokenType::DEF, 10, 9 });
+    REQUIRE(tokens[8] == fk::lang::Token{ "fn", fk::lang::TokenType::FN, 10, 9 });
     REQUIRE(tokens[9] == fk::lang::Token{ "return", fk::lang::TokenType::FK_RETURN, 11, 9 });
 
     for (const fk::lang::Token& token : tokens) {

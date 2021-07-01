@@ -98,7 +98,7 @@ INTERPRETER_TEST("primary expressions")
     SECTION("lambda, rvalue")
     {
         const std::string source = R"(
-            function := def (a, b) {
+            function := fn (a, b) {
                 return a + b
             }
         )";
@@ -165,7 +165,7 @@ INTERPRETER_TEST("call expressions")
     SECTION("function call, non-recursive")
     {
         const std::string source = R"(
-            def foo() {
+            fn foo() {
                 return "foobar"
             }
 
@@ -191,7 +191,7 @@ INTERPRETER_TEST("call expressions")
     SECTION("function call, recursive")
     {
         const std::string source = R"(
-            def fib(n) {
+            fn fib(n) {
                 # base case
                 if n <= 1 { return n }
 
@@ -215,7 +215,7 @@ INTERPRETER_TEST("call expressions")
     SECTION("function call, no return statement -- should return nil")
     {
         const std::string source = R"(
-            def foo() {
+            fn foo() {
                 "bar"
             }
 
@@ -234,7 +234,7 @@ INTERPRETER_TEST("call expressions")
     SECTION("lambda call")
     {
         const std::string source = R"(
-            f := def (a, b) {
+            f := fn (a, b) {
                 return a + b
             }
 
@@ -254,7 +254,7 @@ INTERPRETER_TEST("call expressions")
     SECTION("lambda call, no return statement -- should return nil")
     {
         const std::string source = R"(
-            f := def (a, b) {
+            f := fn (a, b) {
                 a + b
             }
 
@@ -561,7 +561,7 @@ INTERPRETER_TEST("boolean")
         const std::string source = R"(
             count := 0
 
-            def update() {
+            fn update() {
                 count = count + 1
                 return count
             }
@@ -619,7 +619,7 @@ INTERPRETER_TEST("boolean")
         const std::string source = R"(
             count := 0
 
-            def update() {
+            fn update() {
                 count = count + 1
                 return count
             }

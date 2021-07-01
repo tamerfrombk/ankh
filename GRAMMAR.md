@@ -4,7 +4,7 @@
 program               → declaration* EOF
 
 declaration           → statement | function_declaration
-function_declaration  → "def" identifier "(" params? ")" block
+function_declaration  → "fn" identifier "(" params? ")" block
 params                → identifier ( "," identifier )*
 
 statement             → expression_statement
@@ -46,7 +46,7 @@ primary               → literal
                         | command
 
 literal               → number | string | "true" | "false" | "nil"
-lambda                → def "(" params? ")" block
+lambda                → fn "(" params? ")" block
 command               → "$" "(" [alnum]+ ")"
 identifier            → (_ | [a-z][A-Z]) (_ | [a-z][A-Z] | [0-9])*
 string                → "[ascii]*"
