@@ -7,9 +7,7 @@
 #include <fak/lang/lexer.h>
 #include <fak/lang/exceptions.h>
 
-#define LEXER_TEST(description) TEST_CASE(description, "[lexer]")
-
-LEXER_TEST("scan assignment tokens")
+TEST_CASE("scan assignment tokens", "[lexer]")
 {
     const std::string source =
     R"(
@@ -31,7 +29,7 @@ LEXER_TEST("scan assignment tokens")
     REQUIRE(tokens[5] == fk::lang::Token{ ":=", fk::lang::TokenType::WALRUS, 7, 9 });
 }
 
-LEXER_TEST("scan comparison tokens")
+TEST_CASE("scan comparison tokens", "[lexer]")
 {
     const std::string source =
     R"(
@@ -53,7 +51,7 @@ LEXER_TEST("scan comparison tokens")
     REQUIRE(tokens[5] == fk::lang::Token{ "<=", fk::lang::TokenType::LTE, 7, 9 });
 }
 
-LEXER_TEST("scan math tokens")
+TEST_CASE("scan math tokens", "[lexer]")
 {
     const std::string source =
     R"(
@@ -75,7 +73,7 @@ LEXER_TEST("scan math tokens")
     REQUIRE(tokens[5] == fk::lang::Token{ "--", fk::lang::TokenType::DEC, 7, 9 });
 }
 
-LEXER_TEST("scan grouping tokens")
+TEST_CASE("scan grouping tokens", "[lexer]")
 {
     const std::string source =
     R"(
@@ -101,7 +99,7 @@ LEXER_TEST("scan grouping tokens")
     REQUIRE(tokens[7] == fk::lang::Token{ "]", fk::lang::TokenType::RBRACKET, 9, 9 });
 }
 
-LEXER_TEST("scan boolean tokens")
+TEST_CASE("scan boolean tokens", "[lexer]")
 {
     const std::string source =
     R"(
@@ -117,7 +115,7 @@ LEXER_TEST("scan boolean tokens")
     REQUIRE(tokens[2] == fk::lang::Token{ "||", fk::lang::TokenType::OR, 4, 9 });
 }
 
-LEXER_TEST("scan keyword tokens")
+TEST_CASE("scan keyword tokens", "[lexer]")
 {
     const std::string source =
     R"(
@@ -153,7 +151,7 @@ LEXER_TEST("scan keyword tokens")
     }
 }
 
-LEXER_TEST("scan string tokens")
+TEST_CASE("scan string tokens", "[lexer]")
 {
     const std::string source =
     R"(
@@ -167,7 +165,7 @@ LEXER_TEST("scan string tokens")
     REQUIRE(tokens[1] == fk::lang::Token{ "non-empty string", fk::lang::TokenType::STRING, 3, 9 });
 }
 
-LEXER_TEST("scan number tokens")
+TEST_CASE("scan number tokens", "[lexer]")
 {
     const std::string source =
     R"(
@@ -187,7 +185,7 @@ LEXER_TEST("scan number tokens")
     REQUIRE(tokens[4] == fk::lang::Token{ "1.0", fk::lang::TokenType::NUMBER, 6, 9 });
 }
 
-LEXER_TEST("scan identifier tokens")
+TEST_CASE("scan identifier tokens", "[lexer]")
 {
     const std::string source =
     R"(
@@ -207,7 +205,7 @@ LEXER_TEST("scan identifier tokens")
     REQUIRE(tokens[4] == fk::lang::Token{ "zfh_3_2a", fk::lang::TokenType::IDENTIFIER, 6, 9 });
 }
 
-LEXER_TEST("lex non-terminated string")
+TEST_CASE("lex non-terminated string", "[lexer]")
 {
     const std::string source = R"(
         "notice the lack of the terminating double quotes
@@ -216,7 +214,7 @@ LEXER_TEST("lex non-terminated string")
     REQUIRE_THROWS_AS(fk::lang::scan(source), fk::lang::ScanException);
 }
 
-LEXER_TEST("lex floating point with two decimals")
+TEST_CASE("lex floating point with two decimals", "[lexer]")
 {
     const std::string source = R"(
         123.45.67
@@ -225,7 +223,7 @@ LEXER_TEST("lex floating point with two decimals")
     REQUIRE_THROWS_AS(fk::lang::scan(source), fk::lang::ScanException);
 }
 
-LEXER_TEST("lex comment")
+TEST_CASE("lex comment", "[lexer]")
 {
     const std::string source = R"(
         "string" # this is a comment on the same line as an expression
@@ -241,7 +239,7 @@ LEXER_TEST("lex comment")
     REQUIRE((tokens[1].str == "123.45" && tokens[1].type == fk::lang::TokenType::NUMBER));
 }
 
-LEXER_TEST("lex unary &") 
+TEST_CASE("lex unary &", "[lexer]") 
 {
     const std::string source = R"(
         &
@@ -250,7 +248,7 @@ LEXER_TEST("lex unary &")
     REQUIRE_THROWS_AS(fk::lang::scan(source), fk::lang::ScanException);
 }
 
-LEXER_TEST("lex unary |") 
+TEST_CASE("lex unary |", "[lexer]") 
 {
     const std::string source = R"(
         |
@@ -259,7 +257,7 @@ LEXER_TEST("lex unary |")
     REQUIRE_THROWS_AS(fk::lang::scan(source), fk::lang::ScanException);
 }
 
-LEXER_TEST("scan command operator") 
+TEST_CASE("scan command operator", "[lexer]") 
 {
     const std::string source = R"(
         $(echo hello)
@@ -270,7 +268,7 @@ LEXER_TEST("scan command operator")
     REQUIRE((tokens[0].str == "echo hello" && tokens[0].type == fk::lang::TokenType::COMMAND));
 }
 
-LEXER_TEST("scan command operator missing initial (") 
+TEST_CASE("scan command operator missing initial (", "[lexer]") 
 {
     const std::string source = R"(
         $echo hello)
@@ -279,7 +277,7 @@ LEXER_TEST("scan command operator missing initial (")
     REQUIRE_THROWS_AS(fk::lang::scan(source), fk::lang::ScanException);
 }
 
-LEXER_TEST("scan command operator missing terminal (") 
+TEST_CASE("scan command operator missing terminal (", "[lexer]") 
 {
     const std::string source = R"(
         $(echo hello

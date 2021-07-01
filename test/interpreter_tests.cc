@@ -11,8 +11,6 @@
 
 #include <fak/def.h>
 
-#define INTERPRETER_TEST(description) TEST_CASE(description, "[interpreter]")
-
 class TracingInterpreter
     : public fk::lang::Interpreter
 {
@@ -62,7 +60,7 @@ ExecutionResult interpret(TracingInterpreter& interpreter, const std::string& so
     return { std::move(program), interpreter.results() };
 }
 
-INTERPRETER_TEST("primary expressions")
+TEST_CASE("primary expressions", "[interpreter]")
 {
     TracingInterpreter interpreter(std::make_unique<fk::lang::Interpreter>());
 
@@ -158,7 +156,7 @@ INTERPRETER_TEST("primary expressions")
     }
 }
 
-INTERPRETER_TEST("call expressions")
+TEST_CASE("call expressions", "[interpreter]")
 {
     TracingInterpreter interpreter(std::make_unique<fk::lang::Interpreter>());
 
@@ -271,7 +269,7 @@ INTERPRETER_TEST("call expressions")
     }
 }
 
-INTERPRETER_TEST("unary expressions")
+TEST_CASE("unary expressions", "[interpreter]")
 {
     TracingInterpreter interpreter(std::make_unique<fk::lang::Interpreter>());
 
@@ -328,7 +326,7 @@ INTERPRETER_TEST("unary expressions")
     }
 }
 
-INTERPRETER_TEST("PEMDAS")
+TEST_CASE("PEMDAS", "[interpreter]")
 {
     TracingInterpreter interpreter(std::make_unique<fk::lang::Interpreter>());
 
@@ -447,7 +445,7 @@ INTERPRETER_TEST("PEMDAS")
     }
 }
 
-INTERPRETER_TEST("ordering")
+TEST_CASE("ordering", "[interpreter]")
 {
     TracingInterpreter interpreter(std::make_unique<fk::lang::Interpreter>());
 
@@ -518,7 +516,7 @@ INTERPRETER_TEST("ordering")
     }
 }
 
-INTERPRETER_TEST("boolean")
+TEST_CASE("boolean", "[interpreter]")
 {
     TracingInterpreter interpreter(std::make_unique<fk::lang::Interpreter>());
 
@@ -639,7 +637,7 @@ INTERPRETER_TEST("boolean")
     }
 }
 
-INTERPRETER_TEST("arrays")
+TEST_CASE("arrays", "[interpreter]")
 {
     TracingInterpreter interpreter(std::make_unique<fk::lang::Interpreter>());
 

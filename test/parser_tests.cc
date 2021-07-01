@@ -10,8 +10,6 @@
 #include <fak/lang/lambda.h>
 #include <fak/lang/parser.h>
 
-#define PARSER_TEST(description) TEST_CASE(description, "[parser]")
-
 static void test_binary_expression_parse(const std::string& op) noexcept
 {
     const std::string source("1" + op + "2" + "\n");
@@ -62,7 +60,7 @@ static void test_unary_expression(const std::string& op) noexcept
     REQUIRE(unary->op.str == op);
 }
 
-PARSER_TEST("parse language statements")
+TEST_CASE("parse language statements", "[parser]")
 {
     SECTION("parse expression statement")
     {
@@ -393,7 +391,7 @@ PARSER_TEST("parse language statements")
     }
 }
 
-PARSER_TEST("parse language expressions")
+TEST_CASE("parse language expressions", "[parser]")
 {
     SECTION("parse primary")
     {
@@ -706,7 +704,7 @@ PARSER_TEST("parse language expressions")
     }
 }
 
-PARSER_TEST("test parse statement without a empty line at the end does not infinite loop")
+TEST_CASE("test parse statement without a empty line at the end does not infinite loop", "[parser]")
 {
     auto program = fk::lang::parse("1 + 2");
 
