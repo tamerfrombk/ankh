@@ -29,6 +29,8 @@ enum class TokenType {
     RPAREN,            // )
     LBRACE,            // {
     RBRACE,            // }
+    LBRACKET,          // [
+    RBRACKET,          // ]
     // FK prefix is added to avoid clashing with the TRUE/FALSE macros defined in libc
     FK_TRUE,           // "true"
     FK_FALSE,          // "false"

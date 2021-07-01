@@ -46,6 +46,10 @@ std::string fk::lang::token_type_str(fk::lang::TokenType type) noexcept
         return "LBRACE";
     case fk::lang::TokenType::RBRACE:
         return "RBRACE";
+    case fk::lang::TokenType::LBRACKET:
+        return "LBRACKET";
+    case fk::lang::TokenType::RBRACKET:
+        return "RBRACKET";
     case fk::lang::TokenType::FK_TRUE:
         return "BTRUE";
     case fk::lang::TokenType::FK_FALSE:

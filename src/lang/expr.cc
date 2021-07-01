@@ -11,10 +11,27 @@ std::string fk::lang::expr_result_type_str(fk::lang::ExprResultType type) noexce
     case fk::lang::ExprResultType::RT_NUMBER:    return "NUMBER";
     case fk::lang::ExprResultType::RT_BOOL:      return "BOOL";
     case fk::lang::ExprResultType::RT_CALLABLE:  return "RT_CALLABLE";
+    case fk::lang::ExprResultType::RT_ARRAY:     return "RT_ARRAY";
     case fk::lang::ExprResultType::RT_NIL:       return "NIL";
     default:                                       
         FK_FATAL("expr_result_type_str(): unknown expression result type!");
     }
+}
+
+static std::string stringify(const fk::lang::Array& array) noexcept
+{
+    if (array.empty()) {
+        return "[]";
+    }
+
+    std::string result = "[" + array[0].stringify();
+    for (size_t i = 1; i < array.size(); ++i) {
+        result += ", ";
+        result += array[i].stringify();
+    }
+    result += "]";
+
+    return result;
 }
 
 std::string fk::lang::ExprResult::stringify() const noexcept
@@ -28,9 +45,11 @@ std::string fk::lang::ExprResult::stringify() const noexcept
         return b ? "true" : "false";
     case fk::lang::ExprResultType::RT_CALLABLE:
         return callable->name();
+    case fk::lang::ExprResultType::RT_ARRAY:
+        return ::stringify(array);
     case fk::lang::ExprResultType::RT_NIL:
         return "nil";
     default:
-        FK_FATAL("stringify(): unknown expression result type!");
+        FK_FATAL("stringify(): unknown expression result type '{}'!", expr_result_type_str(type));
     }
 }

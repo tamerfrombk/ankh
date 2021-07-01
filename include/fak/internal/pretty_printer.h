@@ -91,6 +91,22 @@ public:
         return "$(" + stringify(cmd->cmd) + ")";
     }
 
+    inline virtual fk::lang::ExprResult visit(fk::lang::ArrayExpression *arr) override
+    {
+        if (arr->size() == 0) {
+            return "[]";
+        }
+
+        std::string result = "[" + stringify(arr->elems[0]);
+        for (size_t i = 1; i < arr->size(); ++i) {
+            result += ",";
+            result += stringify(arr->elems[i]);
+        }
+        result += "]";
+
+        return result;
+    }
+
     inline virtual std::string visit(fk::lang::PrintStatement *stmt) override
     {
         return "print " + stringify(stmt->expr);

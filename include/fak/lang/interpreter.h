@@ -46,6 +46,7 @@ private:
     virtual ExprResult visit(CallExpression *expr) override;
     virtual ExprResult visit(LambdaExpression *expr) override;
     virtual ExprResult visit(CommandExpression *cmd) override;
+    virtual ExprResult visit(ArrayExpression *cmd) override;
 
     virtual void visit(PrintStatement *stmt) override;
     virtual void visit(ExpressionStatement *stmt) override;

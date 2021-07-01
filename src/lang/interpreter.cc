@@ -368,6 +368,16 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(fk::lang::CommandExpression *e
     return output;
 }
 
+fk::lang::ExprResult fk::lang::Interpreter::visit(ArrayExpression *expr)
+{
+    Array array;
+    for (const auto& e : expr->elems) {
+        array.append(evaluate(e));
+    }
+
+    return array;
+}
+
 void fk::lang::Interpreter::visit(PrintStatement *stmt)
 {
     const ExprResult result = evaluate(stmt->expr);

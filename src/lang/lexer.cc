@@ -78,6 +78,10 @@ fk::lang::Token fk::lang::Lexer::next()
         return tokenize("{", TokenType::LBRACE);
     } else if (c == '}') {
         return tokenize("}", TokenType::RBRACE);
+    } else if (c == '[') {
+        return tokenize("[", TokenType::LBRACKET);
+    } else if (c == ']') {
+        return tokenize("]", TokenType::RBRACKET);
     } else if (c == '&') {
         if (curr() == '&') {
             advance(); // eat the '&'

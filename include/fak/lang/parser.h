@@ -46,6 +46,7 @@ private:
     ExpressionPtr call();
     ExpressionPtr primary();
     ExpressionPtr lambda();
+    ExpressionPtr parse_array();
 
     const Token& prev() const noexcept;
     const Token& curr() const noexcept;

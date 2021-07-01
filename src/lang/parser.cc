@@ -1,3 +1,4 @@
+#include "fak/lang/expr.h"
 #include <algorithm>
 #include <initializer_list>
 #include <random>
@@ -575,6 +576,10 @@ fk::lang::ExpressionPtr fk::lang::Parser::primary()
         return make_expression<CommandExpression>(cmd);
     }
 
+    if (check(TokenType::LBRACKET)) {
+        return parse_array();
+    }
+
     panic<ParseException>("primary expression expected");
 }
 
@@ -606,6 +611,22 @@ fk::lang::ExpressionPtr fk::lang::Parser::lambda()
     }
 
     return make_expression<LambdaExpression>(name, std::move(params), std::move(body));
+}
+
+fk::lang::ExpressionPtr fk::lang::Parser::parse_array()
+{
+    consume(TokenType::LBRACKET, "starting '[' expected in array expression");
+
+    std::vector<ExpressionPtr> elems;
+    if (!check(TokenType::RBRACKET)) {
+        do {
+            elems.push_back(expression());
+        } while (match(TokenType::COMMA));
+    }
+
+    consume(TokenType::RBRACKET, "terminating ']' expected in array expression");
+
+    return make_expression<ArrayExpression>(std::move(elems));
 }
 
 const fk::lang::Token& fk::lang::Parser::prev() const noexcept

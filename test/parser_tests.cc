@@ -617,6 +617,35 @@ PARSER_TEST("parse language expressions")
 
         REQUIRE(program.has_errors());
     }
+
+    SECTION("parse array")
+    {
+        const std::string source =
+        R"(
+            [1, 2]
+            []
+        )";
+
+        auto program = fk::lang::parse(source);
+
+        REQUIRE(program.size() == 2);
+        {
+            auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+            REQUIRE(stmt != nullptr);
+
+            auto arr = fk::lang::instance<fk::lang::ArrayExpression>(stmt->expr);
+            REQUIRE(arr != nullptr);
+            REQUIRE(arr->elems.size() == 2);
+        }
+        {
+            auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[1]);
+            REQUIRE(stmt != nullptr);
+            
+            auto arr = fk::lang::instance<fk::lang::ArrayExpression>(stmt->expr);
+            REQUIRE(arr != nullptr);
+            REQUIRE(arr->elems.size() == 0);
+        }
+    }
 }
 
 PARSER_TEST("test parse statement without a empty line at the end does not infinite loop")

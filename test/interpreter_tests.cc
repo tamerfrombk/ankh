@@ -639,3 +639,27 @@ INTERPRETER_TEST("boolean")
     }
 }
 
+INTERPRETER_TEST("arrays")
+{
+    TracingInterpreter interpreter(std::make_unique<fk::lang::Interpreter>());
+
+    SECTION("array expressions")
+    {
+        std::unordered_map<std::string, fk::lang::ExprResult> src_to_expected_result = {
+            { "[1, 2]", fk::lang::Array(std::vector<fk::lang::ExprResult>{fk::lang::Number{1}, fk::lang::Number{2}}) }
+            , { "[]", fk::lang::Array(std::vector<fk::lang::ExprResult>{}) }
+        };
+
+        for (const auto& [src, expected_result] : src_to_expected_result) {
+            INFO(src);
+            auto [program, results] = interpret(interpreter, src);
+
+            REQUIRE(!program.has_errors());
+            fk::lang::ExprResult actual_result = results.back();
+
+            REQUIRE(actual_result.type == expected_result.type);
+            REQUIRE(actual_result.array == expected_result.array);
+        }
+    }
+
+}

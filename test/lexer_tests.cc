@@ -85,6 +85,8 @@ LEXER_TEST("scan grouping tokens")
         }
         ;
         ,
+        [
+        ]
     )";
 
     auto tokens = fk::lang::scan(source);
@@ -95,6 +97,8 @@ LEXER_TEST("scan grouping tokens")
     REQUIRE(tokens[3] == fk::lang::Token{ "}", fk::lang::TokenType::RBRACE, 5, 9 });
     REQUIRE(tokens[4] == fk::lang::Token{ ";", fk::lang::TokenType::SEMICOLON, 6, 9 });
     REQUIRE(tokens[5] == fk::lang::Token{ ",", fk::lang::TokenType::COMMA, 7, 9 });
+    REQUIRE(tokens[6] == fk::lang::Token{ "[", fk::lang::TokenType::LBRACKET, 8, 9 });
+    REQUIRE(tokens[7] == fk::lang::Token{ "]", fk::lang::TokenType::RBRACKET, 9, 9 });
 }
 
 LEXER_TEST("scan boolean tokens")
