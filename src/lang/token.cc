@@ -86,6 +86,8 @@ std::string fk::lang::token_type_str(fk::lang::TokenType type) noexcept
         return "INC";
     case fk::lang::TokenType::DEC:
         return "DEC";
+    case fk::lang::TokenType::COLON:
+        return "COLON";
     case fk::lang::TokenType::NUMBER:
         return "NUMBER";
     case fk::lang::TokenType::STRING:

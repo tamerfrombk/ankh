@@ -103,7 +103,7 @@ fk::lang::Token fk::lang::Lexer::next()
             advance(); // eat the '='
             return tokenize(":=", TokenType::WALRUS);
         }
-        panic<ScanException>("':' is not a valid token; did you mean ':=' ?");
+        return tokenize(":", TokenType::COLON);
     } else if (c == '$') {
         return scan_command();
     } else {

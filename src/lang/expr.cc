@@ -4,21 +4,7 @@
 
 #include <fak/log.h>
 
-std::string fk::lang::expr_result_type_str(fk::lang::ExprResultType type) noexcept
-{
-    switch (type) {
-    case fk::lang::ExprResultType::RT_STRING:    return "STRING";
-    case fk::lang::ExprResultType::RT_NUMBER:    return "NUMBER";
-    case fk::lang::ExprResultType::RT_BOOL:      return "BOOL";
-    case fk::lang::ExprResultType::RT_CALLABLE:  return "RT_CALLABLE";
-    case fk::lang::ExprResultType::RT_ARRAY:     return "RT_ARRAY";
-    case fk::lang::ExprResultType::RT_NIL:       return "NIL";
-    default:                                       
-        FK_FATAL("expr_result_type_str(): unknown expression result type!");
-    }
-}
-
-static std::string stringify(const fk::lang::Array& array) noexcept
+static std::string stringify(const fk::lang::Array<fk::lang::ExprResult>& array) noexcept
 {
     if (array.empty()) {
         return "[]";
@@ -30,6 +16,24 @@ static std::string stringify(const fk::lang::Array& array) noexcept
         result += array[i].stringify();
     }
     result += "]";
+
+    return result;
+}
+
+static std::string stringify(const fk::lang::Dictionary<fk::lang::ExprResult>& dict) noexcept
+{
+    if (dict.empty()) {
+        return "{}";
+    }
+
+    std::string result = "{";
+    for (const auto& [key, value] : dict) {
+        result += (key.stringify() + " : " + value.stringify());
+        result += ",\n";
+    }
+    result.pop_back();
+    result.pop_back();
+    result += "}";
 
     return result;
 }
@@ -47,6 +51,8 @@ std::string fk::lang::ExprResult::stringify() const noexcept
         return callable->name();
     case fk::lang::ExprResultType::RT_ARRAY:
         return ::stringify(array);
+    case fk::lang::ExprResultType::RT_DICT:
+        return ::stringify(dict);
     case fk::lang::ExprResultType::RT_NIL:
         return "nil";
     default:

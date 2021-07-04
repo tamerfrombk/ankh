@@ -1,5 +1,6 @@
 #include <catch/catch.hpp>
 
+#include <initializer_list>
 #include <string>
 #include <memory>
 #include <vector>
@@ -687,6 +688,89 @@ TEST_CASE("arrays", "[interpreter]")
         INFO(source);
         
         REQUIRE_THROWS(interpret(interpreter, source));
+    }
+}
+
+TEST_CASE("dicts", "[interpreter]")
+{
+    TracingInterpreter interpreter(std::make_unique<fk::lang::Interpreter>());
+
+    SECTION("dict declaration")
+    {
+        const std::string source = R"(
+            a := {
+                a: "b",
+                c: 2,
+                d: []
+            }
+        )";
+
+        INFO(source);
+        
+        auto [program, results] = interpret(interpreter, source);
+        REQUIRE(!program.has_errors());
+
+        fk::lang::ExprResult actual_result = results.back();
+        REQUIRE(actual_result.type == fk::lang::ExprResultType::RT_DICT);
+
+        std::initializer_list<std::string> keys{"a", "c", "d"};
+        for (const auto& k : keys) {
+            REQUIRE(actual_result.dict.value(k)->key.type == fk::lang::ExprResultType::RT_STRING);
+        }
+    }
+
+    SECTION("dict declaration, key expression")
+    {
+        const std::string source = R"(
+            a := {
+                ["a" + "b"]: "abc"
+            }
+        )";
+
+        INFO(source);
+        
+        auto [program, results] = interpret(interpreter, source);
+        REQUIRE(!program.has_errors());
+
+        fk::lang::ExprResult actual_result = results.back();
+        REQUIRE(actual_result.type == fk::lang::ExprResultType::RT_DICT);
+
+        REQUIRE(actual_result.dict.value(std::string{"ab"})->key.type == fk::lang::ExprResultType::RT_STRING);  
+        REQUIRE(actual_result.dict.value(std::string{"ab"})->value.str == "abc");      
+    }
+
+    SECTION("dict lookup, string")
+    {
+        const std::string source = R"(
+            a := {
+                f: "g"
+            }
+
+            a["f"]
+        )";
+
+        INFO(source);
+        
+        auto [program, results] = interpret(interpreter, source);
+        REQUIRE(!program.has_errors());
+
+        fk::lang::ExprResult actual_result = results.back();
+        REQUIRE(actual_result.type == fk::lang::ExprResultType::RT_STRING);
+        REQUIRE(actual_result.str == "g");    
+    }
+
+    SECTION("dict lookup, non-string")
+    {
+        const std::string source = R"(
+            a := {
+                f: "g"
+            }
+
+            a[x]
+        )";
+
+        INFO(source);
+        REQUIRE_THROWS(interpret(interpreter, source));    
     }
 
 }

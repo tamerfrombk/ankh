@@ -48,6 +48,10 @@ private:
     ExpressionPtr lambda();
     ExpressionPtr parse_array();
 
+    ExpressionPtr        dict();
+    Entry<ExpressionPtr> entry();
+    ExpressionPtr        key();
+
     const Token& prev() const noexcept;
     const Token& curr() const noexcept;
     const Token& advance() noexcept;

@@ -51,6 +51,7 @@ enum class TokenType {
     WALRUS,            // :=
     INC,               // ++
     DEC,               // --
+    COLON,             // ":"
     NUMBER,
     STRING,
     COMMAND,

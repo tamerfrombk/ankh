@@ -592,6 +592,10 @@ fk::lang::ExpressionPtr fk::lang::Parser::primary()
         return parse_array();
     }
 
+    if (check(TokenType::LBRACE)) {
+        return dict();
+    }
+
     panic<ParseException>("primary expression expected");
 }
 
@@ -639,6 +643,52 @@ fk::lang::ExpressionPtr fk::lang::Parser::parse_array()
     consume(TokenType::RBRACKET, "terminating ']' expected in array expression");
 
     return make_expression<ArrayExpression>(std::move(elems));
+}
+
+fk::lang::ExpressionPtr fk::lang::Parser::dict()
+{
+    consume(TokenType::LBRACE, "'{' expected to begin dictionary expression");
+
+    std::vector<Entry<ExpressionPtr>> entries;
+    if (!check(TokenType::RBRACE)) {
+        entries.push_back(entry());
+        while (match(TokenType::COMMA)) {
+            entries.push_back(entry());
+        }
+    }
+
+    consume(TokenType::RBRACE, "'}' expected to terminate dictionary expression");
+
+    return make_expression<DictionaryExpression>(std::move(entries));
+}
+
+fk::lang::Entry<fk::lang::ExpressionPtr> fk::lang::Parser::entry()
+{
+    ExpressionPtr keyv = key();
+
+    consume(TokenType::COLON, "':' expected after dictionary key");
+
+    ExpressionPtr value = expression();
+
+    return { std::move(keyv), std::move(value) };
+}
+
+fk::lang::ExpressionPtr fk::lang::Parser::key()
+{
+    if (match(TokenType::IDENTIFIER)) {
+        // TODO: when we implement string expresssions, use them here
+        Token str = prev();
+        str.type = fk::lang::TokenType::STRING;
+        return make_expression<LiteralExpression>(str);
+    }
+
+    consume(TokenType::LBRACKET, "'[' expected to start expression key");
+
+    ExpressionPtr expr = expression();
+
+    consume(TokenType::RBRACKET, "']' expected to terminate expression key");
+
+    return expr;
 }
 
 const fk::lang::Token& fk::lang::Parser::prev() const noexcept

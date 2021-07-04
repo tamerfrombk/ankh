@@ -18,6 +18,9 @@
 #include <fak/lang/exceptions.h>
 #include <fak/lang/callable.h>
 
+#include <fak/lang/types/array.h>
+#include <fak/lang/types/dictionary.h>
+
 #include <fak/internal/pretty_printer.h>
 
 struct ReturnException
@@ -376,7 +379,7 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(fk::lang::CommandExpression *e
 
 fk::lang::ExprResult fk::lang::Interpreter::visit(ArrayExpression *expr)
 {
-    Array array;
+    Array<ExprResult> array;
     for (const auto& e : expr->elems) {
         array.append(evaluate(e));
     }
@@ -386,21 +389,55 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(ArrayExpression *expr)
 
 fk::lang::ExprResult fk::lang::Interpreter::visit(fk::lang::IndexExpression *expr)
 {
-    const ExprResult index   = evaluate(expr->index);
-    if (index.type != ExprResultType::RT_NUMBER || !is_integer(index.n)) {
-        ::panic("index must be an integral numeric expression");
-    }
-
     const ExprResult indexee = evaluate(expr->indexee);
-    if (indexee.type != ExprResultType::RT_ARRAY) {
-        ::panic("indexee must be an array");
+    if (indexee.type != ExprResultType::RT_ARRAY && indexee.type != ExprResultType::RT_DICT) {
+        ::panic("lookup expects array or dict operand");
     }
 
-    if (index.n >= indexee.array.size()) {
-        ::panic("index {} must be less than array size {}", index.n, indexee.array.size());
+    const ExprResult index   = evaluate(expr->index);
+    if (index.type == ExprResultType::RT_NUMBER) {
+        if (!is_integer(index.n)) {
+            ::panic("index must be an integral numeric expression");
+        }
+
+        if (indexee.type != ExprResultType::RT_ARRAY) {
+            ::panic("operand must be an array for a numeric index");
+        }
+
+        if (index.n >= indexee.array.size()) {
+            ::panic("index {} must be less than array size {}", index.n, indexee.array.size());
+        }
+
+        return indexee.array[index.n];
     }
 
-    return indexee.array[index.n];
+    if (index.type == ExprResultType::RT_STRING) {
+        if (indexee.type != ExprResultType::RT_DICT) {
+            ::panic("operand must be a dict for a string index");
+        }
+
+        if (auto possible_value = indexee.dict.value(index.str); possible_value.has_value()) {
+            return possible_value->value;
+        }
+
+        return {};
+    }
+
+    ::panic("'{}' is not a valid lookup expression", index.stringify());
+}
+
+fk::lang::ExprResult fk::lang::Interpreter::visit(fk::lang::DictionaryExpression *expr)
+{
+    Dictionary<ExprResult> dict;
+    for (const auto& [key, value] : expr->entries) {
+        const ExprResult& key_result = evaluate(key);
+        if (key_result.type != ExprResultType::RT_STRING) {
+            ::panic("expression key does not evaluate to a string");
+        }
+        dict.insert(key_result, evaluate(value));
+    }
+
+    return dict;
 }
 
 void fk::lang::Interpreter::visit(PrintStatement *stmt)

@@ -44,10 +44,15 @@ primary               → literal
                         | identifier
                         | lambda
                         | command
+                        | dictionary
 
 literal               → number | string | "true" | "false" | "nil"
 lambda                → fn "(" params? ")" block
 command               → "$" "(" [alnum]+ ")"
+dictionary            → "{" entries? "}"
+entries               → entry ( "," entry )*
+entry                 → key ":" expression
+key                   → identifier | ( "[" expression "]" )
 identifier            → (_ | [a-z][A-Z]) (_ | [a-z][A-Z] | [0-9])*
 string                → "[ascii]*"
 number                → [0-9]\.?[0-9]+

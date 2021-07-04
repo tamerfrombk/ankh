@@ -112,6 +112,24 @@ public:
         return stringify(arr->indexee) + "[" + stringify(arr->index) + "]";
     }
 
+    inline virtual fk::lang::ExprResult visit(fk::lang::DictionaryExpression *arr) override
+    {
+        if (arr->entries.empty()) {
+            return "{}";
+        }
+
+        std::string result = "{ " + stringify(arr->entries[0]);
+        for (size_t i = 1; i < arr->entries.size(); ++i) {
+            result += "\n";
+            result += ", ";
+            result += stringify(arr->entries[i]);
+        }
+        result += "\n";
+        result += "}";
+
+        return result;
+    }
+
     inline virtual std::string visit(fk::lang::PrintStatement *stmt) override
     {
         return "print " + stringify(stmt->expr);
@@ -227,6 +245,12 @@ private:
     inline std::string stringify(const fk::lang::Token& token)
     {
         return token.str;
+    }
+
+    template <class T>
+    inline std::string stringify(const fk::lang::Entry<T>& entry)
+    {
+        return stringify(entry.key) + " : " + stringify(entry.value);
     }
 
     inline std::string binary(const fk::lang::ExpressionPtr& left, const std::string& op, const fk::lang::ExpressionPtr& right)

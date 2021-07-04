@@ -702,6 +702,185 @@ TEST_CASE("parse language expressions", "[parser]")
 
         REQUIRE(program.has_errors());
     }
+
+    SECTION("dictionary, one key")
+    {
+        const std::string source =
+        R"(
+            dict := {
+                hello: "world"
+            }
+        )";
+
+        auto program = fk::lang::parse(source);
+
+        REQUIRE(!program.has_errors());
+        REQUIRE(program.size() == 1);
+
+        auto decl = fk::lang::instance<fk::lang::VariableDeclaration>(program[0]);
+        REQUIRE(decl != nullptr);
+        
+        auto dict = fk::lang::instance<fk::lang::DictionaryExpression>(decl->initializer);
+        REQUIRE(dict != nullptr);
+        REQUIRE(dict->entries.size() == 1);
+        
+        auto key = fk::lang::instance<fk::lang::LiteralExpression>(dict->entries[0].key);
+        REQUIRE(key != nullptr);
+
+        auto value = fk::lang::instance<fk::lang::LiteralExpression>(dict->entries[0].value);
+        REQUIRE(value != nullptr);
+    }
+
+    SECTION("dictionary, empty")
+    {
+        const std::string source =
+        R"(
+            dict := {}
+        )";
+
+        auto program = fk::lang::parse(source);
+
+        REQUIRE(!program.has_errors());
+        REQUIRE(program.size() == 1);
+
+        auto decl = fk::lang::instance<fk::lang::VariableDeclaration>(program[0]);
+        REQUIRE(decl != nullptr);
+        
+        auto dict = fk::lang::instance<fk::lang::DictionaryExpression>(decl->initializer);
+        REQUIRE(dict != nullptr);
+        REQUIRE(dict->entries.empty());
+    }
+
+    SECTION("dictionary, multi entry")
+    {
+        const std::string source =
+        R"(
+            dict := {
+                hello: "world"
+                , foo: 1
+            }
+        )";
+
+        auto program = fk::lang::parse(source);
+
+        REQUIRE(!program.has_errors());
+        REQUIRE(program.size() == 1);
+
+        auto decl = fk::lang::instance<fk::lang::VariableDeclaration>(program[0]);
+        REQUIRE(decl != nullptr);
+        
+        auto dict = fk::lang::instance<fk::lang::DictionaryExpression>(decl->initializer);
+        REQUIRE(dict != nullptr);
+        REQUIRE(dict->entries.size() == 2);
+        
+        for (const auto& e : dict->entries) {
+            auto key = fk::lang::instance<fk::lang::LiteralExpression>(e.key);
+            REQUIRE(key != nullptr);
+
+            auto value = fk::lang::instance<fk::lang::LiteralExpression>(e.value);
+            REQUIRE(value != nullptr);
+        }
+    }
+
+    SECTION("dictionary, expression key, single member")
+    {
+        const std::string source =
+        R"(
+            dict := {
+                [1 + 1] : 2
+            }
+        )";
+
+        auto program = fk::lang::parse(source);
+
+        REQUIRE(!program.has_errors());
+        REQUIRE(program.size() == 1);
+
+        auto decl = fk::lang::instance<fk::lang::VariableDeclaration>(program[0]);
+        REQUIRE(decl != nullptr);
+        
+        auto dict = fk::lang::instance<fk::lang::DictionaryExpression>(decl->initializer);
+        REQUIRE(dict != nullptr);
+        REQUIRE(dict->entries.size() == 1);
+
+        auto key = fk::lang::instance<fk::lang::BinaryExpression>(dict->entries[0].key);
+        REQUIRE(key != nullptr);
+
+        auto value = fk::lang::instance<fk::lang::LiteralExpression>(dict->entries[0].value);
+        REQUIRE(value != nullptr);
+    }
+
+    SECTION("dictionary, expression key, multi member")
+    {
+        const std::string source =
+        R"(
+            dict := {
+                [1 + 1] : 2
+                , [3 + 4] : 2
+                , foo : "bar"
+            }
+        )";
+
+        auto program = fk::lang::parse(source);
+
+        REQUIRE(!program.has_errors());
+        REQUIRE(program.size() == 1);
+
+        auto decl = fk::lang::instance<fk::lang::VariableDeclaration>(program[0]);
+        REQUIRE(decl != nullptr);
+        
+        auto dict = fk::lang::instance<fk::lang::DictionaryExpression>(decl->initializer);
+        REQUIRE(dict != nullptr);
+        REQUIRE(dict->entries.size() == 3);
+    }
+
+    SECTION("dictionary, multi member, missing comma")
+    {
+        const std::string source =
+        R"(
+            dict := {
+                [1 + 1] : 2
+                 [3 + 4] : 2
+                , welp
+            }
+        )";
+
+        auto program = fk::lang::parse(source);
+
+        REQUIRE(program.has_errors());
+    }
+
+    SECTION("dictionary, lookup")
+    {
+        const std::string source =
+        R"(
+            dict := {
+                [1 + 1] : 2
+                , [3 + 4] : 2
+                , welp: "gulp"
+            }
+
+            dict["f"]
+        )";
+
+        auto program = fk::lang::parse(source);
+
+        REQUIRE(!program.has_errors());
+        REQUIRE(program.size() == 2);
+
+        auto decl = fk::lang::instance<fk::lang::VariableDeclaration>(program[0]);
+        REQUIRE(decl != nullptr);
+        
+        auto dict = fk::lang::instance<fk::lang::DictionaryExpression>(decl->initializer);
+        REQUIRE(dict != nullptr);
+        REQUIRE(dict->entries.size() == 3);
+
+        auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[1]);
+        REQUIRE(stmt != nullptr);
+
+        auto lookup = fk::lang::instance<fk::lang::IndexExpression>(stmt->expr);
+        REQUIRE(lookup != nullptr);
+    }
 }
 
 TEST_CASE("test parse statement without a empty line at the end does not infinite loop", "[parser]")
