@@ -167,6 +167,30 @@ TEST_CASE("scan string tokens", "[lexer]")
     REQUIRE(tokens[1] == fk::lang::Token{ "non-empty string", fk::lang::TokenType::STRING, 3, 9 });
 }
 
+TEST_CASE("scan string tokens, backslash double quote", "[lexer]")
+{
+    const std::string source =
+    R"(
+        "this string \" has a double quote"
+    )";
+
+    auto tokens = fk::lang::scan(source);
+
+    REQUIRE(tokens[0] == fk::lang::Token{ "this string \" has a double quote", fk::lang::TokenType::STRING, 2, 10});
+}
+
+TEST_CASE("scan string tokens, backslash metacharacter", "[lexer]")
+{
+    const std::string source =
+    R"(
+        "this string \b has a bell"
+    )";
+
+    auto tokens = fk::lang::scan(source);
+
+    REQUIRE(tokens[0] == fk::lang::Token{ "this string \\b has a bell", fk::lang::TokenType::STRING, 2, 10});
+}
+
 TEST_CASE("scan number tokens", "[lexer]")
 {
     const std::string source =

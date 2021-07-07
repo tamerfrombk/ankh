@@ -22,6 +22,7 @@ struct CommandExpression;
 struct ArrayExpression;
 struct IndexExpression;
 struct DictionaryExpression;
+struct StringExpression;
 
 
 template <class R>
@@ -39,6 +40,7 @@ struct ExpressionVisitor {
     virtual R visit(ArrayExpression *expr) = 0;
     virtual R visit(IndexExpression *expr) = 0;
     virtual R visit(DictionaryExpression *expr) = 0;
+    virtual R visit(StringExpression *expr) = 0;
 };
 struct Expression {
     virtual ~Expression() = default;
@@ -92,6 +94,20 @@ struct LiteralExpression
 
     LiteralExpression(Token literal)
         : literal(std::move(literal)) {}
+
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
+    {
+        return visitor->visit(this);
+    }
+};
+
+struct StringExpression 
+    : public Expression 
+{
+    Token str;
+
+    StringExpression(Token str)
+        : str(std::move(str)) {}
 
     virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
     {

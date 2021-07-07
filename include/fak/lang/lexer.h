@@ -28,7 +28,7 @@ private:
 
     char prev() const noexcept;
     char curr() const noexcept;
-    char peek() const noexcept;
+    char peekc() const noexcept;
     char advance() noexcept;
 
     Token tokenize(char c, TokenType type) const noexcept;

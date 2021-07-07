@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <string>
 
+#include <fak/lang/expr_result.h>
 #include <fak/lang/expr.h>
 #include <fak/lang/statement.h>
 #include <fak/lang/program.h>
@@ -49,6 +50,7 @@ private:
     virtual ExprResult visit(ArrayExpression *cmd) override;
     virtual ExprResult visit(IndexExpression *cmd) override;
     virtual ExprResult visit(DictionaryExpression *expr) override;
+    virtual ExprResult visit(StringExpression *expr) override;
 
     virtual void visit(PrintStatement *stmt) override;
     virtual void visit(ExpressionStatement *stmt) override;
@@ -60,6 +62,8 @@ private:
     virtual void visit(FunctionDeclaration *stmt) override;
     virtual void visit(ReturnStatement *stmt) override;
 
+    std::string substitute(const StringExpression *expr);
+    ExprResult evaluate_single_expr(const std::string& str);
 private:
     EnvironmentPtr current_env_;
 

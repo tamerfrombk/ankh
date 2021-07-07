@@ -130,6 +130,11 @@ public:
         return result;
     }
 
+    inline virtual fk::lang::ExprResult visit(fk::lang::StringExpression *arr) override
+    {
+        return stringify(arr->str);
+    }
+
     inline virtual std::string visit(fk::lang::PrintStatement *stmt) override
     {
         return "print " + stringify(stmt->expr);

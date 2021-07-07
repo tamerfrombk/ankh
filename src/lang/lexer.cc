@@ -167,20 +167,32 @@ fk::lang::Token fk::lang::Lexer::scan_alnum() noexcept
 
 fk::lang::Token fk::lang::Lexer::scan_string()
 {
-    // TODO: handle escape sequences within strings
     std::string str;
+
+    size_t n_meta = 0;
     while (!is_eof()) {
-        char c = advance();
-        if (c == '"') {
-            break;
-        } else if (is_eof()) {
+        const char c = advance();
+        if (is_eof()) {
             panic<ScanException>("terminal \" not found");
+        } else if (c == '\\') {
+            const char n = advance();
+            if (n == '"') {
+                str += n;
+            } else {
+                str += c;
+                str += n;
+                ++n_meta;
+            }
+        } else if (c == '"') {
+            break;
         } else {
             str += c;
         }
     }
 
-    return tokenize(str, TokenType::STRING);
+    // -2:        to account for the quotes
+    // + n_meta:  to account for extra characters added by meta characters
+    return { str, TokenType::STRING, line_, col_ - str.length() - 2 + n_meta };
 }
 
 fk::lang::Token fk::lang::Lexer::scan_number()
@@ -252,7 +264,7 @@ char fk::lang::Lexer::curr() const noexcept
     return text_[cursor_];
 }
 
-char fk::lang::Lexer::peek() const noexcept
+char fk::lang::Lexer::peekc() const noexcept
 {
     return text_[cursor_ + 1];
 }
@@ -273,21 +285,7 @@ fk::lang::Token fk::lang::Lexer::tokenize(char c, TokenType type) const noexcept
 
 fk::lang::Token fk::lang::Lexer::tokenize(const std::string& s, TokenType type) const noexcept
 {
-    // When we initialize a string token, we have to take into account both of the double quotes surrounding
-    // the actual string and remove that from the reported column position.
-    // For example, if we have the following string token that begins at line 1, col 1:
-    // "i am a string"
-    // ^-- line = 1, col = 1
-    // then after we're done scanning the token, we'll be here:
-    // "i am a string"
-    //                ^-- line = 1, col = 16
-    // If we simply subtract the length of the string without the double quotes, we'll end up at column 3
-    // which is incorrect.
-    const size_t column = type == TokenType::STRING
-        ? col_ - s.length() - 2
-        : col_ - s.length();
-
-    return { s, type, line_, column };
+    return { s, type, line_, col_ - s.length() };
 }
 
 bool fk::lang::is_keyword(const std::string& str) noexcept

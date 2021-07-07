@@ -183,9 +183,9 @@ TEST_CASE("parse language statements", "[parser]")
         auto print = fk::lang::instance<fk::lang::PrintStatement>(program[0]);
         REQUIRE(print != nullptr);
 
-        auto literal = fk::lang::instance<fk::lang::LiteralExpression>(print->expr);
+        auto literal = fk::lang::instance<fk::lang::StringExpression>(print->expr);
         REQUIRE(literal != nullptr);
-        REQUIRE(literal->literal.type == fk::lang::TokenType::STRING);
+        REQUIRE(literal->str.type == fk::lang::TokenType::STRING);
     }
 
     SECTION("parse block statement")
@@ -398,7 +398,6 @@ TEST_CASE("parse language expressions", "[parser]")
         const std::string source =
         R"(
             1
-            "a string"
             true
             false
             nil
@@ -406,7 +405,7 @@ TEST_CASE("parse language expressions", "[parser]")
 
         auto program = fk::lang::parse(source);
 
-        REQUIRE(program.size() == 5);
+        REQUIRE(program.size() == 4);
 
         const auto& statements = program.statements();
         for (const auto& stmt : statements) {
@@ -724,10 +723,10 @@ TEST_CASE("parse language expressions", "[parser]")
         REQUIRE(dict != nullptr);
         REQUIRE(dict->entries.size() == 1);
         
-        auto key = fk::lang::instance<fk::lang::LiteralExpression>(dict->entries[0].key);
+        auto key = fk::lang::instance<fk::lang::StringExpression>(dict->entries[0].key);
         REQUIRE(key != nullptr);
 
-        auto value = fk::lang::instance<fk::lang::LiteralExpression>(dict->entries[0].value);
+        auto value = fk::lang::instance<fk::lang::StringExpression>(dict->entries[0].value);
         REQUIRE(value != nullptr);
     }
 
@@ -757,7 +756,7 @@ TEST_CASE("parse language expressions", "[parser]")
         R"(
             dict := {
                 hello: "world"
-                , foo: 1
+                , foo: "1"
             }
         )";
 
@@ -774,10 +773,10 @@ TEST_CASE("parse language expressions", "[parser]")
         REQUIRE(dict->entries.size() == 2);
         
         for (const auto& e : dict->entries) {
-            auto key = fk::lang::instance<fk::lang::LiteralExpression>(e.key);
+            auto key = fk::lang::instance<fk::lang::StringExpression>(e.key);
             REQUIRE(key != nullptr);
 
-            auto value = fk::lang::instance<fk::lang::LiteralExpression>(e.value);
+            auto value = fk::lang::instance<fk::lang::StringExpression>(e.value);
             REQUIRE(value != nullptr);
         }
     }

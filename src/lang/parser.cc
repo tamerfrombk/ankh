@@ -552,9 +552,12 @@ fk::lang::ExpressionPtr fk::lang::Parser::operable()
 
 fk::lang::ExpressionPtr fk::lang::Parser::primary()
 {
+    if (match(TokenType::STRING)) {
+        return make_expression<StringExpression>(prev());
+    }
+
     if (match({ 
         TokenType::NUMBER
-        , TokenType::STRING
         , TokenType::FK_TRUE
         , TokenType::FK_FALSE
         , TokenType::NIL
@@ -676,10 +679,9 @@ fk::lang::Entry<fk::lang::ExpressionPtr> fk::lang::Parser::entry()
 fk::lang::ExpressionPtr fk::lang::Parser::key()
 {
     if (match(TokenType::IDENTIFIER)) {
-        // TODO: when we implement string expresssions, use them here
         Token str = prev();
         str.type = fk::lang::TokenType::STRING;
-        return make_expression<LiteralExpression>(str);
+        return make_expression<StringExpression>(str);
     }
 
     consume(TokenType::LBRACKET, "'[' expected to start expression key");

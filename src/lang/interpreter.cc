@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <cstdlib>
 #include <cstdio>
 #include <algorithm>
@@ -13,6 +14,8 @@
 #include <fak/log.h>
 
 #include <fak/lang/interpreter.h>
+#include <fak/lang/parser.h>
+
 #include <fak/lang/token.h>
 #include <fak/lang/expr.h>
 #include <fak/lang/exceptions.h>
@@ -22,6 +25,8 @@
 #include <fak/lang/types/dictionary.h>
 
 #include <fak/internal/pretty_printer.h>
+#include <unordered_map>
+#include <vector>
 
 struct ReturnException
     : public std::runtime_error
@@ -440,6 +445,11 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(fk::lang::DictionaryExpression
     return dict;
 }
 
+fk::lang::ExprResult fk::lang::Interpreter::visit(fk::lang::StringExpression *expr)
+{
+    return substitute(expr);
+}
+
 void fk::lang::Interpreter::visit(PrintStatement *stmt)
 {
     const ExprResult result = evaluate(stmt->expr);
@@ -544,6 +554,86 @@ void fk::lang::Interpreter::visit(ReturnStatement *stmt)
 fk::lang::ExprResult fk::lang::Interpreter::evaluate(const ExpressionPtr& expr)
 {
     return expr->accept(this);
+}
+
+std::string fk::lang::Interpreter::substitute(const StringExpression *expr)
+{
+        // perform substitution
+    std::vector<size_t> opening_brace_indexes;
+    bool is_outer = true;
+
+    std::string result;
+    for (size_t i = 0; i < expr->str.str.length(); ++i) {
+        auto c = expr->str.str[i];
+        if (c == '\\') {
+            if (i < expr->str.str.length() - 1) {
+                char next = expr->str.str[i + 1];
+                if (next == '{' || next == '}') {
+                    result += next;
+                    ++i;
+                    continue;
+                }
+            }
+            ::panic("unterminated \\");
+        } else if (c == '{') {
+            if (is_outer) {
+                opening_brace_indexes.push_back(i);
+                is_outer = false;   
+            } else {
+                ::panic("{}:{}, nested brace substitution expressions are not allowed", expr->str.line, expr->str.col + i);
+            }
+        } else if (c == '}') {
+            if (opening_brace_indexes.empty()) {
+                ::panic("{}:{}, mismatched '}'", expr->str.line, expr->str.col);
+            }
+
+            const size_t start_idx = opening_brace_indexes.back();
+            opening_brace_indexes.pop_back();
+
+            const size_t expr_length = i - start_idx - 1;
+            if (expr_length == 0) {
+                ::panic("{}:{}, empty expression evaluation", expr->str.line, expr->str.col);
+            }
+
+            const std::string expr_str = expr->str.str.substr(start_idx + 1, expr_length);
+            FK_DEBUG("{}:{}, parsed expression string '{}' starting @ {}", expr->str.line, expr->str.col, expr_str, start_idx);
+
+            const ExprResult expr_result = evaluate_single_expr(expr_str);
+            FK_DEBUG("'{}' => '{}'", expr_str, expr_result.stringify());
+
+            result += expr_result.stringify();
+
+            is_outer = true;
+        } else if (is_outer) {
+            result += c;
+        }
+    }
+
+    if (!opening_brace_indexes.empty()) {
+        ::panic("{}:{}, mismatched '{'", expr->str.line, expr->str.col);
+    }
+
+    return result;
+}
+
+fk::lang::ExprResult fk::lang::Interpreter::evaluate_single_expr(const std::string& str)
+{
+    auto program = fk::lang::parse(str);
+    if (program.has_errors()) {
+        // TODO: print out why
+        ::panic("expression '{}' is not valid", str);
+    }
+
+    const auto& statements = program.statements();
+    if (statements.size() > 1) {
+        ::panic("'{}' is a multi return expression");
+    }
+
+    if (ExpressionStatement *stmt = instance<ExpressionStatement>(program[0]); stmt == nullptr) {
+        ::panic("'{}' is not an expression", str);
+    } else {
+        return evaluate(stmt->expr);
+    }
 }
 
 void fk::lang::Interpreter::execute(const StatementPtr& stmt)

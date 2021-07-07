@@ -94,6 +94,94 @@ TEST_CASE("primary expressions", "[interpreter]")
         }
     }
 
+    SECTION("strings, substitution expression")
+    {
+        const std::string source =
+        R"(
+            a := "lol"
+            "the value of a is {a}"
+        )";
+
+        auto [program, results] = interpret(interpreter, source);
+
+        REQUIRE(!program.has_errors());
+
+        fk::lang::ExprResult actual_result = results.back();
+        REQUIRE(actual_result.type == fk::lang::ExprResultType::RT_STRING);
+        REQUIRE(actual_result.str == "the value of a is lol");
+    }
+
+    SECTION("strings, substitution expression, missing closing brace")
+    {
+        const std::string source =
+        R"(
+            a := "lol"
+            "the value of a is {a"
+        )";
+
+        REQUIRE_THROWS(interpret(interpreter, source));
+    }
+
+    SECTION("strings, substitution expression, missing opening brace")
+    {
+        const std::string source =
+        R"(
+            a := "lol"
+            "the value of a is a}"
+        )";
+
+        REQUIRE_THROWS(interpret(interpreter, source));
+    }
+
+    SECTION("strings, substitution expression, non-string expression")
+    {
+        const std::string source =
+        R"(
+            "the value is {1 == 2}"
+        )";
+
+        auto [program, results] = interpret(interpreter, source);
+
+        REQUIRE(!program.has_errors());
+
+        fk::lang::ExprResult actual_result = results.back();
+        REQUIRE(actual_result.type == fk::lang::ExprResultType::RT_STRING);
+        REQUIRE(actual_result.str == "the value is false");
+    }
+
+    SECTION("strings, substitution expression, raw braces")
+    {
+        const std::string source =
+        R"(
+            a := 1 > 2
+            "the value is \{\} {a}"
+        )";
+
+        auto [program, results] = interpret(interpreter, source);
+
+        REQUIRE(!program.has_errors());
+
+        fk::lang::ExprResult actual_result = results.back();
+        REQUIRE(actual_result.type == fk::lang::ExprResultType::RT_STRING);
+        REQUIRE(actual_result.str == "the value is {} false");
+    }
+
+    SECTION("strings, substitution expression, multi")
+    {
+        const std::string source =
+        R"(
+            "the value is {true || false} is { true }"
+        )";
+
+        auto [program, results] = interpret(interpreter, source);
+
+        REQUIRE(!program.has_errors());
+
+        fk::lang::ExprResult actual_result = results.back();
+        REQUIRE(actual_result.type == fk::lang::ExprResultType::RT_STRING);
+        REQUIRE(actual_result.str == "the value is true is true");
+    }
+
     SECTION("lambda, rvalue")
     {
         const std::string source = R"(
@@ -772,5 +860,16 @@ TEST_CASE("dicts", "[interpreter]")
         INFO(source);
         REQUIRE_THROWS(interpret(interpreter, source));    
     }
+}
 
+TEST_CASE("strings, substitution expression, nested", "[interpreter]")
+{
+    TracingInterpreter interpreter(std::make_unique<fk::lang::Interpreter>());
+
+    const std::string source =
+    R"(
+        "the value is {{expression will be unevaluated}}"
+    )";
+
+    REQUIRE_THROWS(interpret(interpreter, source));
 }
