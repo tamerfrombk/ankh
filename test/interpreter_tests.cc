@@ -873,3 +873,192 @@ TEST_CASE("strings, substitution expression, nested", "[interpreter]")
 
     REQUIRE_THROWS(interpret(interpreter, source));
 }
+
+TEST_CASE("if statements")
+{
+    TracingInterpreter interpreter(std::make_unique<fk::lang::Interpreter>());
+
+    SECTION("if, no else, positive")
+    {
+        const std::string source = R"(
+            a := false
+            if 2 > 1 {
+                a = true
+            }
+        )";
+
+        INFO(source);
+
+        auto [program, results] = interpret(interpreter, source);
+        REQUIRE(!program.has_errors());
+
+        REQUIRE(interpreter.environment().value("a")->type == fk::lang::ExprResultType::RT_BOOL);
+        REQUIRE(interpreter.environment().value("a")->b == true);
+    }
+
+    SECTION("if, no else, negative")
+    {
+        const std::string source = R"(
+            a := false
+            if 1 > 2 {
+                a = true
+            }
+        )";
+
+        INFO(source);
+
+        auto [program, results] = interpret(interpreter, source);
+        REQUIRE(!program.has_errors());
+
+        REQUIRE(interpreter.environment().value("a")->type == fk::lang::ExprResultType::RT_BOOL);
+        REQUIRE(interpreter.environment().value("a")->b == false);
+    }
+
+    SECTION("if, with else, positive")
+    {
+        const std::string source = R"(
+            a := 0
+            if 1 < 2 {
+                a = 1
+            } else {
+                a = 2
+            }
+        )";
+
+        INFO(source);
+
+        auto [program, results] = interpret(interpreter, source);
+        REQUIRE(!program.has_errors());
+
+        REQUIRE(interpreter.environment().value("a")->type == fk::lang::ExprResultType::RT_NUMBER);
+        REQUIRE(interpreter.environment().value("a")->n == 1);
+    }
+
+    SECTION("if, with else, negative")
+    {
+        const std::string source = R"(
+            a := 0
+            if 1 > 2 {
+                a = 1
+            } else {
+                a = 2
+            }
+        )";
+
+        INFO(source);
+
+        auto [program, results] = interpret(interpreter, source);
+        REQUIRE(!program.has_errors());
+
+        REQUIRE(interpreter.environment().value("a")->type == fk::lang::ExprResultType::RT_NUMBER);
+        REQUIRE(interpreter.environment().value("a")->n == 2);
+    }
+
+    SECTION("if, with else-if, positive, no else")
+    {
+        const std::string source = R"(
+            a := 0
+            if 1 > 2 {
+                a = 1
+            } else if 2 == 2 {
+                a = 2
+            }
+        )";
+
+        INFO(source);
+
+        auto [program, results] = interpret(interpreter, source);
+        REQUIRE(!program.has_errors());
+
+        REQUIRE(interpreter.environment().value("a")->type == fk::lang::ExprResultType::RT_NUMBER);
+        REQUIRE(interpreter.environment().value("a")->n == 2);
+    }
+
+    SECTION("if, with else-if, negative, no else")
+    {
+        const std::string source = R"(
+            a := 0
+            if 1 > 2 {
+                a = 1
+            } else if 2 > 3 {
+                a = 2
+            }
+        )";
+
+        INFO(source);
+
+        auto [program, results] = interpret(interpreter, source);
+        REQUIRE(!program.has_errors());
+
+        REQUIRE(interpreter.environment().value("a")->type == fk::lang::ExprResultType::RT_NUMBER);
+        REQUIRE(interpreter.environment().value("a")->n == 0);
+    }
+
+    SECTION("if, with else-if, positive, including else")
+    {
+        const std::string source = R"(
+            a := 0
+            if 1 > 2 {
+                a = 1
+            } else if 2 < 3 {
+                a = 2
+            } else {
+                a = 3
+            }
+        )";
+
+        INFO(source);
+
+        auto [program, results] = interpret(interpreter, source);
+        REQUIRE(!program.has_errors());
+
+        REQUIRE(interpreter.environment().value("a")->type == fk::lang::ExprResultType::RT_NUMBER);
+        REQUIRE(interpreter.environment().value("a")->n == 2);
+    }
+
+    SECTION("if, with else-if, negative, including else")
+    {
+        const std::string source = R"(
+            a := 0
+            if 1 > 2 {
+                a = 1
+            } else if 2 > 3 {
+                a = 2
+            } else {
+                a = 3
+            }
+        )";
+
+        INFO(source);
+
+        auto [program, results] = interpret(interpreter, source);
+        REQUIRE(!program.has_errors());
+
+        REQUIRE(interpreter.environment().value("a")->type == fk::lang::ExprResultType::RT_NUMBER);
+        REQUIRE(interpreter.environment().value("a")->n == 3);
+    }
+
+    SECTION("if, with else-if, fallthrough")
+    {
+        const std::string source = R"(
+            a := 0
+            if a == 1 {
+                a = 2
+            } else if a == 2 {
+                a = 3
+            } else if a == 3 {
+                a = 3
+            } else {
+                a = 4
+            }
+        )";
+
+        INFO(source);
+
+        auto [program, results] = interpret(interpreter, source);
+        REQUIRE(!program.has_errors());
+
+        REQUIRE(interpreter.environment().value("a")->type == fk::lang::ExprResultType::RT_NUMBER);
+        REQUIRE(interpreter.environment().value("a")->n == 4);
+    }
+}

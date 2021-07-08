@@ -254,6 +254,31 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(else_block != nullptr);
     }
 
+    SECTION("parse if statement with else-if")
+    {
+        const std::string source =
+        R"(
+            if 1 == 2 {
+                print "what?"
+            } else if 2 == 2 {
+                print "yay"
+            }
+        )";
+
+        auto program = fk::lang::parse(source);
+
+        REQUIRE(program.size() == 1);
+
+        auto if_stmt = fk::lang::instance<fk::lang::IfStatement>(program[0]);
+        REQUIRE(if_stmt != nullptr);
+
+        auto then_block = fk::lang::instance<fk::lang::BlockStatement>(if_stmt->then_block);
+        REQUIRE(then_block != nullptr);
+
+        auto else_block = fk::lang::instance<fk::lang::IfStatement>(if_stmt->else_block);
+        REQUIRE(else_block != nullptr);
+    }
+
     SECTION("parse while statement")
     {
         const std::string source =

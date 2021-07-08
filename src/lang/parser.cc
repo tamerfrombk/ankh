@@ -352,11 +352,16 @@ fk::lang::StatementPtr fk::lang::Parser::block()
 fk::lang::StatementPtr fk::lang::Parser::parse_if()
 {
     ExpressionPtr condition = expression();
+    
     StatementPtr then_block = block();
 
     StatementPtr else_block = nullptr;
     if (match(fk::lang::TokenType::ELSE)) {
-        else_block = block();
+        if (match(TokenType::IF)) {
+            else_block = parse_if();
+        } else {
+            else_block = block();
+        }
     }
 
     return make_statement<IfStatement>(std::move(condition), std::move(then_block), std::move(else_block));
