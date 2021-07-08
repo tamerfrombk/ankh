@@ -52,6 +52,8 @@ private:
     Entry<ExpressionPtr> entry();
     ExpressionPtr        key();
 
+    void semicolon();
+
     const Token& prev() const noexcept;
     const Token& curr() const noexcept;
     const Token& advance() noexcept;

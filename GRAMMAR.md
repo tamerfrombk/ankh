@@ -18,16 +18,16 @@ statement             → expression_statement
                         | for_statement
                         | return_statement
 
-variable_declaration  → identifier ":=" assignment
-assignment            → identifier ( "=" | "+=" | "-=" | "*=" | "/=" ) expression newline
-inc_dec               → ( "++" | "--" ) expression newline
-expression_statement  → expression newline
-print_statement       → "print" expression newline
+variable_declaration  → identifier ":=" expression semicolon
+assignment            → identifier ( "=" | "+=" | "-=" | "*=" | "/=" ) expression semicolon
+inc_dec               → ( "++" | "--" ) expression semicolon
+expression_statement  → expression semicolon
+print_statement       → "print" expression semicolon
 block                 → "{" declaration* "}"
 if_statement          → "if" expression block ( "else" ( block | if_statement ) )?
 while_statement       → "while" expression block
-for_statement         → "for" variable_declaration? ";" expression? ";" statement? block
-return_statement      → "return" expression?
+for_statement         → "for" ( variable_declaration | semicolon ) ( expression | semicolon ) statement? block
+return_statement      → "return" expression? semicolon
 
 expression            → or_expression
 or_expression         → and_expression ( "||" and_expression )*
@@ -57,5 +57,6 @@ identifier            → (_ | [a-z][A-Z]) (_ | [a-z][A-Z] | [0-9])*
 string                → "[ascii]*"
 number                → [0-9]\.?[0-9]+
 newline               → "\n" | "\r\n"
+semicolon             → ";"
 
 ```

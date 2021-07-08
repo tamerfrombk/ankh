@@ -228,6 +228,8 @@ fk::lang::StatementPtr fk::lang::Parser::parse_variable_declaration(ExpressionPt
 
     ExpressionPtr rhs = expression();
 
+    semicolon();
+
     return make_statement<VariableDeclaration>(identifier->name, std::move(rhs));  
 } 
 
@@ -285,6 +287,8 @@ fk::lang::StatementPtr fk::lang::Parser::assignment(ExpressionPtr target)
 
     ExpressionPtr rhs = expression();
 
+    semicolon();
+
     return make_statement<AssignmentStatement>(identifier->name, std::move(rhs));   
 }
 
@@ -330,6 +334,8 @@ fk::lang::StatementPtr fk::lang::Parser::parse_inc_dec()
     const Token& op = advance();
 
     ExpressionPtr target = expression();
+
+    semicolon();
 
     return desugar_inc_dec(op, std::move(target));
 }
@@ -383,7 +389,6 @@ fk::lang::StatementPtr fk::lang::Parser::parse_for()
     } else {
         ExpressionPtr target = expression();
         init = parse_variable_declaration(std::move(target));
-        consume(fk::lang::TokenType::SEMICOLON, "';' expected after initializer statement");
     }
 
     ExpressionPtr condition;
@@ -393,7 +398,7 @@ fk::lang::StatementPtr fk::lang::Parser::parse_for()
         condition = make_expression<LiteralExpression>(Token{"true", fk::lang::TokenType::FK_TRUE, semicolon.line, semicolon.col});
     } else {
         condition = expression();
-        consume(fk::lang::TokenType::SEMICOLON, "';' expected after condition expression");
+        semicolon();
     }
 
     StatementPtr mutator = check(fk::lang::TokenType::LBRACE)
@@ -409,12 +414,14 @@ fk::lang::StatementPtr fk::lang::Parser::parse_return()
 {
     // if there is no expression, we return nil
     ExpressionPtr expr;
-    if (check(TokenType::RBRACE)) {
+    if (check(TokenType::SEMICOLON)) {
         const Token& current_token = prev();
         expr = make_expression<LiteralExpression>(Token{"nil", TokenType::NIL, current_token.line, current_token.col});
     } else {
         expr = expression();
     }
+
+    semicolon();
 
     return make_statement<ReturnStatement>(std::move(expr));
 }
@@ -763,6 +770,12 @@ fk::lang::Token fk::lang::Parser::consume(TokenType type, const std::string& msg
     }
 
     return prev();
+}
+
+void fk::lang::Parser::semicolon()
+{
+    // semicolons are optional so eat it if one is present
+    match(TokenType::SEMICOLON);
 }
 
 void fk::lang::Parser::synchronize_next_statement() noexcept
