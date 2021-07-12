@@ -44,11 +44,11 @@ enum class TokenType {
     FOR,               // "for"
     SEMICOLON,         // ;
     LET,               // "let"
+    EXPORT,            // "export"
     COMMA,             // ,
     FN,                // "fn"
     // prepended FK because RETURN is a macro defined in some library
     FK_RETURN,         // "return"
-    WALRUS,            // :=
     INC,               // ++
     DEC,               // --
     COLON,             // ":"

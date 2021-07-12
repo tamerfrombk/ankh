@@ -16,7 +16,6 @@ TEST_CASE("scan assignment tokens", "[lexer]")
         -=
         *=
         /=
-        :=
     )";
 
     auto tokens = fk::lang::scan(source);
@@ -26,7 +25,6 @@ TEST_CASE("scan assignment tokens", "[lexer]")
     REQUIRE(tokens[2] == fk::lang::Token{ "-=", fk::lang::TokenType::MINUSEQ, 4, 9 });
     REQUIRE(tokens[3] == fk::lang::Token{ "*=", fk::lang::TokenType::STAREQ, 5, 9 });
     REQUIRE(tokens[4] == fk::lang::Token{ "/=", fk::lang::TokenType::FSLASHEQ, 6, 9 });
-    REQUIRE(tokens[5] == fk::lang::Token{ ":=", fk::lang::TokenType::WALRUS, 7, 9 });
 }
 
 TEST_CASE("scan comparison tokens", "[lexer]")
@@ -132,6 +130,7 @@ TEST_CASE("scan keyword tokens", "[lexer]")
         fn
         return
         let
+        export
     )";
 
     auto tokens = fk::lang::scan(source);
@@ -147,6 +146,7 @@ TEST_CASE("scan keyword tokens", "[lexer]")
     REQUIRE(tokens[8] == fk::lang::Token{ "fn", fk::lang::TokenType::FN, 10, 9 });
     REQUIRE(tokens[9] == fk::lang::Token{ "return", fk::lang::TokenType::FK_RETURN, 11, 9 });
     REQUIRE(tokens[10] == fk::lang::Token{ "let", fk::lang::TokenType::LET, 12, 9 });
+    REQUIRE(tokens[11] == fk::lang::Token{ "export", fk::lang::TokenType::EXPORT, 13, 9 });
 
     for (const fk::lang::Token& token : tokens) {
         if (token.type != fk::lang::TokenType::FK_EOF){

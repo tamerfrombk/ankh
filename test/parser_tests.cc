@@ -80,11 +80,33 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(binary != nullptr);
     }
 
-    SECTION("parse declaration statement")
+    SECTION("parse declaration statement, local storage")
     {
         const std::string source =
         R"(
             let i = 1
+        )";
+
+        auto program = fk::lang::parse(source);
+
+        REQUIRE(program.size() == 1);
+
+        auto declaration = fk::lang::instance<fk::lang::VariableDeclaration>(program[0]);
+        REQUIRE(declaration != nullptr);
+
+        REQUIRE(declaration->name.str == "i");
+
+        auto literal = fk::lang::instance<fk::lang::LiteralExpression>(declaration->initializer);
+        REQUIRE(literal != nullptr);
+
+        REQUIRE(literal->literal.str == "1");
+    }
+
+    SECTION("parse declaration statement, export storage")
+    {
+        const std::string source =
+        R"(
+            export i = 1
         )";
 
         auto program = fk::lang::parse(source);

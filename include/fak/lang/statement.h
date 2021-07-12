@@ -109,14 +109,21 @@ struct AssignmentStatement
     }
 };
 
+enum class StorageClass
+{
+    LOCAL,
+    EXPORT
+};
+
 struct VariableDeclaration
     : public Statement
 {
     Token name;
     ExpressionPtr initializer;
+    StorageClass storage_class;
 
-    VariableDeclaration(Token name, ExpressionPtr initializer)
-        : name(std::move(name)), initializer(std::move(initializer)) {}
+    VariableDeclaration(Token name, ExpressionPtr initializer, StorageClass storage_class)
+        : name(std::move(name)), initializer(std::move(initializer)), storage_class(storage_class) {}
 
     virtual void accept(StatementVisitor<void> *visitor) override
     {

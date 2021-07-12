@@ -74,14 +74,14 @@ std::string fk::lang::token_type_str(fk::lang::TokenType type) noexcept
         return "SEMICOLON";
     case fk::lang::TokenType::LET:
         return "LET";
+    case fk::lang::TokenType::EXPORT:
+        return "EXPORT";
     case fk::lang::TokenType::COMMA:
         return "COMMA";
     case fk::lang::TokenType::FN:
         return "FN";
     case fk::lang::TokenType::FK_RETURN:
         return "RETURN";
-    case fk::lang::TokenType::WALRUS:
-        return "WALRUS";
     case fk::lang::TokenType::INC:
         return "INC";
     case fk::lang::TokenType::DEC:

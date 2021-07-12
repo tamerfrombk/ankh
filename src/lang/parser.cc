@@ -1,3 +1,4 @@
+#include "fak/lang/statement.h"
 #include <algorithm>
 #include <initializer_list>
 #include <random>
@@ -218,7 +219,15 @@ fk::lang::StatementPtr fk::lang::Parser::declaration()
 
 fk::lang::StatementPtr fk::lang::Parser::parse_variable_declaration()
 {
-    consume(TokenType::LET, "'let' keyword is expected to begin a declaration");
+    StorageClass storage_class;
+    if (match(TokenType::LET)) {
+        storage_class = StorageClass::LOCAL;
+    } else if (match(TokenType::EXPORT)) {
+        storage_class = StorageClass::EXPORT;
+    } else {
+        const Token& token = curr();
+        panic<ParseException>("{}:{}, '{}' is not a valid storage class specifier.", token.line, token.col, token.str);
+    }
 
     ExpressionPtr target = expression();
 
@@ -233,7 +242,7 @@ fk::lang::StatementPtr fk::lang::Parser::parse_variable_declaration()
 
     semicolon();
 
-    return make_statement<VariableDeclaration>(identifier->name, std::move(rhs));  
+    return make_statement<VariableDeclaration>(identifier->name, std::move(rhs), storage_class);  
 } 
 
 fk::lang::StatementPtr fk::lang::Parser::parse_function_declaration()
@@ -313,7 +322,7 @@ fk::lang::StatementPtr fk::lang::Parser::statement()
         return parse_return();
     } else if (check({ TokenType::INC, TokenType::DEC })) {
         return parse_inc_dec();
-    } else if (check(TokenType::LET)) {
+    } else if (check({ TokenType::LET, TokenType::EXPORT })) {
         return parse_variable_declaration();
     }
 
@@ -386,10 +395,8 @@ fk::lang::StatementPtr fk::lang::Parser::parse_while()
 
 fk::lang::StatementPtr fk::lang::Parser::parse_for()
 {
-    StatementPtr init;    
-    if (match(fk::lang::TokenType::SEMICOLON)) {
-        init = nullptr;
-    } else {
+    StatementPtr init = nullptr;    
+    if (!match(fk::lang::TokenType::SEMICOLON)) {
         init = parse_variable_declaration();
     }
 

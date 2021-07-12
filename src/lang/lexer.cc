@@ -17,6 +17,7 @@ static const std::unordered_map<std::string, fk::lang::TokenType> KEYWORDS = {
     , { "for", fk::lang::TokenType::FOR }
     , { "fn", fk::lang::TokenType::FN }
     , { "let", fk::lang::TokenType::LET }
+    , { "export", fk::lang::TokenType::EXPORT }
     , { "return", fk::lang::TokenType::FK_RETURN }
 };
 
@@ -100,10 +101,6 @@ fk::lang::Token fk::lang::Lexer::next()
     } else if (c == ',') {
         return tokenize(",", TokenType::COMMA);
     } else if (c == ':') {
-        if (curr() == '=') {
-            advance(); // eat the '='
-            return tokenize(":=", TokenType::WALRUS);
-        }
         return tokenize(":", TokenType::COLON);
     } else if (c == '$') {
         return scan_command();

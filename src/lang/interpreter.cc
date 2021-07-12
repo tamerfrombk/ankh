@@ -1,3 +1,4 @@
+#include "fak/lang/statement.h"
 #include <cstddef>
 #include <cstdlib>
 #include <cstdio>
@@ -399,7 +400,7 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(fk::lang::IndexExpression *exp
         ::panic("lookup expects array or dict operand");
     }
 
-    const ExprResult index   = evaluate(expr->index);
+    const ExprResult index = evaluate(expr->index);
     if (index.type == ExprResultType::RT_NUMBER) {
         if (!is_integer(index.n)) {
             ::panic("index must be an integral numeric expression");
@@ -475,6 +476,14 @@ void fk::lang::Interpreter::visit(VariableDeclaration *stmt)
 
     if (!current_env_->declare(stmt->name.str, result)) {
         ::panic("'{}' is already defined", stmt->name.str);
+    }
+
+    if (stmt->storage_class == StorageClass::EXPORT) {
+        const std::string result_str = result.stringify();
+        if (setenv(stmt->name.str.c_str(), result_str.c_str(), 1) == -1) {
+            const std::string errno_msg(std::strerror(errno));
+            ::panic("'{}' could not be exported due to {}", stmt->name.str, errno_msg);
+        }
     }
 }
 
@@ -558,7 +567,6 @@ fk::lang::ExprResult fk::lang::Interpreter::evaluate(const ExpressionPtr& expr)
 
 std::string fk::lang::Interpreter::substitute(const StringExpression *expr)
 {
-        // perform substitution
     std::vector<size_t> opening_brace_indexes;
     bool is_outer = true;
 
