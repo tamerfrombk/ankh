@@ -131,6 +131,7 @@ TEST_CASE("scan keyword tokens", "[lexer]")
         for
         fn
         return
+        let
     )";
 
     auto tokens = fk::lang::scan(source);
@@ -145,6 +146,7 @@ TEST_CASE("scan keyword tokens", "[lexer]")
     REQUIRE(tokens[7] == fk::lang::Token{ "for", fk::lang::TokenType::FOR, 9, 9 });
     REQUIRE(tokens[8] == fk::lang::Token{ "fn", fk::lang::TokenType::FN, 10, 9 });
     REQUIRE(tokens[9] == fk::lang::Token{ "return", fk::lang::TokenType::FK_RETURN, 11, 9 });
+    REQUIRE(tokens[10] == fk::lang::Token{ "let", fk::lang::TokenType::LET, 12, 9 });
 
     for (const fk::lang::Token& token : tokens) {
         if (token.type != fk::lang::TokenType::FK_EOF){

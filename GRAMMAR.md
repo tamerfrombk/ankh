@@ -18,7 +18,7 @@ statement             → expression_statement
                         | for_statement
                         | return_statement
 
-variable_declaration  → identifier ":=" expression semicolon
+variable_declaration  → "let" identifier "=" expression semicolon
 assignment            → identifier ( "=" | "+=" | "-=" | "*=" | "/=" ) expression semicolon
 inc_dec               → ( "++" | "--" ) expression semicolon
 expression_statement  → expression semicolon

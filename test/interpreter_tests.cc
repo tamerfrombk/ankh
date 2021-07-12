@@ -98,7 +98,7 @@ TEST_CASE("primary expressions", "[interpreter]")
     {
         const std::string source =
         R"(
-            a := "lol"
+            let a = "lol"
             "the value of a is {a}"
         )";
 
@@ -115,7 +115,7 @@ TEST_CASE("primary expressions", "[interpreter]")
     {
         const std::string source =
         R"(
-            a := "lol"
+            let a = "lol"
             "the value of a is {a"
         )";
 
@@ -126,7 +126,7 @@ TEST_CASE("primary expressions", "[interpreter]")
     {
         const std::string source =
         R"(
-            a := "lol"
+            let a = "lol"
             "the value of a is a}"
         )";
 
@@ -153,7 +153,7 @@ TEST_CASE("primary expressions", "[interpreter]")
     {
         const std::string source =
         R"(
-            a := 1 > 2
+            let a = 1 > 2
             "the value is \{\} {a}"
         )";
 
@@ -185,7 +185,7 @@ TEST_CASE("primary expressions", "[interpreter]")
     SECTION("lambda, rvalue")
     {
         const std::string source = R"(
-            function := fn (a, b) {
+            let function = fn (a, b) {
                 return a + b
             }
         )";
@@ -202,7 +202,7 @@ TEST_CASE("primary expressions", "[interpreter]")
     SECTION("command")
     {
         const std::string source = R"(
-            result := $(echo hello)
+            let result = $(echo hello)
         )";
         
         auto [program, results] = interpret(interpreter, source);
@@ -217,7 +217,7 @@ TEST_CASE("primary expressions", "[interpreter]")
     SECTION("command, piping")
     {
         const std::string source = R"(
-            result := $(echo hello | tr -s 'h' "j")
+            let result = $(echo hello | tr -s 'h' "j")
         )";
         
         auto [program, results] = interpret(interpreter, source);
@@ -232,7 +232,7 @@ TEST_CASE("primary expressions", "[interpreter]")
     SECTION("parenthetic expression")
     {
         const std::string source = R"(
-            result := ( 1 + 2 )
+            let result = ( 1 + 2 )
         )";
         
         auto [program, results] = interpret(interpreter, source);
@@ -321,7 +321,7 @@ TEST_CASE("call expressions", "[interpreter]")
     SECTION("lambda call")
     {
         const std::string source = R"(
-            f := fn (a, b) {
+            let f = fn (a, b) {
                 return a + b
             }
 
@@ -341,7 +341,7 @@ TEST_CASE("call expressions", "[interpreter]")
     SECTION("lambda call, no return statement -- should return nil")
     {
         const std::string source = R"(
-            f := fn (a, b) {
+            let f = fn (a, b) {
                 a + b
             }
 
@@ -646,7 +646,7 @@ TEST_CASE("boolean", "[interpreter]")
     SECTION("and, strict evaluation")
     {
         const std::string source = R"(
-            count := 0
+            let count = 0
 
             fn update() {
                 count = count + 1
@@ -704,7 +704,7 @@ TEST_CASE("boolean", "[interpreter]")
     SECTION("or, strict evaluation")
     {
         const std::string source = R"(
-            count := 0
+            let count = 0
 
             fn update() {
                 count = count + 1
@@ -752,7 +752,7 @@ TEST_CASE("arrays", "[interpreter]")
     SECTION("index expressions")
     {
         const std::string source = R"(
-            a := [1, 2]
+            let a = [1, 2]
             a[0] + a[1]
         )";
 
@@ -769,7 +769,7 @@ TEST_CASE("arrays", "[interpreter]")
     SECTION("index expressions, out of range")
     {
         const std::string source = R"(
-            a := [1, 2]
+            let a = [1, 2]
             a[3]
         )";
 
@@ -786,7 +786,7 @@ TEST_CASE("dicts", "[interpreter]")
     SECTION("dict declaration")
     {
         const std::string source = R"(
-            a := {
+            let a = {
                 a: "b",
                 c: 2,
                 d: []
@@ -810,7 +810,7 @@ TEST_CASE("dicts", "[interpreter]")
     SECTION("dict declaration, key expression")
     {
         const std::string source = R"(
-            a := {
+            let a = {
                 ["a" + "b"]: "abc"
             }
         )";
@@ -830,7 +830,7 @@ TEST_CASE("dicts", "[interpreter]")
     SECTION("dict lookup, string")
     {
         const std::string source = R"(
-            a := {
+            let a = {
                 f: "g"
             }
 
@@ -850,7 +850,7 @@ TEST_CASE("dicts", "[interpreter]")
     SECTION("dict lookup, non-string")
     {
         const std::string source = R"(
-            a := {
+            let a = {
                 f: "g"
             }
 
@@ -881,7 +881,7 @@ TEST_CASE("if statements")
     SECTION("if, no else, positive")
     {
         const std::string source = R"(
-            a := false
+            let a = false
             if 2 > 1 {
                 a = true
             }
@@ -899,7 +899,7 @@ TEST_CASE("if statements")
     SECTION("if, no else, negative")
     {
         const std::string source = R"(
-            a := false
+            let a = false
             if 1 > 2 {
                 a = true
             }
@@ -917,7 +917,7 @@ TEST_CASE("if statements")
     SECTION("if, with else, positive")
     {
         const std::string source = R"(
-            a := 0
+            let a = 0
             if 1 < 2 {
                 a = 1
             } else {
@@ -937,7 +937,7 @@ TEST_CASE("if statements")
     SECTION("if, with else, negative")
     {
         const std::string source = R"(
-            a := 0
+            let a = 0
             if 1 > 2 {
                 a = 1
             } else {
@@ -957,7 +957,7 @@ TEST_CASE("if statements")
     SECTION("if, with else-if, positive, no else")
     {
         const std::string source = R"(
-            a := 0
+            let a = 0
             if 1 > 2 {
                 a = 1
             } else if 2 == 2 {
@@ -977,7 +977,7 @@ TEST_CASE("if statements")
     SECTION("if, with else-if, negative, no else")
     {
         const std::string source = R"(
-            a := 0
+            let a = 0
             if 1 > 2 {
                 a = 1
             } else if 2 > 3 {
@@ -997,7 +997,7 @@ TEST_CASE("if statements")
     SECTION("if, with else-if, positive, including else")
     {
         const std::string source = R"(
-            a := 0
+            let a = 0
             if 1 > 2 {
                 a = 1
             } else if 2 < 3 {
@@ -1019,7 +1019,7 @@ TEST_CASE("if statements")
     SECTION("if, with else-if, negative, including else")
     {
         const std::string source = R"(
-            a := 0
+            let a = 0
             if 1 > 2 {
                 a = 1
             } else if 2 > 3 {
@@ -1041,7 +1041,7 @@ TEST_CASE("if statements")
     SECTION("if, with else-if, fallthrough")
     {
         const std::string source = R"(
-            a := 0
+            let a = 0
             if a == 1 {
                 a = 2
             } else if a == 2 {

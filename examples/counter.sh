@@ -1,7 +1,7 @@
 #!/usr/bin/env fak
 
 fn makeCounter() {
-  i := 0
+  let i = 0
   fn count() {
     ++i
     print i
@@ -10,6 +10,6 @@ fn makeCounter() {
   return count
 }
 
-counter := makeCounter()
+let counter = makeCounter()
 counter() #1
 counter() #2

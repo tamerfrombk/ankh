@@ -4,7 +4,7 @@ fn join(a, b, c, joiner) {
     return joiner(joiner(a, b), c)
 }
 
-joiner := fn (a, b) { return a + b }
+let joiner = fn (a, b) { return a + b }
 
 print join("this ", "rellly ", "works!", joiner)
 

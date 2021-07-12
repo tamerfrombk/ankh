@@ -16,6 +16,7 @@ static const std::unordered_map<std::string, fk::lang::TokenType> KEYWORDS = {
     , { "while", fk::lang::TokenType::WHILE }
     , { "for", fk::lang::TokenType::FOR }
     , { "fn", fk::lang::TokenType::FN }
+    , { "let", fk::lang::TokenType::LET }
     , { "return", fk::lang::TokenType::FK_RETURN }
 };
 

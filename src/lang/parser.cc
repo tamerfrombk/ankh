@@ -1,4 +1,3 @@
-#include "fak/lang/expr.h"
 #include <algorithm>
 #include <initializer_list>
 #include <random>
@@ -217,14 +216,18 @@ fk::lang::StatementPtr fk::lang::Parser::declaration()
     return statement();
 }
 
-fk::lang::StatementPtr fk::lang::Parser::parse_variable_declaration(ExpressionPtr target)
+fk::lang::StatementPtr fk::lang::Parser::parse_variable_declaration()
 {
+    consume(TokenType::LET, "'let' keyword is expected to begin a declaration");
+
+    ExpressionPtr target = expression();
+
     IdentifierExpression *identifier = instance<IdentifierExpression>(target);
     if (identifier == nullptr) {
         panic<ParseException>("invalid variable declaration target");
     }
 
-    consume(TokenType::WALRUS, "':=' expected in variable declaration");
+    consume(TokenType::EQ, "'=' expected in variable declaration");
 
     ExpressionPtr rhs = expression();
 
@@ -310,22 +313,22 @@ fk::lang::StatementPtr fk::lang::Parser::statement()
         return parse_return();
     } else if (check({ TokenType::INC, TokenType::DEC })) {
         return parse_inc_dec();
+    } else if (check(TokenType::LET)) {
+        return parse_variable_declaration();
+    }
+
+    ExpressionPtr expr = expression();
+    if (check({ 
+        TokenType::EQ
+        , TokenType::PLUSEQ
+        , TokenType::MINUSEQ
+        , TokenType::STAREQ
+        , TokenType::FSLASHEQ 
+        })
+    ) {
+        return assignment(std::move(expr));
     } else {
-        ExpressionPtr expr = expression();
-        if (check(TokenType::WALRUS)) {
-            return parse_variable_declaration(std::move(expr));
-        } else if (check({ 
-            TokenType::EQ
-            , TokenType::PLUSEQ
-            , TokenType::MINUSEQ
-            , TokenType::STAREQ
-            , TokenType::FSLASHEQ 
-            })
-        ) {
-            return assignment(std::move(expr));
-        } else {
-            return make_statement<ExpressionStatement>(std::move(expr));
-        }
+        return make_statement<ExpressionStatement>(std::move(expr));
     }
 }
 
@@ -387,8 +390,7 @@ fk::lang::StatementPtr fk::lang::Parser::parse_for()
     if (match(fk::lang::TokenType::SEMICOLON)) {
         init = nullptr;
     } else {
-        ExpressionPtr target = expression();
-        init = parse_variable_declaration(std::move(target));
+        init = parse_variable_declaration();
     }
 
     ExpressionPtr condition;

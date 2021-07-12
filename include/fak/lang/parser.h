@@ -22,7 +22,7 @@ public:
 private:
     StatementPtr  declaration();
     StatementPtr  assignment(ExpressionPtr target);
-    StatementPtr  parse_variable_declaration(ExpressionPtr target);
+    StatementPtr  parse_variable_declaration();
     StatementPtr  parse_function_declaration();
     
     StatementPtr  statement();

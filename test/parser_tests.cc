@@ -84,7 +84,7 @@ TEST_CASE("parse language statements", "[parser]")
     {
         const std::string source =
         R"(
-            i := 1
+            let i = 1
         )";
 
         auto program = fk::lang::parse(source);
@@ -106,7 +106,7 @@ TEST_CASE("parse language statements", "[parser]")
     {
         const std::string source =
         R"(
-            i := 2
+            let i = 2
             i = 3
         )";
 
@@ -129,7 +129,7 @@ TEST_CASE("parse language statements", "[parser]")
     {
         const std::string source =
         R"(
-            i := 2
+            let i = 2
             ++i
         )";
 
@@ -151,7 +151,7 @@ TEST_CASE("parse language statements", "[parser]")
     {
         const std::string source =
         R"(
-            i := 2
+            let i = 2
             --i
         )";
 
@@ -283,7 +283,7 @@ TEST_CASE("parse language statements", "[parser]")
     {
         const std::string source =
         R"(
-            i := 1
+            let i = 1
             while i < 2 {
                 print "I am less than 2"
             }
@@ -306,7 +306,7 @@ TEST_CASE("parse language statements", "[parser]")
     {
         const std::string source =
         R"(
-            for i := 1; i < 2; ++i {
+            for let i = 1; i < 2; ++i {
                 print i
             }
         )";
@@ -391,7 +391,7 @@ TEST_CASE("parse language statements", "[parser]")
         const std::string source =
             R"(
                 fn foo(a, b) {
-                    s := a + b
+                    let s = a + b
                     {
                         return s
                     }
@@ -554,7 +554,7 @@ TEST_CASE("parse language expressions", "[parser]")
     {
         const std::string source =
         R"(
-            lambda := fn (a, b) {
+            let lambda = fn (a, b) {
                 return a + b
             }
         )";
@@ -731,7 +731,7 @@ TEST_CASE("parse language expressions", "[parser]")
     {
         const std::string source =
         R"(
-            dict := {
+            let dict = {
                 hello: "world"
             }
         )";
@@ -759,7 +759,7 @@ TEST_CASE("parse language expressions", "[parser]")
     {
         const std::string source =
         R"(
-            dict := {}
+            let dict = {}
         )";
 
         auto program = fk::lang::parse(source);
@@ -779,7 +779,7 @@ TEST_CASE("parse language expressions", "[parser]")
     {
         const std::string source =
         R"(
-            dict := {
+            let dict = {
                 hello: "world"
                 , foo: "1"
             }
@@ -810,7 +810,7 @@ TEST_CASE("parse language expressions", "[parser]")
     {
         const std::string source =
         R"(
-            dict := {
+            let dict = {
                 [1 + 1] : 2
             }
         )";
@@ -838,7 +838,7 @@ TEST_CASE("parse language expressions", "[parser]")
     {
         const std::string source =
         R"(
-            dict := {
+            let dict = {
                 [1 + 1] : 2
                 , [3 + 4] : 2
                 , foo : "bar"
@@ -862,7 +862,7 @@ TEST_CASE("parse language expressions", "[parser]")
     {
         const std::string source =
         R"(
-            dict := {
+            let dict = {
                 [1 + 1] : 2
                  [3 + 4] : 2
                 , welp
@@ -878,7 +878,7 @@ TEST_CASE("parse language expressions", "[parser]")
     {
         const std::string source =
         R"(
-            dict := {
+            let dict = {
                 [1 + 1] : 2
                 , [3 + 4] : 2
                 , welp: "gulp"
