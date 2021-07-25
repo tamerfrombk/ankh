@@ -3,7 +3,7 @@
 #include <fak/lang/env.h>
 
 
-fk::lang::Environment::Environment(fk::lang::Environment *enclosing)
+fk::lang::Environment::Environment(fk::lang::EnvironmentPtr enclosing)
     : enclosing_(enclosing)
     , scope_(enclosing_ == nullptr ? 0 : 1 + enclosing->scope()) 
 {}

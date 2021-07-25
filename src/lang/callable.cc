@@ -22,17 +22,17 @@ size_t fk::lang::Function::arity() const noexcept
 
 void fk::lang::Function::invoke(const std::vector<ExpressionPtr>& args)
 {
-    Environment environment(closure_.get());
-    FK_DEBUG("closure environment {} created", environment.scope());
+    EnvironmentPtr environment(make_env(closure_));
+    FK_DEBUG("closure environment {} created", environment->scope());
     for (size_t i = 0; i < args.size(); ++i) {
         const ExprResult arg = interpreter_->evaluate(args[i]);
-        if (!environment.declare(decl_->params[i].str, arg)) {
+        if (!environment->declare(decl_->params[i].str, arg)) {
             FK_FATAL("function parameter '{}' should always be declarable");
         }
     }
 
     BlockStatement *block = static_cast<BlockStatement*>(decl_->body.get());
-    interpreter_->execute_block(block, &environment);
+    interpreter_->execute_block(block, environment);
 }
 
 fk::lang::Lambda::Lambda(Interpreter *interpreter, LambdaExpression *decl, EnvironmentPtr closure)
@@ -53,15 +53,15 @@ size_t fk::lang::Lambda::arity() const noexcept
 
 void fk::lang::Lambda::invoke(const std::vector<ExpressionPtr>& args)
 {
-    Environment environment(closure_.get());
-    FK_DEBUG("closure environment {} created", environment.scope());
+    EnvironmentPtr environment(make_env(closure_));
+    FK_DEBUG("closure environment {} created", environment->scope());
     for (size_t i = 0; i < args.size(); ++i) {
         const ExprResult arg = interpreter_->evaluate(args[i]);
-        if (!environment.declare(decl_->params[i].str, arg)) {
+        if (!environment->declare(decl_->params[i].str, arg)) {
             FK_FATAL("function parameter '{}' should always be declarable");
         }
     }
 
     BlockStatement *block = static_cast<BlockStatement*>(decl_->body.get());
-    interpreter_->execute_block(block, &environment);
+    interpreter_->execute_block(block, environment);
 }

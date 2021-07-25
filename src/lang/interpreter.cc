@@ -215,7 +215,7 @@ static void print(const fk::lang::ExprResult& result)
 }
 
 fk::lang::Interpreter::Interpreter()
-    : current_env_(make_env(nullptr)) {}
+    : current_env_(make_env()) {}
 
 void fk::lang::Interpreter::interpret(const Program& program)
 {
@@ -499,10 +499,10 @@ void fk::lang::Interpreter::visit(AssignmentStatement *stmt)
 
 void fk::lang::Interpreter::visit(BlockStatement *stmt)
 {
-    execute_block(stmt, current_env_.get());
+    execute_block(stmt, current_env_);
 }
 
-void fk::lang::Interpreter::execute_block(const BlockStatement *stmt, Environment *environment)
+void fk::lang::Interpreter::execute_block(const BlockStatement *stmt, EnvironmentPtr environment)
 {
     Scope block_scope(this, environment);
     for (const StatementPtr& statement : stmt->statements) {
@@ -649,11 +649,11 @@ void fk::lang::Interpreter::execute(const StatementPtr& stmt)
     stmt->accept(this);
 }
 
-fk::lang::Interpreter::Scope::Scope(fk::lang::Interpreter *interpreter, fk::lang::Environment *enclosing)
+fk::lang::Interpreter::Scope::Scope(fk::lang::Interpreter *interpreter, fk::lang::EnvironmentPtr enclosing)
     : interpreter_(interpreter)
     , prev_(nullptr)
 {
-    prev_ = std::move(interpreter->current_env_);
+    prev_ = interpreter->current_env_;
     interpreter->current_env_ = make_env(enclosing);
     FK_DEBUG("new scope created from {} to {} through {}", prev_->scope(), interpreter_->current_env_->scope(), enclosing->scope());
 }
@@ -661,5 +661,5 @@ fk::lang::Interpreter::Scope::Scope(fk::lang::Interpreter *interpreter, fk::lang
 fk::lang::Interpreter::Scope::~Scope()
 {
     FK_DEBUG("scope exiting from {} to {}", interpreter_->current_env_->scope(), prev_->scope());
-    interpreter_->current_env_ = std::move(prev_);
+    interpreter_->current_env_ = prev_;
 }

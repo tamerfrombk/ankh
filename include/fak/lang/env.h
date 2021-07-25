@@ -11,10 +11,15 @@
 #include <fak/log.h>
 
 namespace fk::lang {
+
+class Environment;
+
+using EnvironmentPtr = std::shared_ptr<Environment>;
+
 class Environment
 {
 public:
-    Environment(Environment *enclosing = nullptr);
+    Environment(EnvironmentPtr enclosing = nullptr);
 
     FK_NO_DISCARD bool assign(const std::string& name, const ExprResult& result) noexcept;
 
@@ -28,7 +33,7 @@ public:
 
 private:
     std::unordered_map<std::string, ExprResult> values_;
-    Environment *enclosing_;
+    EnvironmentPtr enclosing_;
     const size_t scope_;
 };
 

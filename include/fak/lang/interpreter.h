@@ -26,7 +26,7 @@ public:
     virtual ExprResult evaluate(const ExpressionPtr& expr);
     void execute(const StatementPtr& stmt);
 
-    void execute_block(const BlockStatement *stmt, Environment *environment);
+    void execute_block(const BlockStatement *stmt, EnvironmentPtr environment);
 
     inline const Environment& environment() const noexcept
     {
@@ -69,7 +69,7 @@ private:
 
     class Scope {
     public:
-        Scope(fk::lang::Interpreter *interpreter, fk::lang::Environment *enclosing);
+        Scope(fk::lang::Interpreter *interpreter, fk::lang::EnvironmentPtr enclosing);
         ~Scope();
     private:
         fk::lang::Interpreter *interpreter_;
