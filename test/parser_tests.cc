@@ -936,14 +936,20 @@ TEST_CASE("test parse statement without a empty line at the end does not infinit
     REQUIRE(program.size() == 1);
 }
 
-TEST_CASE("parse two arrays as two separate statements rather than an index operation", "[parser][!mayfail]")
+TEST_CASE("parse two arrays as two separate statements rather than an index operation", "[parser]")
 {
     const std::string source =
     R"(
-        [1, 2]
+        [1, 2];
         [0]
     )";
 
     auto program = fk::lang::parse(source);
     REQUIRE(program.size() == 2);
+
+    for (auto& stmt : program.statements()) {
+        auto ptr = fk::lang::instance<fk::lang::ExpressionStatement>(stmt);
+        REQUIRE(ptr != nullptr);
+        REQUIRE(fk::lang::instanceof<fk::lang::ArrayExpression>(ptr->expr));   
+    }
 }

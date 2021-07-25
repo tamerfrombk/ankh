@@ -307,7 +307,11 @@ fk::lang::StatementPtr fk::lang::Parser::assignment(ExpressionPtr target)
 fk::lang::StatementPtr fk::lang::Parser::statement()
 {
     if (match(fk::lang::TokenType::PRINT)) {
-        return make_statement<PrintStatement>(expression());
+        ExpressionPtr expr = expression();
+
+        semicolon();
+
+        return make_statement<PrintStatement>(std::move(expr));
     } else if (check(fk::lang::TokenType::LBRACE)) {
         // NOTE: we check instead of matching here so we can consume the left brace __in__ block()
         // This allows us to simply call block() whenever we need to parse a block e.g. in while statements
@@ -337,6 +341,8 @@ fk::lang::StatementPtr fk::lang::Parser::statement()
     ) {
         return assignment(std::move(expr));
     } else {
+        semicolon();
+
         return make_statement<ExpressionStatement>(std::move(expr));
     }
 }
@@ -532,7 +538,11 @@ fk::lang::ExpressionPtr fk::lang::Parser::unary()
 fk::lang::ExpressionPtr fk::lang::Parser::operable()
 {
     ExpressionPtr expr = primary();
-    while (check({ TokenType::LPAREN, TokenType::LBRACKET })) {    
+    while (check({ TokenType::LPAREN, TokenType::LBRACKET, TokenType::SEMICOLON })) {
+        if (check(TokenType::SEMICOLON)) {
+            return expr;
+        }
+
         if (match(TokenType::LPAREN)) {
             if (!instanceof<IdentifierExpression>(expr) 
             && !instanceof<CallExpression>(expr)
@@ -552,6 +562,7 @@ fk::lang::ExpressionPtr fk::lang::Parser::operable()
 
             expr = make_expression<CallExpression>(std::move(expr), std::move(args));
         }
+
         if (match(TokenType::LBRACKET)) {
             if (!instanceof<IdentifierExpression>(expr) 
                 && !instanceof<ArrayExpression>(expr) 

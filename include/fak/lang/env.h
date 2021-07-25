@@ -37,8 +37,6 @@ private:
     const size_t scope_;
 };
 
-using EnvironmentPtr = std::shared_ptr<Environment>;
-
 template <class... Args>
 EnvironmentPtr make_env(Args&&... args) noexcept
 {
