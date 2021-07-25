@@ -51,6 +51,7 @@ private:
     virtual ExprResult visit(IndexExpression *cmd) override;
     virtual ExprResult visit(DictionaryExpression *expr) override;
     virtual ExprResult visit(StringExpression *expr) override;
+    virtual ExprResult visit(AccessExpression *expr) override;
 
     virtual void visit(PrintStatement *stmt) override;
     virtual void visit(ExpressionStatement *stmt) override;

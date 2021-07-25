@@ -84,6 +84,7 @@ TEST_CASE("scan grouping tokens", "[lexer]")
         [
         ]
         :
+        .
     )";
 
     auto tokens = fk::lang::scan(source);
@@ -97,6 +98,7 @@ TEST_CASE("scan grouping tokens", "[lexer]")
     REQUIRE(tokens[6] == fk::lang::Token{ "[", fk::lang::TokenType::LBRACKET, 8, 9 });
     REQUIRE(tokens[7] == fk::lang::Token{ "]", fk::lang::TokenType::RBRACKET, 9, 9 });
     REQUIRE(tokens[8] == fk::lang::Token{ ":", fk::lang::TokenType::COLON, 10, 9 });
+    REQUIRE(tokens[9] == fk::lang::Token{ ".", fk::lang::TokenType::DOT, 11, 9 });
 }
 
 TEST_CASE("scan boolean tokens", "[lexer]")

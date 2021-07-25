@@ -927,6 +927,50 @@ TEST_CASE("parse language expressions", "[parser]")
         auto lookup = fk::lang::instance<fk::lang::IndexExpression>(stmt->expr);
         REQUIRE(lookup != nullptr);
     }
+
+    SECTION("accessible, field")
+    {
+        const std::string source =
+        R"(
+            a.b
+        )";
+
+        auto program = fk::lang::parse(source);
+
+        REQUIRE(!program.has_errors());
+        REQUIRE(program.size() == 1);
+
+        auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+        REQUIRE(stmt != nullptr);
+        
+        auto access = fk::lang::instance<fk::lang::AccessExpression>(stmt->expr);
+        REQUIRE(access != nullptr);
+        REQUIRE(access->accessor.str == "b");
+    }
+
+    SECTION("accessible, method")
+    {
+        const std::string source =
+        R"(
+            a.b()
+        )";
+
+        auto program = fk::lang::parse(source);
+
+        REQUIRE(!program.has_errors());
+        REQUIRE(program.size() == 1);
+
+        auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+        REQUIRE(stmt != nullptr);
+        
+        auto call = fk::lang::instance<fk::lang::CallExpression>(stmt->expr);
+        REQUIRE(call != nullptr);
+        REQUIRE(call->args.size() == 0);
+
+        auto access = fk::lang::instance<fk::lang::AccessExpression>(call->callee);
+        REQUIRE(access != nullptr);
+        REQUIRE(access->accessor.str == "b");
+    }
 }
 
 TEST_CASE("test parse statement without a empty line at the end does not infinite loop", "[parser]")

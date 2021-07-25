@@ -538,48 +538,64 @@ fk::lang::ExpressionPtr fk::lang::Parser::unary()
 fk::lang::ExpressionPtr fk::lang::Parser::operable()
 {
     ExpressionPtr expr = primary();
-    while (check({ TokenType::LPAREN, TokenType::LBRACKET, TokenType::SEMICOLON })) {
+    while (check({ TokenType::LPAREN, TokenType::LBRACKET, TokenType::DOT, TokenType::SEMICOLON })) {
         if (check(TokenType::SEMICOLON)) {
             return expr;
         }
 
-        if (match(TokenType::LPAREN)) {
-            if (!instanceof<IdentifierExpression>(expr) 
-            && !instanceof<CallExpression>(expr)
-            && !instanceof<IndexExpression>(expr)
-            ) {
-                panic<ParseException>("identifier, index, or another callable expected as callable");
-            }
-
-            std::vector<ExpressionPtr> args;
-            if (!check(TokenType::RPAREN)) {
-                do {
-                    args.push_back(expression());
-                } while (match({ TokenType::COMMA }));
-            }
-
-            consume(TokenType::RPAREN, "')' expected to terminate callable arguments");
-
-            expr = make_expression<CallExpression>(std::move(expr), std::move(args));
+        if (check(TokenType::LPAREN)) {
+            expr = call(std::move(expr));
         }
 
-        if (match(TokenType::LBRACKET)) {
-            if (!instanceof<IdentifierExpression>(expr) 
-                && !instanceof<ArrayExpression>(expr) 
-                && !instanceof<CallExpression>(expr)
-            ) {
-                panic<ParseException>("identifier, callable, or array expression expected as index operation");
-            }
+        if (check(TokenType::LBRACKET)) {
+            expr = index(std::move(expr));
+        }
 
-            ExpressionPtr idx = expression();
-
-            consume(TokenType::RBRACKET, "']' expected to terminate index operation");
-
-            expr = make_expression<IndexExpression>(std::move(expr), std::move(idx)); 
+        if (check(TokenType::DOT)) {
+            expr = access(std::move(expr));
         }
     }
 
     return expr;
+}
+
+fk::lang::ExpressionPtr fk::lang::Parser::call(ExpressionPtr callee)
+{
+    // no message requires since we know we have this token
+    consume(TokenType::LPAREN, "");
+
+    std::vector<ExpressionPtr> args;
+    if (!check(TokenType::RPAREN)) {
+        do {
+            args.push_back(expression());
+        } while (match({ TokenType::COMMA }));
+    }
+
+    consume(TokenType::RPAREN, "')' expected to terminate callable arguments");
+
+    return make_expression<CallExpression>(std::move(callee), std::move(args));
+}
+
+fk::lang::ExpressionPtr fk::lang::Parser::index(ExpressionPtr indexee)
+{
+    // no message required since we know we have this token
+    consume(TokenType::LBRACKET, "");
+
+    ExpressionPtr idx = expression();
+
+    consume(TokenType::RBRACKET, "']' expected to terminate index operation");
+
+    return make_expression<IndexExpression>(std::move(indexee), std::move(idx));
+}
+
+fk::lang::ExpressionPtr fk::lang::Parser::access(ExpressionPtr accessible)
+{
+    // no message required here since we know we have a DOT
+    consume(TokenType::DOT, "");
+
+    Token identifier = consume(TokenType::IDENTIFIER, "identifier required after '.'");
+    
+    return make_expression<AccessExpression>(std::move(accessible), identifier);
 }
 
 fk::lang::ExpressionPtr fk::lang::Parser::primary()

@@ -52,6 +52,7 @@ enum class TokenType {
     INC,               // ++
     DEC,               // --
     COLON,             // ":"
+    DOT,               // ":"
     NUMBER,
     STRING,
     COMMAND,

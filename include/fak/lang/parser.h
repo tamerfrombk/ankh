@@ -44,6 +44,9 @@ private:
     ExpressionPtr factor();
     ExpressionPtr unary();
     ExpressionPtr operable();
+    ExpressionPtr call(ExpressionPtr callee);
+    ExpressionPtr index(ExpressionPtr indexable);
+    ExpressionPtr access(ExpressionPtr accessible);
     ExpressionPtr primary();
     ExpressionPtr lambda();
     ExpressionPtr parse_array();

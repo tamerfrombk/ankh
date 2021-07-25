@@ -23,6 +23,7 @@ struct ArrayExpression;
 struct IndexExpression;
 struct DictionaryExpression;
 struct StringExpression;
+struct AccessExpression;
 
 
 template <class R>
@@ -41,6 +42,7 @@ struct ExpressionVisitor {
     virtual R visit(IndexExpression *expr) = 0;
     virtual R visit(DictionaryExpression *expr) = 0;
     virtual R visit(StringExpression *expr) = 0;
+    virtual R visit(AccessExpression *expr) = 0;
 };
 struct Expression {
     virtual ~Expression() = default;
@@ -213,6 +215,21 @@ struct DictionaryExpression
 
     DictionaryExpression(std::vector<Entry<ExpressionPtr>> entries)
         : entries(std::move(entries)) {}
+    
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
+    {
+        return visitor->visit(this);
+    }
+};
+
+struct AccessExpression 
+    : public Expression
+{
+    ExpressionPtr accessible;
+    Token accessor;
+
+    AccessExpression(ExpressionPtr accessible, Token accessor)
+        : accessible(std::move(accessible)), accessor(std::move(accessor)) {}
     
     virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
     {

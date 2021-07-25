@@ -38,7 +38,10 @@ comparison            → term ( ( ">" | ">=" | "<" | "<=" ) term )*
 term                  → factor ( ( "-" | "+" ) factor )*
 factor                → unary ( ( "/" | "*" ) unary )*
 unary                 → ( "!" | "-" ) unary | operable
-operable              → primary ( "(" args? ")" | "[" expression "]" )
+operable              → primary ( call | lookup | access )*
+call                  → "(" args? ")"
+lookup                → "[" expression "]"
+access                → "." identifier
 args                  → expression ( "," expression )*
 primary               → literal
                         | "(" expression ")"

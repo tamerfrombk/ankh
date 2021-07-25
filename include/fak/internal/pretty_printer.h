@@ -135,6 +135,11 @@ public:
         return stringify(arr->str);
     }
 
+    inline virtual fk::lang::ExprResult visit(fk::lang::AccessExpression *arr) override
+    {
+        return stringify(arr->accessible) + "." + stringify(arr->accessor);
+    }
+
     inline virtual std::string visit(fk::lang::PrintStatement *stmt) override
     {
         return "print " + stringify(stmt->expr);

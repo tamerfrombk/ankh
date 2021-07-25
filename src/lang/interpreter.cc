@@ -451,6 +451,12 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(fk::lang::StringExpression *ex
     return substitute(expr);
 }
 
+fk::lang::ExprResult fk::lang::Interpreter::visit(fk::lang::AccessExpression *expr)
+{
+    FK_UNUSED(expr);
+    FK_FATAL("access: unimplemented");
+}
+
 void fk::lang::Interpreter::visit(PrintStatement *stmt)
 {
     const ExprResult result = evaluate(stmt->expr);

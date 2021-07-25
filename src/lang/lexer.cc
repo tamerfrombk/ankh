@@ -104,6 +104,8 @@ fk::lang::Token fk::lang::Lexer::next()
         return tokenize(":", TokenType::COLON);
     } else if (c == '$') {
         return scan_command();
+    } else if (c == '.') {
+        return tokenize(c, TokenType::DOT);
     } else {
         panic<ScanException>("{}:{} unknown token or token initializer: '{}'", line_, col_, c);
     }
