@@ -825,7 +825,9 @@ void fk::lang::Parser::synchronize_next_statement() noexcept
         TokenType::FK_RETURN,
         TokenType::INC,
         TokenType::DEC,
-        TokenType::FN
+        TokenType::FN,
+        TokenType::LET,
+        TokenType::EXPORT
     };
 
     while (!is_eof() && !check(statement_initializer_tokens)) {
