@@ -64,3 +64,4 @@ build/
 compile_commands.json
 .vscode/
 examples/internal/
+.vs/
