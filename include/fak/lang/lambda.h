@@ -28,6 +28,12 @@ struct LambdaExpression
     {
         return make_expression<LambdaExpression>(generated_name, params, body->clone());
     }
+
+    virtual std::string stringify() const noexcept override
+    {
+        std::string params = "";
+        return "fn (" + params + ") " + body->stringify();
+    }
 };
 
 }

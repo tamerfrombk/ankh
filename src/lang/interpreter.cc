@@ -24,7 +24,6 @@
 #include <fak/lang/types/array.h>
 #include <fak/lang/types/dictionary.h>
 
-#include <fak/internal/pretty_printer.h>
 #include <unordered_map>
 #include <vector>
 
@@ -221,9 +220,7 @@ void fk::lang::Interpreter::interpret(const Program& program)
     const auto& statements = program.statements();
     for (const auto& stmt : statements) {
 #ifndef NDEBUG
-        fk::internal::PrettyPrinter printer;
-        const std::string pretty = stmt->accept(&printer);
-        FK_DEBUG("{}", pretty);
+        FK_DEBUG("{}", stmt->stringify());
 #endif
         execute(stmt);
     }

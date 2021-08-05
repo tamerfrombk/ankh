@@ -43,8 +43,8 @@ struct Statement
     virtual ~Statement() = default;
 
     virtual void accept(StatementVisitor<void> *visitor) = 0;
-    virtual std::string accept(StatementVisitor<std::string> *visitor) = 0;
     virtual StatementPtr clone() const noexcept = 0;
+    virtual std::string stringify() const noexcept = 0;
 };
 
 
@@ -67,14 +67,14 @@ struct PrintStatement
         visitor->visit(this);
     }
 
-    virtual std::string accept(StatementVisitor<std::string> *visitor) override
-    {
-        return visitor->visit(this);
-    }
-
     virtual StatementPtr clone() const noexcept override
     {
         return make_statement<PrintStatement>(expr->clone());
+    }
+
+    virtual std::string stringify() const noexcept override
+    {
+        return expr->stringify();
     }
 };
 
@@ -91,14 +91,14 @@ struct ExpressionStatement
         visitor->visit(this);
     }
 
-    virtual std::string accept(StatementVisitor<std::string> *visitor) override
-    {
-        return visitor->visit(this);
-    }
-
     virtual StatementPtr clone() const noexcept override
     {
         return make_statement<ExpressionStatement>(expr->clone());
+    }
+
+    virtual std::string stringify() const noexcept override
+    {
+        return expr->stringify();
     }
 };
 
@@ -116,14 +116,14 @@ struct AssignmentStatement
         visitor->visit(this);
     }
 
-    virtual std::string accept(StatementVisitor<std::string> *visitor) override
-    {
-        return visitor->visit(this);
-    }
-
     virtual StatementPtr clone() const noexcept override
     {
         return make_statement<AssignmentStatement>(name, initializer->clone());
+    }
+
+    virtual std::string stringify() const noexcept override
+    {
+        return name.str + " = " + initializer->stringify();
     }
 };
 
@@ -148,14 +148,21 @@ struct VariableDeclaration
         visitor->visit(this);
     }
 
-    virtual std::string accept(StatementVisitor<std::string> *visitor) override
-    {
-        return visitor->visit(this);
-    }
-
     virtual StatementPtr clone() const noexcept override
     {
         return make_statement<VariableDeclaration>(name, initializer->clone(), storage_class);
+    }
+
+    virtual std::string stringify() const noexcept override
+    {
+        std::string result;
+        switch (storage_class) {
+        case StorageClass::LOCAL:  result = "let";     break;
+        case StorageClass::EXPORT: result = "export";  break;
+        default:                   FK_FATAL("unknown storage_class");
+        }
+
+        return result + " " + name.str + " = " + initializer->stringify();
     }
 };
 
@@ -172,11 +179,6 @@ struct BlockStatement
         visitor->visit(this);
     }
 
-    virtual std::string accept(StatementVisitor<std::string> *visitor) override
-    {
-        return visitor->visit(this);
-    }
-
     virtual StatementPtr clone() const noexcept override
     {
         std::vector<StatementPtr> cloned;
@@ -185,6 +187,22 @@ struct BlockStatement
         }
 
         return make_statement<BlockStatement>(std::move(cloned));
+    }
+
+    virtual std::string stringify() const noexcept
+    {
+        if (statements.empty()) {
+            return "{}";
+        }
+
+        std::string result = "{" + '\n' + statements[0]->stringify();
+        for (size_t i = 1; i < statements.size(); ++i) {
+            result += "\n";
+            result += statements[i]->stringify();
+        }
+        result += "}";
+
+        return result;
     }
 };
 
@@ -204,14 +222,14 @@ struct IfStatement
         visitor->visit(this);
     }
 
-    virtual std::string accept(StatementVisitor<std::string> *visitor) override
-    {
-        return visitor->visit(this);
-    }
-
     virtual StatementPtr clone() const noexcept override
     {
         return make_statement<IfStatement>(condition->clone(), then_block->clone(), else_block ? else_block->clone() : nullptr);
+    }
+
+    virtual std::string stringify() const noexcept
+    {
+        return "if " + condition->stringify() + " " + then_block->stringify() + (else_block ? " " + else_block->stringify() : "");
     }
 };
 
@@ -229,14 +247,14 @@ struct WhileStatement
         visitor->visit(this);
     }
 
-    virtual std::string accept(StatementVisitor<std::string> *visitor) override
-    {
-        return visitor->visit(this);
-    }
-
     virtual StatementPtr clone() const noexcept override
     {
         return make_statement<WhileStatement>(condition->clone(), body->clone());
+    }
+
+    virtual std::string stringify() const noexcept
+    {
+        return "while " + condition->stringify() + " " + body->stringify();
     }
 };
 
@@ -255,14 +273,26 @@ struct FunctionDeclaration
         visitor->visit(this);
     }
 
-    virtual std::string accept(StatementVisitor<std::string> *visitor) override
-    {
-        return visitor->visit(this);
-    }
-
     virtual StatementPtr clone() const noexcept override
     {
         return make_statement<FunctionDeclaration>(name, params, body->clone());
+    }
+
+    virtual std::string stringify() const noexcept
+    {
+        std::string result("fn (");
+        if (params.size() > 0) {
+            result += params[0].str;
+            for (size_t i = 1; i < params.size(); ++i) {
+                result += ", ";
+                result += params[i].str;
+            }
+        }
+        result += ") ";
+
+        result += body->stringify();
+
+        return result;
     }
 };
 
@@ -279,14 +309,14 @@ struct ReturnStatement
         visitor->visit(this);
     }
 
-    virtual std::string accept(StatementVisitor<std::string> *visitor) override
-    {
-        return visitor->visit(this);
-    }
-
     virtual StatementPtr clone() const noexcept override
     {
         return make_statement<ReturnStatement>(expr->clone());
+    }
+
+    virtual std::string stringify() const noexcept
+    {
+        return "return " + expr->stringify();
     }
 };
 

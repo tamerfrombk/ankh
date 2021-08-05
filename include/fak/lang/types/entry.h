@@ -1,4 +1,7 @@
 #pragma once
+
+#include <string>
+
 namespace fk::lang {
 
 template <class T>

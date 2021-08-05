@@ -11,8 +11,6 @@
 #include <fak/lang/interpreter.h>
 #include <fak/lang/exceptions.h>
 
-#include <fak/internal/pretty_printer.h>
-
 #include <fmt/color.h>
 
 static void print_error(const char *msg) noexcept
