@@ -35,15 +35,18 @@ struct StatementVisitor {
     virtual R visit(ReturnStatement *stmt) = 0;
 };
 
+struct Statement;
+using StatementPtr = std::unique_ptr<Statement>;
+
 struct Statement
 {
     virtual ~Statement() = default;
 
     virtual void accept(StatementVisitor<void> *visitor) = 0;
-    virtual std::string accept(StatementVisitor<std::string>  *visitor) = 0;
+    virtual std::string accept(StatementVisitor<std::string> *visitor) = 0;
+    virtual StatementPtr clone() const noexcept = 0;
 };
 
-using StatementPtr = std::unique_ptr<Statement>;
 
 template <class T, class... Args>
 StatementPtr make_statement(Args&&... args)
@@ -68,6 +71,11 @@ struct PrintStatement
     {
         return visitor->visit(this);
     }
+
+    virtual StatementPtr clone() const noexcept override
+    {
+        return make_statement<PrintStatement>(expr->clone());
+    }
 };
 
 struct ExpressionStatement
@@ -86,6 +94,11 @@ struct ExpressionStatement
     virtual std::string accept(StatementVisitor<std::string> *visitor) override
     {
         return visitor->visit(this);
+    }
+
+    virtual StatementPtr clone() const noexcept override
+    {
+        return make_statement<ExpressionStatement>(expr->clone());
     }
 };
 
@@ -106,6 +119,11 @@ struct AssignmentStatement
     virtual std::string accept(StatementVisitor<std::string> *visitor) override
     {
         return visitor->visit(this);
+    }
+
+    virtual StatementPtr clone() const noexcept override
+    {
+        return make_statement<AssignmentStatement>(name, initializer->clone());
     }
 };
 
@@ -134,6 +152,11 @@ struct VariableDeclaration
     {
         return visitor->visit(this);
     }
+
+    virtual StatementPtr clone() const noexcept override
+    {
+        return make_statement<VariableDeclaration>(name, initializer->clone(), storage_class);
+    }
 };
 
 struct BlockStatement
@@ -153,6 +176,16 @@ struct BlockStatement
     {
         return visitor->visit(this);
     }
+
+    virtual StatementPtr clone() const noexcept override
+    {
+        std::vector<StatementPtr> cloned;
+        for (const auto& stmt : statements) {
+            cloned.push_back(stmt->clone());
+        }
+
+        return make_statement<BlockStatement>(std::move(cloned));
+    }
 };
 
 struct IfStatement
@@ -160,6 +193,7 @@ struct IfStatement
 {
     ExpressionPtr condition;
     StatementPtr then_block;
+    // TODO: this may be nullptr Consider implementing a Null Statement just to prevent checking for null
     StatementPtr else_block;
 
     IfStatement(ExpressionPtr condition, StatementPtr then_block, StatementPtr else_block)
@@ -173,6 +207,11 @@ struct IfStatement
     virtual std::string accept(StatementVisitor<std::string> *visitor) override
     {
         return visitor->visit(this);
+    }
+
+    virtual StatementPtr clone() const noexcept override
+    {
+        return make_statement<IfStatement>(condition->clone(), then_block->clone(), else_block ? else_block->clone() : nullptr);
     }
 };
 
@@ -193,6 +232,11 @@ struct WhileStatement
     virtual std::string accept(StatementVisitor<std::string> *visitor) override
     {
         return visitor->visit(this);
+    }
+
+    virtual StatementPtr clone() const noexcept override
+    {
+        return make_statement<WhileStatement>(condition->clone(), body->clone());
     }
 };
 
@@ -215,6 +259,11 @@ struct FunctionDeclaration
     {
         return visitor->visit(this);
     }
+
+    virtual StatementPtr clone() const noexcept override
+    {
+        return make_statement<FunctionDeclaration>(name, params, body->clone());
+    }
 };
 
 struct ReturnStatement
@@ -233,6 +282,11 @@ struct ReturnStatement
     virtual std::string accept(StatementVisitor<std::string> *visitor) override
     {
         return visitor->visit(this);
+    }
+
+    virtual StatementPtr clone() const noexcept override
+    {
+        return make_statement<ReturnStatement>(expr->clone());
     }
 };
 

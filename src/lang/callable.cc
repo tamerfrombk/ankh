@@ -4,9 +4,10 @@
 
 #include <fak/log.h>
 
-fk::lang::Function::Function(Interpreter *interpreter, FunctionDeclaration *decl, EnvironmentPtr closure)
+fk::lang::Function::Function(Interpreter *interpreter, StatementPtr stmt, EnvironmentPtr closure)
     : interpreter_(interpreter)
-    , decl_(decl)
+    , stmt_(std::move(stmt))
+    , decl_(static_cast<FunctionDeclaration*>(stmt_.get()))
     , closure_(closure)
 {}
     
@@ -35,20 +36,21 @@ void fk::lang::Function::invoke(const std::vector<ExpressionPtr>& args)
     interpreter_->execute_block(block, environment);
 }
 
-fk::lang::Lambda::Lambda(Interpreter *interpreter, LambdaExpression *decl, EnvironmentPtr closure)
+fk::lang::Lambda::Lambda(Interpreter *interpreter, ExpressionPtr expr, EnvironmentPtr closure)
     : interpreter_(interpreter)
-    , decl_(decl)
+    , expr_(std::move(expr))
+    , lambda_(static_cast<LambdaExpression*>(expr_.get()))
     , closure_(closure)
 {}
 
 std::string fk::lang::Lambda::name() const noexcept
 {
-    return decl_->generated_name;
+    return lambda_->generated_name;
 }
 
 size_t fk::lang::Lambda::arity() const noexcept
 {
-    return decl_->params.size();
+    return lambda_->params.size();
 }
 
 void fk::lang::Lambda::invoke(const std::vector<ExpressionPtr>& args)
@@ -57,11 +59,11 @@ void fk::lang::Lambda::invoke(const std::vector<ExpressionPtr>& args)
     FK_DEBUG("closure environment {} created", environment->scope());
     for (size_t i = 0; i < args.size(); ++i) {
         const ExprResult arg = interpreter_->evaluate(args[i]);
-        if (!environment->declare(decl_->params[i].str, arg)) {
+        if (!environment->declare(lambda_->params[i].str, arg)) {
             FK_FATAL("function parameter '{}' should always be declarable");
         }
     }
 
-    BlockStatement *block = static_cast<BlockStatement*>(decl_->body.get());
+    BlockStatement *block = static_cast<BlockStatement*>(lambda_->body.get());
     interpreter_->execute_block(block, environment);
 }

@@ -273,7 +273,7 @@ fk::lang::StatementPtr fk::lang::Parser::parse_function_declaration()
         block->statements.push_back(make_statement<ReturnStatement>(std::move(nil)));
     }
 
-    return make_statement<FunctionDeclaration>(std::move(name), std::move(params), std::move(body));
+    return make_statement<FunctionDeclaration>(name, std::move(params), std::move(body));
 }
 
 fk::lang::StatementPtr fk::lang::Parser::assignment(ExpressionPtr target)

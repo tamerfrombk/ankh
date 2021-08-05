@@ -23,6 +23,11 @@ struct LambdaExpression
     {
         return visitor->visit(this);
     }
+
+    virtual ExpressionPtr clone() const noexcept override
+    {
+        return make_expression<LambdaExpression>(generated_name, params, body->clone());
+    }
 };
 
 }

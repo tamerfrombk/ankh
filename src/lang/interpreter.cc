@@ -1,4 +1,3 @@
-#include "fak/lang/statement.h"
 #include <cstddef>
 #include <cstdlib>
 #include <cstdio>
@@ -346,7 +345,7 @@ fk::lang::ExprResult fk::lang::Interpreter::visit(LambdaExpression *expr)
         FK_FATAL("lambda function generated name '{}' is duplicated", name);
     }
 
-    CallablePtr callable = make_callable<Lambda>(this, expr, current_env_);
+    CallablePtr callable = make_callable<Lambda>(this, expr->clone(), current_env_);
 
     ExprResult result { callable.get() };
     
@@ -495,8 +494,6 @@ void fk::lang::Interpreter::visit(VariableDeclaration *stmt)
 
 void fk::lang::Interpreter::visit(AssignmentStatement *stmt)
 {
-    // TODO: think about adding scope specifiers (export, local, global) to allow the user
-    // to mutate global variables with the same name or to add variables to the environment
     const ExprResult result = evaluate(stmt->initializer);
     if (!current_env_->assign(stmt->name.str, result)) {
         ::panic("'{}' is not defined", stmt->name.str);
@@ -544,7 +541,7 @@ void fk::lang::Interpreter::visit(fk::lang::FunctionDeclaration *stmt)
         ::panic("function '{}' is already declared", name);
     }
 
-    CallablePtr callable = make_callable<Function>(this, stmt, current_env_);
+    CallablePtr callable = make_callable<Function>(this, stmt->clone(), current_env_);
 
     ExprResult result { callable.get() };
     
