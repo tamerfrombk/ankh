@@ -11,6 +11,7 @@
 #include <fak/lang/lambda.h>
 #include <fak/lang/env.h>
 #include <fak/lang/callable.h>
+#include <fak/lang/types/data.h>
 
 namespace fk::lang {
 
@@ -62,9 +63,11 @@ private:
     virtual void visit(WhileStatement *stmt) override;
     virtual void visit(FunctionDeclaration *stmt) override;
     virtual void visit(ReturnStatement *stmt) override;
+    virtual void visit(DataDeclaration *stmt) override;
 
     std::string substitute(const StringExpression *expr);
     ExprResult evaluate_single_expr(const std::string& str);
+    void declare_function(FunctionDeclaration *decl, EnvironmentPtr env);
 private:
     EnvironmentPtr current_env_;
 
@@ -80,6 +83,8 @@ private:
     // TODO: this assumes all functions are in global namespace
     // That's OK for now but needs to be revisited when implementing modules
     std::unordered_map<std::string, CallablePtr> functions_;
+
+    std::unordered_map<std::string, DataPtr> data_declarations_;
 
 };
 

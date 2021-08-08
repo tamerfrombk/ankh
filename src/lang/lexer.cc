@@ -19,6 +19,7 @@ static const std::unordered_map<std::string, fk::lang::TokenType> KEYWORDS = {
     , { "let", fk::lang::TokenType::LET }
     , { "export", fk::lang::TokenType::EXPORT }
     , { "return", fk::lang::TokenType::FK_RETURN }
+    , { "data", fk::lang::TokenType::DATA }
 };
 
 fk::lang::Lexer::Lexer(std::string text)

@@ -1,6 +1,8 @@
+#include "fak/def.h"
 #include <fak/lang/expr.h>
 #include <fak/lang/token.h>
 #include <fak/lang/callable.h>
+#include <fak/lang/types/object.h>
 
 #include <fak/log.h>
 
@@ -38,6 +40,13 @@ static std::string stringify(const fk::lang::Dictionary<fk::lang::ExprResult>& d
     return result;
 }
 
+static std::string stringify(const fk::lang::ObjectPtr& obj) noexcept
+{
+    FK_UNUSED(obj);
+    
+    return "{ object }";
+}
+
 std::string fk::lang::ExprResult::stringify() const noexcept
 {
     switch (type) {
@@ -55,6 +64,8 @@ std::string fk::lang::ExprResult::stringify() const noexcept
         return ::stringify(dict);
     case fk::lang::ExprResultType::RT_NIL:
         return "nil";
+    case fk::lang::ExprResultType::RT_OBJECT:
+        return ::stringify(obj);
     default:
         FK_FATAL("stringify(): unknown expression result type '{}'!", expr_result_type_str(type));
     }

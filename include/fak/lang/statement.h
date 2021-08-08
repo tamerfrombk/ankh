@@ -19,6 +19,7 @@ struct IfStatement;
 struct WhileStatement;
 struct FunctionDeclaration;
 struct ReturnStatement;
+struct DataDeclaration;
 
 template <class R>
 struct StatementVisitor {
@@ -33,6 +34,7 @@ struct StatementVisitor {
     virtual R visit(WhileStatement *stmt) = 0;
     virtual R visit(FunctionDeclaration *stmt) = 0;
     virtual R visit(ReturnStatement *stmt) = 0;
+    virtual R visit(DataDeclaration *stmt) = 0;
 };
 
 struct Statement;
@@ -182,6 +184,7 @@ struct BlockStatement
     virtual StatementPtr clone() const noexcept override
     {
         std::vector<StatementPtr> cloned;
+        cloned.reserve(statements.size());
         for (const auto& stmt : statements) {
             cloned.push_back(stmt->clone());
         }
@@ -189,13 +192,13 @@ struct BlockStatement
         return make_statement<BlockStatement>(std::move(cloned));
     }
 
-    virtual std::string stringify() const noexcept
+    virtual std::string stringify() const noexcept override
     {
         if (statements.empty()) {
             return "{}";
         }
 
-        std::string result = "{" + '\n' + statements[0]->stringify();
+        std::string result = "{\n" + statements[0]->stringify();
         for (size_t i = 1; i < statements.size(); ++i) {
             result += "\n";
             result += statements[i]->stringify();
@@ -227,7 +230,7 @@ struct IfStatement
         return make_statement<IfStatement>(condition->clone(), then_block->clone(), else_block ? else_block->clone() : nullptr);
     }
 
-    virtual std::string stringify() const noexcept
+    virtual std::string stringify() const noexcept override
     {
         return "if " + condition->stringify() + " " + then_block->stringify() + (else_block ? " " + else_block->stringify() : "");
     }
@@ -252,7 +255,7 @@ struct WhileStatement
         return make_statement<WhileStatement>(condition->clone(), body->clone());
     }
 
-    virtual std::string stringify() const noexcept
+    virtual std::string stringify() const noexcept override
     {
         return "while " + condition->stringify() + " " + body->stringify();
     }
@@ -278,7 +281,7 @@ struct FunctionDeclaration
         return make_statement<FunctionDeclaration>(name, params, body->clone());
     }
 
-    virtual std::string stringify() const noexcept
+    virtual std::string stringify() const noexcept override
     {
         std::string result("fn (");
         if (params.size() > 0) {
@@ -314,9 +317,42 @@ struct ReturnStatement
         return make_statement<ReturnStatement>(expr->clone());
     }
 
-    virtual std::string stringify() const noexcept
+    virtual std::string stringify() const noexcept override
     {
         return "return " + expr->stringify();
+    }
+};
+
+struct DataDeclaration
+    : public Statement
+{
+    Token name;
+    std::vector<Token> members;
+    StatementPtr ctor;
+
+    DataDeclaration(Token name, std::vector<Token> members, StatementPtr ctor)
+        : name(std::move(name)), members(std::move(members)), ctor(std::move(ctor)) {}
+
+    virtual void accept(StatementVisitor<void> *visitor) override
+    {
+        visitor->visit(this);
+    }
+
+    virtual StatementPtr clone() const noexcept override
+    {
+        return make_statement<DataDeclaration>(name, members, ctor->clone());
+    }
+
+    virtual std::string stringify() const noexcept override
+    {
+        std::string result = "data " + name.str + " {\n\t" + members[0].str;
+        for (std::size_t i = 1; i < members.size(); ++i) {
+            result += "\n\t";
+            result += members[i].str;
+        }
+        result += "\n}\n";
+
+        return result;
     }
 };
 

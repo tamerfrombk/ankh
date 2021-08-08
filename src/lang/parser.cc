@@ -1,3 +1,4 @@
+#include "fak/lang/expr.h"
 #include "fak/lang/statement.h"
 #include <algorithm>
 #include <initializer_list>
@@ -276,6 +277,52 @@ fk::lang::StatementPtr fk::lang::Parser::parse_function_declaration()
     return make_statement<FunctionDeclaration>(name, std::move(params), std::move(body));
 }
 
+static fk::lang::StatementPtr generate_data_ctor(
+    const fk::lang::Token& name
+    , const std::vector<fk::lang::Token>& members
+)
+{
+    std::vector<fk::lang::Token> params;
+    std::vector<fk::lang::StatementPtr> assignments;
+    for (const auto& member : members) {
+        fk::lang::Token param = member;
+        param.str = "_" + param.str;
+        params.push_back(param);
+
+        fk::lang::ExpressionPtr init = fk::lang::make_expression<fk::lang::IdentifierExpression>(param);
+        fk::lang::StatementPtr assignment = fk::lang::make_statement<fk::lang::AssignmentStatement>(member, std::move(init));
+        assignments.push_back(std::move(assignment));
+    }
+    fk::lang::StatementPtr body = fk::lang::make_statement<fk::lang::BlockStatement>(std::move(assignments));
+
+    return fk::lang::make_statement<fk::lang::FunctionDeclaration>(name, params, std::move(body));
+}
+
+fk::lang::StatementPtr fk::lang::Parser::parse_data_declaration()
+{
+    // no need for a message since we know we have this token in this context
+    consume(TokenType::DATA, "");
+
+    const Token name = consume(TokenType::IDENTIFIER, "<identifier> expected as data declaration name");
+
+    consume(TokenType::LBRACE, "'{' expected to begin data body definition");
+
+    std::vector<Token> members;
+    while (!is_eof() && !check(TokenType::RBRACE)) {
+        members.push_back(consume(TokenType::IDENTIFIER, "identifier expected as data member declaration"));
+    }
+
+    consume(TokenType::RBRACE, "'}' expected to end data body definition");
+
+    if (members.empty()) {
+        panic<ParseException>("{}:{}, data declarations cannot be empty", name.line, name.col);
+    }
+
+    StatementPtr ctor = generate_data_ctor(name, members);
+
+    return make_statement<DataDeclaration>(name, members, std::move(ctor));
+}
+
 fk::lang::StatementPtr fk::lang::Parser::assignment(ExpressionPtr target)
 {
     IdentifierExpression *identifier = instance<IdentifierExpression>(target);
@@ -328,6 +375,8 @@ fk::lang::StatementPtr fk::lang::Parser::statement()
         return parse_inc_dec();
     } else if (check({ TokenType::LET, TokenType::EXPORT })) {
         return parse_variable_declaration();
+    } else if (check(TokenType::DATA)) {
+        return parse_data_declaration();
     }
 
     ExpressionPtr expr = expression();

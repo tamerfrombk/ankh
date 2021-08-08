@@ -82,6 +82,8 @@ std::string fk::lang::token_type_str(fk::lang::TokenType type) noexcept
         return "FN";
     case fk::lang::TokenType::FK_RETURN:
         return "RETURN";
+    case fk::lang::TokenType::DATA:
+        return "DATA";
     case fk::lang::TokenType::INC:
         return "INC";
     case fk::lang::TokenType::DEC:

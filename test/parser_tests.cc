@@ -436,6 +436,63 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(block->statements.size() == 1);
         REQUIRE(fk::lang::instanceof<fk::lang::ReturnStatement>(block->statements[0]));
     }
+
+    SECTION("data declaration")
+    {
+        const std::string source =
+        R"(
+            data Point { x y }
+        )";
+
+        auto program = fk::lang::parse(source);
+
+        REQUIRE(!program.has_errors());
+        REQUIRE(program.size() == 1);
+
+        auto data = fk::lang::instance<fk::lang::DataDeclaration>(program[0]);
+        REQUIRE(data != nullptr);
+        REQUIRE(data->ctor != nullptr);
+        REQUIRE(data->name.str == "Point");
+        REQUIRE(data->members.size() == 2);
+        REQUIRE(data->members[0].str == "x");
+        REQUIRE(data->members[1].str == "y");
+
+        auto ctor = fk::lang::instance<fk::lang::FunctionDeclaration>(data->ctor);
+        REQUIRE(ctor != nullptr);
+        REQUIRE(ctor->name.str == "Point");
+        REQUIRE(ctor->params.size() == 2);
+        REQUIRE(ctor->params[0].str == "_x");
+        REQUIRE(ctor->params[1].str == "_y");
+
+        auto body = fk::lang::instance<fk::lang::BlockStatement>(ctor->body);
+        REQUIRE(body != nullptr);
+        REQUIRE(body->statements.size() == 2);
+        for (const auto& stmt : body->statements) {
+            REQUIRE(fk::lang::instanceof<fk::lang::AssignmentStatement>(stmt));
+        }
+    }
+
+    SECTION("data declaration, empty")
+    {
+        const std::string source =
+        R"(
+            data Point { }
+        )";
+
+        auto program = fk::lang::parse(source);
+        REQUIRE(program.has_errors());
+    }
+
+    SECTION("data declaration, non-terminated")
+    {
+        const std::string source =
+        R"(
+            data Point { x
+        )";
+
+        auto program = fk::lang::parse(source);
+        REQUIRE(program.has_errors());
+    }
 }
 
 TEST_CASE("parse language expressions", "[parser]")

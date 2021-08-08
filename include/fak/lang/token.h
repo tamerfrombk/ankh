@@ -49,10 +49,11 @@ enum class TokenType {
     FN,                // "fn"
     // prepended FK because RETURN is a macro defined in some library
     FK_RETURN,         // "return"
+    DATA,              // "data"
     INC,               // ++
     DEC,               // --
     COLON,             // ":"
-    DOT,               // ":"
+    DOT,               // "."
     NUMBER,
     STRING,
     COMMAND,

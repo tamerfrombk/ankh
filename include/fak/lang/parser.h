@@ -24,6 +24,7 @@ private:
     StatementPtr  assignment(ExpressionPtr target);
     StatementPtr  parse_variable_declaration();
     StatementPtr  parse_function_declaration();
+    StatementPtr  parse_data_declaration();
     
     StatementPtr  statement();
     StatementPtr  parse_inc_dec();

@@ -3,8 +3,6 @@
 #include <vector>
 #include <memory>
 
-#include <fak/lang/expr_result.h>
-
 namespace fk::lang {
 
 template <class T>

@@ -97,7 +97,7 @@ struct BinaryExpression
         return make_expression<BinaryExpression>(left->clone(), op, right->clone());
     }
 
-    virtual std::string stringify() const noexcept
+    virtual std::string stringify() const noexcept override
     {
         return left->stringify() + " " + op.str + " " + right->stringify();
     }
@@ -122,7 +122,7 @@ struct UnaryExpression
         return make_expression<UnaryExpression>(op, right->clone());
     }
 
-    virtual std::string stringify() const noexcept
+    virtual std::string stringify() const noexcept override
     {
         return op.str + right->stringify();
     }
@@ -146,7 +146,7 @@ struct LiteralExpression
         return make_expression<LiteralExpression>(literal);
     }
 
-    virtual std::string stringify() const noexcept
+    virtual std::string stringify() const noexcept override
     {
         return literal.str;
     }
@@ -170,7 +170,7 @@ struct StringExpression
         return make_expression<StringExpression>(str);
     }
 
-    virtual std::string stringify() const noexcept
+    virtual std::string stringify() const noexcept override
     {
         return str.str;
     }
@@ -194,7 +194,7 @@ struct ParenExpression
         return make_expression<ParenExpression>(expr->clone());
     }
 
-    virtual std::string stringify() const noexcept
+    virtual std::string stringify() const noexcept override
     {
         return expr->stringify();
     }
@@ -218,7 +218,7 @@ struct IdentifierExpression
         return make_expression<IdentifierExpression>(name);
     }
 
-    virtual std::string stringify() const noexcept
+    virtual std::string stringify() const noexcept override
     {
         return name.str;
     }
@@ -250,7 +250,7 @@ struct CallExpression
         return make_expression<CallExpression>(callee->clone(), std::move(cloned));
     }
 
-    virtual std::string stringify() const noexcept
+    virtual std::string stringify() const noexcept override
     {
         return callee->stringify() + "(" + fk::lang::stringify(args) + ")";
     }
@@ -274,7 +274,7 @@ struct CommandExpression
         return make_expression<CommandExpression>(cmd);
     }
 
-    virtual std::string stringify() const noexcept
+    virtual std::string stringify() const noexcept override
     {
         return cmd.str;
     }
@@ -310,7 +310,7 @@ struct ArrayExpression
         return elems.size();
     }
 
-    virtual std::string stringify() const noexcept
+    virtual std::string stringify() const noexcept override
     {
         return "[" + fk::lang::stringify(elems) + "]";
     }
@@ -335,7 +335,7 @@ struct IndexExpression
         return make_expression<IndexExpression>(indexee->clone(), index->clone());
     }
 
-    virtual std::string stringify() const noexcept
+    virtual std::string stringify() const noexcept override
     {
         return indexee->stringify() + "[" + index->stringify() + "]";
     }
@@ -364,7 +364,7 @@ struct DictionaryExpression
         return make_expression<DictionaryExpression>(std::move(cloned));
     }
 
-    virtual std::string stringify() const noexcept
+    virtual std::string stringify() const noexcept override
     {
         if (entries.empty()) {
             return "{}";
@@ -401,7 +401,7 @@ struct AccessExpression
         return make_expression<AccessExpression>(accessible->clone(), accessor);
     }
 
-    virtual std::string stringify() const noexcept
+    virtual std::string stringify() const noexcept override
     {
         return accessible ->stringify() + "." + accessor.str;
     }

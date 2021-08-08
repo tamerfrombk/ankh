@@ -3,7 +3,8 @@
 ```
 program               → declaration* EOF
 
-declaration           → statement | function_declaration
+declaration           → statement | function_declaration | data_declaration
+data_declaration      → "data" identifier "{" identifier+ "}"
 function_declaration  → "fn" identifier "(" params? ")" block
 params                → identifier ( "," identifier )*
 

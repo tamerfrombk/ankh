@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <fak/lang/expr.h>
+#include <fak/lang/statement.h>
 #include <fak/lang/program.h>
 #include <fak/lang/parser.h>
 #include <fak/lang/interpreter.h>
@@ -1141,5 +1142,59 @@ TEST_CASE("declarations")
 
         const std::string value(getenv("LANGUAGE_DEV_TEST_123"));
         REQUIRE(value == "0.000000");
+    }
+
+    SECTION("data declaration")
+    {
+        const std::string source = R"(
+            data Point {
+                x y
+            }
+        )";
+
+        INFO(source);
+
+        auto [program, results] = interpret(interpreter, source);
+        REQUIRE(!program.has_errors());
+
+        REQUIRE(interpreter.has_function("Point"));
+
+        REQUIRE(!interpreter.environment().contains("x"));
+        REQUIRE(!interpreter.environment().contains("y"));
+    }
+
+    SECTION("data declaration, constructor")
+    {
+        const std::string source = R"(
+            data Point {
+                x y
+            }
+
+            let d = Point(1, 2)
+        )";
+
+        INFO(source);
+
+        auto [program, results] = interpret(interpreter, source);
+        REQUIRE(!program.has_errors());
+
+        REQUIRE(interpreter.environment().value("d")->type == fk::lang::ExprResultType::RT_OBJECT);
+    }
+
+    SECTION("data declaration, redeclaration")
+    {
+        const std::string source = R"(
+            data Point {
+                x y
+            }
+
+            data Point {
+                z
+            }
+        )";
+
+        INFO(source);
+
+        REQUIRE_THROWS(interpret(interpreter, source));
     }
 }

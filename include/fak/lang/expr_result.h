@@ -4,6 +4,7 @@
 
 #include <fak/lang/types/dictionary.h>
 #include <fak/lang/types/array.h>
+#include <fak/lang/types/object.h>
 
 #include <fak/log.h>
 
@@ -20,6 +21,7 @@ enum class ExprResultType {
     RT_CALLABLE,
     RT_ARRAY,
     RT_DICT,
+    RT_OBJECT,
     RT_NIL
 };
 
@@ -32,6 +34,7 @@ inline std::string expr_result_type_str(fk::lang::ExprResultType type) noexcept
     case fk::lang::ExprResultType::RT_CALLABLE:  return "RT_CALLABLE";
     case fk::lang::ExprResultType::RT_ARRAY:     return "RT_ARRAY";
     case fk::lang::ExprResultType::RT_DICT:      return "RT_DICT";
+    case fk::lang::ExprResultType::RT_OBJECT:    return "RT_OBJECT";
     case fk::lang::ExprResultType::RT_NIL:       return "NIL";
     default:                                       
         FK_FATAL("expr_result_type_str(): unknown expression result type!");
@@ -49,15 +52,18 @@ struct ExprResult {
     
     Array<ExprResult> array;
     Dictionary<ExprResult> dict;
+    ObjectPtr obj;
     ExprResultType type;
 
-    ExprResult()                   :                      type(ExprResultType::RT_NIL) {}
-    ExprResult(std::string str)    : str(std::move(str)), type(ExprResultType::RT_STRING) {}
-    ExprResult(Number n)           : n(n)               , type(ExprResultType::RT_NUMBER) {}
-    ExprResult(bool b)             : b(b)               , type(ExprResultType::RT_BOOL) {}
-    ExprResult(Callable *callable) : callable(callable) , type(ExprResultType::RT_CALLABLE) {}
-    ExprResult(Array<ExprResult> array)        : array(array)       , type(ExprResultType::RT_ARRAY) {}
-    ExprResult(Dictionary<ExprResult> dict)    : dict(dict)         , type(ExprResultType::RT_DICT) {}
+    ExprResult()                            :                      type(ExprResultType::RT_NIL) {}
+    ExprResult(std::string str)             : str(std::move(str)), type(ExprResultType::RT_STRING) {}
+    ExprResult(Number n)                    : n(n)               , type(ExprResultType::RT_NUMBER) {}
+    ExprResult(bool b)                      : b(b)               , type(ExprResultType::RT_BOOL) {}
+    ExprResult(Callable *callable)          : callable(callable) , type(ExprResultType::RT_CALLABLE) {}
+    
+    ExprResult(Array<ExprResult> array)     : array(array)       , type(ExprResultType::RT_ARRAY) {}
+    ExprResult(Dictionary<ExprResult> dict) : dict(dict)         , type(ExprResultType::RT_DICT) {}
+    ExprResult(ObjectPtr obj)               : obj(obj)           , type(ExprResultType::RT_OBJECT) {}
 
     std::string stringify() const noexcept;
 
@@ -76,6 +82,8 @@ struct ExprResult {
         case ExprResultType::RT_CALLABLE: return lhs.callable == rhs.callable;
         case ExprResultType::RT_ARRAY:    return lhs.array == rhs.array;
         case ExprResultType::RT_DICT:     return lhs.dict  == rhs.dict;
+        // TODO: this is a shallow comparison, is this what we want??
+        case ExprResultType::RT_OBJECT:   return lhs.obj == rhs.obj; 
         default: FK_FATAL("unknown expression result type");
         }
     }

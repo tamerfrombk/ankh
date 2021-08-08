@@ -13,7 +13,7 @@ fk::lang::Function::Function(Interpreter *interpreter, StatementPtr stmt, Enviro
     
 std::string fk::lang::Function::name() const noexcept
 {
-    return "<fn " + decl_->name.str + ">";
+    return decl_->name.str;
 }
 
 size_t fk::lang::Function::arity() const noexcept
