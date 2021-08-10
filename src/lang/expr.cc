@@ -1,10 +1,10 @@
-#include "fak/def.h"
 #include <fak/lang/expr.h>
 #include <fak/lang/token.h>
 #include <fak/lang/callable.h>
 #include <fak/lang/types/object.h>
 
 #include <fak/log.h>
+#include <fak/def.h>
 
 static std::string stringify(const fk::lang::Array<fk::lang::ExprResult>& array) noexcept
 {
@@ -40,7 +40,7 @@ static std::string stringify(const fk::lang::Dictionary<fk::lang::ExprResult>& d
     return result;
 }
 
-static std::string stringify(const fk::lang::ObjectPtr& obj) noexcept
+static std::string stringify(const fk::lang::ObjectPtr<fk::lang::ExprResult> & obj) noexcept
 {
     FK_UNUSED(obj);
     

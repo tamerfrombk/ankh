@@ -1,27 +1,26 @@
 #pragma once
 
 #include <memory>
+#include <fak/lang/env.h>
 
 namespace fk::lang {
 
-class Data;
-
-class Object
+template <class T>
+struct Object
 {
-public:
-    Object(Data *data)
-        : data_(data) {}
+    EnvironmentPtr<T> env;
 
-private:
-    Data *data_;
+    Object(EnvironmentPtr<T> env)
+        : env(env) {}
 };
 
-using ObjectPtr = std::shared_ptr<Object>;
+template <class T>
+using ObjectPtr = std::shared_ptr<Object<T>>;
 
-template <class... Args>
-ObjectPtr make_object(Args&&... args) noexcept
+template <class T, class... Args>
+ObjectPtr<T> make_object(Args&&... args) noexcept
 {
-    return std::make_shared<Object>(std::forward<Args>(args)...);
+    return std::make_shared<Object<T>>(std::forward<Args>(args)...);
 }
 
 }

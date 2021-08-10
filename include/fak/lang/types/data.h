@@ -2,28 +2,30 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <fak/lang/env.h>
 
 namespace fk::lang {
 
-class Data
+template <class T>
+struct Data
 {
-public:
-    Data(std::string name, EnvironmentPtr env)
-        : name_(std::move(name)), env_(env) {}
+    std::string name;
+    EnvironmentPtr<T> env;
+    std::vector<std::string> members;
     
-private:
-    std::string name_;
-    EnvironmentPtr env_;
+    Data(std::string name, EnvironmentPtr<T> env, std::vector<std::string> members)
+        : name(std::move(name)), env(env), members(std::move(members)) {}
 };
 
-using DataPtr = std::unique_ptr<Data>;
+template <class T>
+using DataPtr = std::unique_ptr<Data<T>>;
 
-template <class... Args>
-DataPtr make_data(Args&&... args) noexcept
+template <class T, class... Args>
+DataPtr<T> make_data(Args&&... args) noexcept
 {
-    return std::make_unique<Data>(std::forward<Args>(args)...);
+    return std::make_unique<Data<T>>(std::forward<Args>(args)...);
 }
 
 }

@@ -1198,3 +1198,128 @@ TEST_CASE("declarations")
         REQUIRE_THROWS(interpret(interpreter, source));
     }
 }
+
+TEST_CASE("test access", "[interpreter]")
+{
+    TracingInterpreter interpreter(std::make_unique<fk::lang::Interpreter>());
+
+    SECTION("access expression, not a member")
+    {
+        const std::string source = R"(
+            data Point {
+                x y
+            }
+
+            let d = Point(1, 2)
+
+            d.z
+        )";
+
+        INFO(source);
+
+        REQUIRE_THROWS(interpret(interpreter, source));
+    }
+
+    SECTION("access expression, data")
+    {
+        const std::string source = R"(
+            data Point {
+                x y
+            }
+
+            let d = Point(1, 2)
+
+            let b = d.x + d.y
+        )";
+
+        INFO(source);
+
+        auto [program, results] = interpret(interpreter, source);
+        REQUIRE(!program.has_errors());
+
+        auto possible_b = interpreter.environment().value("b");
+        REQUIRE(possible_b->type == fk::lang::ExprResultType::RT_NUMBER);
+        REQUIRE(possible_b->n == 3.0);
+    }
+
+    SECTION("access expression, inner data member")
+    {
+        const std::string source = R"(
+            data A {
+                a
+            }
+
+            data B {
+                a
+            }
+
+            let a = A(3)
+            let b = B(a)
+
+            let result = b.a.a
+        )";
+
+        INFO(source);
+
+        auto [program, results] = interpret(interpreter, source);
+        REQUIRE(!program.has_errors());
+
+        auto possible_result = interpreter.environment().value("result");
+        REQUIRE(possible_result->type == fk::lang::ExprResultType::RT_NUMBER);
+        REQUIRE(possible_result->n == 3.0);
+    }
+}
+
+TEST_CASE("constructor environment overrides each other", "[interpreter][!mayfail]")
+{
+    const std::string source = R"(
+        data Point {
+            x y
+        }
+
+        data Line {
+            p1 p2
+        }
+
+        let d = Line(Point(1, 2), Point(3, 4))
+
+        let x1 = d.p1.x
+        let y1 = d.p1.y
+        let x2 = d.p2.x
+        let y2 = d.p2.y
+    )";
+
+    INFO(source);
+
+    TracingInterpreter interpreter(std::make_unique<fk::lang::Interpreter>());
+
+    auto [program, results] = interpret(interpreter, source);
+    REQUIRE(!program.has_errors());
+
+    REQUIRE(interpreter.environment().value("x1")->n == 1.0);
+    REQUIRE(interpreter.environment().value("y1")->n == 2.0);
+    REQUIRE(interpreter.environment().value("x2")->n == 3.0);
+    REQUIRE(interpreter.environment().value("y2")->n == 4.0);
+}
+
+TEST_CASE("lambdas can be shadowed because they are scope bound", "[interpreter][!mayfail]")
+{
+    const std::string source = R"(
+        let f = fn (a, b) { return a + b }
+
+        fn addAll(a, b, c) {
+            let f = fn (x) { return f(a, b) + x }
+            
+            return f(f(a, b), c)
+        }
+    )";
+
+    INFO(source);
+
+    TracingInterpreter interpreter(std::make_unique<fk::lang::Interpreter>());
+
+    auto [program, results] = interpret(interpreter, source);
+    REQUIRE(!program.has_errors());
+
+    REQUIRE(interpreter.functions().size() == 1);
+}

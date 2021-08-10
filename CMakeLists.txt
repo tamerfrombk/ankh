@@ -18,8 +18,6 @@ SET(APP_SOURCES
     src/lang/parser.cc
     src/lang/expr.cc
     src/lang/interpreter.cc
-    src/lang/env.cc
-    src/lang/callable.cc
     src/pkg/path.cc
 )
 

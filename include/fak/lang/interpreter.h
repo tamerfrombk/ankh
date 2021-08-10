@@ -27,9 +27,9 @@ public:
     virtual ExprResult evaluate(const ExpressionPtr& expr);
     void execute(const StatementPtr& stmt);
 
-    void execute_block(const BlockStatement *stmt, EnvironmentPtr environment);
+    void execute_block(const BlockStatement *stmt, EnvironmentPtr<ExprResult> environment);
 
-    inline const Environment& environment() const noexcept
+    inline const Environment<ExprResult>& environment() const noexcept
     {
         return *current_env_;
     }
@@ -67,24 +67,24 @@ private:
 
     std::string substitute(const StringExpression *expr);
     ExprResult evaluate_single_expr(const std::string& str);
-    void declare_function(FunctionDeclaration *decl, EnvironmentPtr env);
+    void declare_function(FunctionDeclaration *decl, EnvironmentPtr<ExprResult> env);
 private:
-    EnvironmentPtr current_env_;
+    EnvironmentPtr<ExprResult> current_env_;
 
     class Scope {
     public:
-        Scope(fk::lang::Interpreter *interpreter, fk::lang::EnvironmentPtr enclosing);
+        Scope(fk::lang::Interpreter *interpreter, fk::lang::EnvironmentPtr<ExprResult> enclosing);
         ~Scope();
     private:
         fk::lang::Interpreter *interpreter_;
-        fk::lang::EnvironmentPtr prev_;
+        fk::lang::EnvironmentPtr<ExprResult> prev_;
     };
 
     // TODO: this assumes all functions are in global namespace
     // That's OK for now but needs to be revisited when implementing modules
     std::unordered_map<std::string, CallablePtr> functions_;
 
-    std::unordered_map<std::string, DataPtr> data_declarations_;
+    std::unordered_map<std::string, DataPtr<ExprResult>> data_declarations_;
 
 };
 

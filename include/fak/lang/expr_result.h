@@ -52,7 +52,7 @@ struct ExprResult {
     
     Array<ExprResult> array;
     Dictionary<ExprResult> dict;
-    ObjectPtr obj;
+    ObjectPtr<ExprResult> obj;
     ExprResultType type;
 
     ExprResult()                            :                      type(ExprResultType::RT_NIL) {}
@@ -63,7 +63,7 @@ struct ExprResult {
     
     ExprResult(Array<ExprResult> array)     : array(array)       , type(ExprResultType::RT_ARRAY) {}
     ExprResult(Dictionary<ExprResult> dict) : dict(dict)         , type(ExprResultType::RT_DICT) {}
-    ExprResult(ObjectPtr obj)               : obj(obj)           , type(ExprResultType::RT_OBJECT) {}
+    ExprResult(ObjectPtr<ExprResult> obj)   : obj(obj)           , type(ExprResultType::RT_OBJECT) {}
 
     std::string stringify() const noexcept;
 
