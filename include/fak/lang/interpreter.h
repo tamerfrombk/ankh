@@ -84,7 +84,7 @@ private:
     // That's OK for now but needs to be revisited when implementing modules
     std::unordered_map<std::string, CallablePtr> functions_;
 
-    std::unordered_map<std::string, DataPtr<ExprResult>> data_declarations_;
+    std::unordered_map<std::string, bool> data_declarations_;
 
 };
 

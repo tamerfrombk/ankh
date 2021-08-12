@@ -328,10 +328,9 @@ struct DataDeclaration
 {
     Token name;
     std::vector<Token> members;
-    StatementPtr ctor;
 
-    DataDeclaration(Token name, std::vector<Token> members, StatementPtr ctor)
-        : name(std::move(name)), members(std::move(members)), ctor(std::move(ctor)) {}
+    DataDeclaration(Token name, std::vector<Token> members)
+        : name(std::move(name)), members(std::move(members)) {}
 
     virtual void accept(StatementVisitor<void> *visitor) override
     {
@@ -340,7 +339,7 @@ struct DataDeclaration
 
     virtual StatementPtr clone() const noexcept override
     {
-        return make_statement<DataDeclaration>(name, members, ctor->clone());
+        return make_statement<DataDeclaration>(name, members);
     }
 
     virtual std::string stringify() const noexcept override

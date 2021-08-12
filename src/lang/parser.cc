@@ -277,27 +277,6 @@ fk::lang::StatementPtr fk::lang::Parser::parse_function_declaration()
     return make_statement<FunctionDeclaration>(name, std::move(params), std::move(body));
 }
 
-static fk::lang::StatementPtr generate_data_ctor(
-    const fk::lang::Token& name
-    , const std::vector<fk::lang::Token>& members
-)
-{
-    std::vector<fk::lang::Token> params;
-    std::vector<fk::lang::StatementPtr> assignments;
-    for (const auto& member : members) {
-        fk::lang::Token param = member;
-        param.str = "_" + param.str;
-        params.push_back(param);
-
-        fk::lang::ExpressionPtr init = fk::lang::make_expression<fk::lang::IdentifierExpression>(param);
-        fk::lang::StatementPtr assignment = fk::lang::make_statement<fk::lang::AssignmentStatement>(member, std::move(init));
-        assignments.push_back(std::move(assignment));
-    }
-    fk::lang::StatementPtr body = fk::lang::make_statement<fk::lang::BlockStatement>(std::move(assignments));
-
-    return fk::lang::make_statement<fk::lang::FunctionDeclaration>(name, params, std::move(body));
-}
-
 fk::lang::StatementPtr fk::lang::Parser::parse_data_declaration()
 {
     // no need for a message since we know we have this token in this context
@@ -318,9 +297,7 @@ fk::lang::StatementPtr fk::lang::Parser::parse_data_declaration()
         panic<ParseException>("{}:{}, data declarations cannot be empty", name.line, name.col);
     }
 
-    StatementPtr ctor = generate_data_ctor(name, members);
-
-    return make_statement<DataDeclaration>(name, members, std::move(ctor));
+    return make_statement<DataDeclaration>(name, members);
 }
 
 fk::lang::StatementPtr fk::lang::Parser::assignment(ExpressionPtr target)
@@ -876,7 +853,8 @@ void fk::lang::Parser::synchronize_next_statement() noexcept
         TokenType::DEC,
         TokenType::FN,
         TokenType::LET,
-        TokenType::EXPORT
+        TokenType::EXPORT,
+        TokenType::DATA,
     };
 
     while (!is_eof() && !check(statement_initializer_tokens)) {

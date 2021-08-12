@@ -8,7 +8,6 @@
 #include <fak/lang/statement.h>
 #include <fak/lang/lambda.h>
 
-#include <fak/lang/types/data.h>
 #include <fak/lang/env.h>
 
 #include <fak/log.h>
@@ -118,58 +117,6 @@ private:
     ExpressionPtr expr_;
     LambdaExpression *lambda_;
     EnvironmentPtr<T> closure_;
-};
-
-template <class T, class I>
-class Constructor
-    : public Callable
-{
-public:
-    Constructor(I *interpreter, Data<T>* data)
-        : interpreter_(interpreter)
-        , data_(data)
-        , env_(make_env<T>(data->env)) 
-    {
-        for (size_t i = 0; i < data_->members.size(); ++i) {
-            if (!env_->declare(data_->members[i], T{})) {
-                FK_FATAL("constructor parameter '{}' should always be declarable", data_->members[i]);
-            }
-        }
-    }
-
-    virtual std::string name() const noexcept override
-    {
-        return data_->name;
-    }
-
-    virtual size_t arity() const noexcept override
-    {
-        return data_->members.size();
-    }
-
-    virtual void invoke(const std::vector<ExpressionPtr>& args) override
-    {
-        FK_VERIFY(args.size() == data_->members.size());
-
-        FK_DEBUG("constructor '{}' invoked", data_->name);
-
-        for (size_t i = 0; i < data_->members.size(); ++i) {
-            const ExprResult arg = interpreter_->evaluate(args[i]);
-            if (!env_->assign(data_->members[i], arg)) {
-                FK_FATAL("constructor parameter '{}' should always be assignable", data_->members[i]);
-            }
-        }
-    }
-
-    EnvironmentPtr<T> env() noexcept
-    {
-        return env_;
-    }
-
-private:
-    I *interpreter_;
-    Data<T> *data_;
-    EnvironmentPtr<T> env_;
 };
 
 }
