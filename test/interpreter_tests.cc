@@ -780,6 +780,86 @@ TEST_CASE("arrays", "[interpreter]")
     }
 }
 
+TEST_CASE("assignments", "[interpreter]")
+{
+    TracingInterpreter interpreter(std::make_unique<fk::lang::Interpreter>());
+
+    SECTION("assignment")
+    {
+        const std::string source = "let i = 0; i = 1";
+
+        INFO(source);
+
+        auto [program, results] = interpret(interpreter, source);
+
+        REQUIRE(interpreter.environment().value("i")->n == 1.0);
+    }
+
+    SECTION("assignment, non-existent")
+    {
+        const std::string source = "let i = 0; x = 1";
+
+        INFO(source);
+
+        REQUIRE_THROWS(interpret(interpreter, source));
+    }
+}
+
+TEST_CASE("compound assignments", "[interpreter]")
+{
+    std::unordered_map<std::string, fk::lang::Number> srcToExpected = {
+          { "let i = 0; i += 3", 3.0 }
+        , { "let i = 0; i -= 3", -3.0 }
+        , { "let i = 1; i *= 3", 3.0 }
+        , { "let i = 6; i /= 3", 2.0 }
+    };
+
+    for (const auto& [source, expected]: srcToExpected) {
+        INFO(source);
+
+        TracingInterpreter interpreter(std::make_unique<fk::lang::Interpreter>());
+        auto [program, results] = interpret(interpreter, source);
+
+        REQUIRE(interpreter.environment().value("i")->n == expected);
+    }
+}
+
+TEST_CASE("compound modify", "[interpreter]")
+{
+    const std::string source_template = R"(
+        data Point {
+            x y
+        }
+
+        let p = Point(6, 2)
+
+        p.x OP 3
+
+        let result = p.x
+    )";
+
+    std::unordered_map<std::string, fk::lang::Number> opToResult = {
+        { "+=", 9.0 }
+        , { "-=", 3.0 }
+        , { "*=", 18.0 }
+        , { "/=", 2.0 }
+    };
+
+    const size_t op_pos = source_template.find("OP");
+    for (const auto& [op, expected] : opToResult) {
+        // This next line is why people hate C++ >_>
+        auto temp = source_template; 
+        const std::string source = temp.replace(op_pos, op.length(), op);
+
+        INFO(source);
+
+        TracingInterpreter interpreter(std::make_unique<fk::lang::Interpreter>());
+
+        auto [program, results] = interpret(interpreter, source);
+        REQUIRE(interpreter.environment().value("result")->n == expected);
+    }
+}
+
 TEST_CASE("dicts", "[interpreter]")
 {
     TracingInterpreter interpreter(std::make_unique<fk::lang::Interpreter>());

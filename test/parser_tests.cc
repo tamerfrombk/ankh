@@ -147,6 +147,37 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(literal->literal.str == "3");
     }
 
+    SECTION("parse compound assignment statement")
+    {
+        std::string ops[] = { "+=", "-=", "*=", "/=" };
+        std::string sources[] = {
+              "i += 3"
+            , "i -= 3"
+            , "i *= 3"
+            , "i /= 3"
+        };
+
+        int i = 0;
+        for (const auto& source : sources) {
+            INFO(source);
+
+            auto program = fk::lang::parse(source);
+            REQUIRE(!program.has_errors());
+            REQUIRE(program.size() == 1);
+
+            auto assignment = fk::lang::instance<fk::lang::CompoundAssignment>(program[0]);
+            REQUIRE(assignment != nullptr);
+
+            REQUIRE(assignment->target.str == "i");
+            REQUIRE(assignment->op.str == ops[i++]);
+
+            auto literal = fk::lang::instance<fk::lang::LiteralExpression>(assignment->value);
+            REQUIRE(literal != nullptr);
+
+            REQUIRE(literal->literal.str == "3");
+        }
+    }
+
     SECTION("parse modify statement")
     {
         const std::string source =
@@ -170,6 +201,39 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(literal != nullptr);
 
         REQUIRE(literal->literal.str == "3");
+    }
+
+    SECTION("parse modify statement, compound modify")
+    {
+        std::string ops[] = { "+=", "-=", "*=", "/=" };
+        std::string sources[] = {
+              "i.x += 3"
+            , "i.x -= 3"
+            , "i.x *= 3"
+            , "i.x /= 3"
+        };
+
+        int i = 0;
+        for (const auto& source : sources) {
+            INFO(source);
+
+            auto program = fk::lang::parse(source);
+            REQUIRE(!program.has_errors());
+            REQUIRE(program.size() == 1);
+
+            auto modify = fk::lang::instance<fk::lang::CompoundModify>(program[0]);
+            REQUIRE(modify != nullptr);
+
+            REQUIRE(modify->op.str == ops[i++]);
+
+            auto target = fk::lang::instance<fk::lang::IdentifierExpression>(modify->object);
+            REQUIRE(target != nullptr);
+
+            auto literal = fk::lang::instance<fk::lang::LiteralExpression>(modify->value);
+            REQUIRE(literal != nullptr);
+
+            REQUIRE(literal->literal.str == "3");
+        }
     }
 
     SECTION("parse increment statement")

@@ -516,6 +516,33 @@ void fk::lang::Interpreter::visit(AssignmentStatement *stmt)
     }
 }
 
+void fk::lang::Interpreter::visit(CompoundAssignment* stmt)
+{
+    auto possible_target = current_env_->value(stmt->target.str);
+    if (!possible_target) {
+        ::panic("'{}' is not defined", stmt->target.str);
+    }
+
+    ExprResult target = possible_target.value();
+
+    ExprResult value;
+    if (stmt->op.str == "+=") {
+        value = plus(target, evaluate(stmt->value));
+    } else if (stmt->op.str == "-=") {
+        value = arithmetic(target, evaluate(stmt->value), std::minus<>{});
+    } else if (stmt->op.str == "*=") {
+        value = arithmetic(target, evaluate(stmt->value), std::multiplies<>{});
+    } else if (stmt->op.str == "/=") {
+        value = division(target, evaluate(stmt->value));
+    } else {
+        ::panic("{}:{}, '{}' is not a valid compound assignment operation", stmt->target.line, stmt->target.col, stmt->op.str);
+    }
+
+    if (!current_env_->assign(stmt->target.str, value)) {
+        ::panic("{}:{}, unable to assign the result of the compound assignment", stmt->target.line, stmt->target.col);
+    }
+}
+
 void fk::lang::Interpreter::visit(fk::lang::ModifyStatement* expr)
 {
     ExprResult object = evaluate(expr->object);
@@ -526,6 +553,38 @@ void fk::lang::Interpreter::visit(fk::lang::ModifyStatement* expr)
     ExprResult value = evaluate(expr->value);
     if (!object.obj->set(expr->name.str, value)) {
         ::panic("'{}' is not a member", expr->name.str);
+    }
+}
+
+void fk::lang::Interpreter::visit(fk::lang::CompoundModify* stmt)
+{
+    ExprResult object = evaluate(stmt->object);
+    if (object.type != ExprResultType::RT_OBJECT) {
+        ::panic("only objects have members");
+    }
+
+    auto possible_target = object.obj->env->value(stmt->name.str);
+    if (!possible_target) {
+        ::panic("'{}' is not a member", stmt->name.str);
+    }
+
+    ExprResult target = possible_target.value();
+    
+    ExprResult value;
+    if (stmt->op.str == "+=") {
+        value = plus(target, evaluate(stmt->value));
+    } else if (stmt->op.str == "-=") {
+        value = arithmetic(target, evaluate(stmt->value), std::minus<>{});
+    } else if (stmt->op.str == "*=") {
+        value = arithmetic(target, evaluate(stmt->value), std::multiplies<>{});
+    } else if (stmt->op.str == "/=") {
+        value = division(target, evaluate(stmt->value));
+    } else {
+        ::panic("{}:{}, '{}' is not a valid compound assignment operation", stmt->name.line, stmt->name.col, stmt->op.str);
+    }
+
+    if (!object.obj->set(stmt->name.str, value)) {
+        ::panic("{}:{}, unable to assign the result of the compound assignment", stmt->name.line, stmt->name.col);
     }
 }
 

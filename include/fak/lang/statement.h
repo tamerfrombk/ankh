@@ -14,7 +14,9 @@ struct PrintStatement;
 struct ExpressionStatement;
 struct VariableDeclaration;
 struct AssignmentStatement;
+struct CompoundAssignment;
 struct ModifyStatement;
+struct CompoundModify;
 struct BlockStatement;
 struct IfStatement;
 struct WhileStatement;
@@ -30,7 +32,9 @@ struct StatementVisitor {
     virtual R visit(ExpressionStatement *stmt) = 0;
     virtual R visit(VariableDeclaration *stmt) = 0;
     virtual R visit(AssignmentStatement *stmt) = 0;
+    virtual R visit(CompoundAssignment* stmt) = 0;
     virtual R visit(ModifyStatement* stmt) = 0;
+    virtual R visit(CompoundModify* stmt) = 0;
     virtual R visit(BlockStatement *stmt) = 0;
     virtual R visit(IfStatement *stmt) = 0;
     virtual R visit(WhileStatement *stmt) = 0;
@@ -131,6 +135,32 @@ struct AssignmentStatement
     }
 };
 
+struct CompoundAssignment
+    : public Statement
+{
+    Token target;
+    Token op;
+    ExpressionPtr value;
+
+    CompoundAssignment(Token target, Token op, ExpressionPtr value)
+        : target(std::move(target)), op(std::move(op)), value(std::move(value)) {}
+
+    virtual void accept(StatementVisitor<void>* visitor) override
+    {
+        return visitor->visit(this);
+    }
+
+    virtual StatementPtr clone() const noexcept override
+    {
+        return make_statement<CompoundAssignment>(target, op, value->clone());
+    }
+
+    virtual std::string stringify() const noexcept override
+    {
+        return target.str + " " + op.str + " " + value->stringify();
+    }
+};
+
 struct ModifyStatement
     : public Statement
 {
@@ -154,6 +184,33 @@ struct ModifyStatement
     virtual std::string stringify() const noexcept override
     {
         return object->stringify() + "." + name.str + " = " + value->stringify();
+    }
+};
+
+struct CompoundModify
+    : public Statement
+{
+    ExpressionPtr object;
+    Token name;
+    Token op;
+    ExpressionPtr value;
+
+    CompoundModify(ExpressionPtr object, Token name, Token op, ExpressionPtr value)
+        : object(std::move(object)), name(std::move(name)), op(std::move(op)), value(std::move(value)) {}
+
+    virtual void accept(StatementVisitor<void>* visitor) override
+    {
+        return visitor->visit(this);
+    }
+
+    virtual StatementPtr clone() const noexcept override
+    {
+        return make_statement<CompoundModify>(object->clone(), name, op, value->clone());
+    }
+
+    virtual std::string stringify() const noexcept override
+    {
+        return object->stringify() + "." + name.str + " " + op.str + " " + value->stringify();
     }
 };
 

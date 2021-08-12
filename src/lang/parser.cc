@@ -53,49 +53,6 @@ static fk::lang::StatementPtr desugar_for_into_while(
 }
 
 // this turns a statement like
-// a += 2
-// into:
-// a = a + 2
-// for all of the compound assignment operators
-static fk::lang::StatementPtr desugar_compound_assignment(
-    const fk::lang::Token& lhs
-    , const fk::lang::Token& op
-    , fk::lang::ExpressionPtr rhs
-) noexcept
-{
-    // TODO: verify the line and column positions
-    fk::lang::Token rhs_op{"", fk::lang::TokenType::UNKNOWN, op.line, op.col};
-    switch (op.str[0]) {
-    case '+':
-        rhs_op.str = "+";
-        rhs_op.type = fk::lang::TokenType::PLUS;
-        break;
-    case '-':
-        rhs_op.str = "-";
-        rhs_op.type = fk::lang::TokenType::MINUS;
-        break;
-    case '*':
-        rhs_op.str = "*";
-        rhs_op.type = fk::lang::TokenType::STAR;
-        break;
-    case '/':
-        rhs_op.str = "/";
-        rhs_op.type = fk::lang::TokenType::FSLASH;
-        break;
-    default:
-        FK_FATAL("unknown compound assignment operator");
-    }
-
-    fk::lang::ExpressionPtr right = fk::lang::make_expression<fk::lang::BinaryExpression>(
-        fk::lang::make_expression<fk::lang::IdentifierExpression>(lhs)
-        , rhs_op
-        , std::move(rhs)
-    );
-
-    return fk::lang::make_statement<fk::lang::AssignmentStatement>(lhs, std::move(right));
-}
-
-// this turns a statement like
 // ++i
 // into:
 // i = i + 1
@@ -303,15 +260,7 @@ fk::lang::StatementPtr fk::lang::Parser::parse_data_declaration()
 fk::lang::StatementPtr fk::lang::Parser::assignment(ExpressionPtr target)
 {
     if (AccessExpression* expr = instance<AccessExpression>(target); expr != nullptr) {
-
-        // TODO: extend modify to handle compound assignment
-        consume(fk::lang::TokenType::EQ, "'=' expected in assignment");
-
-        ExpressionPtr initializer = expression();
-
-        semicolon();
-
-        return make_statement<ModifyStatement>(std::move(expr->accessible), expr->accessor, std::move(initializer));
+        return modify(expr);
     }
 
     IdentifierExpression *identifier = instance<IdentifierExpression>(target);
@@ -319,25 +268,38 @@ fk::lang::StatementPtr fk::lang::Parser::assignment(ExpressionPtr target)
         panic<ParseException>("invalid assignment target");
     }
 
-    if (match({ 
-        TokenType::PLUSEQ
-        , TokenType::MINUSEQ
-        , TokenType::STAREQ
-        , TokenType::FSLASHEQ 
-        })
-    ) {
-        const Token& op = prev();
-        ExpressionPtr rhs = expression();
-        return desugar_compound_assignment(identifier->name, op, std::move(rhs));
-    }
-
-    consume(fk::lang::TokenType::EQ, "'=' expected in assignment");
-
+    // no need to check this since we already know that we have one of these
+    match({ TokenType::EQ, TokenType::PLUSEQ, TokenType::MINUSEQ, TokenType::STAREQ, TokenType::FSLASHEQ });
+    
+    const Token& op = prev();
+    
     ExpressionPtr rhs = expression();
 
     semicolon();
 
-    return make_statement<AssignmentStatement>(identifier->name, std::move(rhs));   
+    if (op.type == TokenType::EQ) {
+        return make_statement<AssignmentStatement>(identifier->name, std::move(rhs));   
+    } else {
+        return make_statement<CompoundAssignment>(identifier->name, op, std::move(rhs));
+    }
+}
+
+fk::lang::StatementPtr fk::lang::Parser::modify(AccessExpression* expr)
+{
+    // no need to check this since we already know that we have one of these
+    match({ TokenType::EQ, TokenType::PLUSEQ, TokenType::MINUSEQ, TokenType::STAREQ, TokenType::FSLASHEQ });
+    
+    const Token& op = prev();
+
+    ExpressionPtr initializer = expression();
+
+    semicolon();
+
+    if (op.type == TokenType::EQ) {
+        return make_statement<ModifyStatement>(std::move(expr->accessible), expr->accessor, std::move(initializer));
+    } else {
+        return make_statement<CompoundModify>(std::move(expr->accessible), expr->accessor, op, std::move(initializer));
+    }
 }
 
 fk::lang::StatementPtr fk::lang::Parser::statement()
