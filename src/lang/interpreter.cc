@@ -516,6 +516,19 @@ void fk::lang::Interpreter::visit(AssignmentStatement *stmt)
     }
 }
 
+void fk::lang::Interpreter::visit(fk::lang::ModifyStatement* expr)
+{
+    ExprResult object = evaluate(expr->object);
+    if (object.type != ExprResultType::RT_OBJECT) {
+        ::panic("only objects have members");
+    }
+
+    ExprResult value = evaluate(expr->value);
+    if (!object.obj->set(expr->name.str, value)) {
+        ::panic("'{}' is not a member", expr->name.str);
+    }
+}
+
 void fk::lang::Interpreter::visit(BlockStatement *stmt)
 {
     execute_block(stmt, current_env_);

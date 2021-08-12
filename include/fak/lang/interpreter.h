@@ -57,6 +57,7 @@ private:
     virtual void visit(PrintStatement *stmt) override;
     virtual void visit(ExpressionStatement *stmt) override;
     virtual void visit(VariableDeclaration *stmt) override;
+    virtual void visit(ModifyStatement* expr) override;
     virtual void visit(AssignmentStatement *stmt) override;
     virtual void visit(BlockStatement *stmt) override;
     virtual void visit(IfStatement *stmt) override;

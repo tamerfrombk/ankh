@@ -302,6 +302,18 @@ fk::lang::StatementPtr fk::lang::Parser::parse_data_declaration()
 
 fk::lang::StatementPtr fk::lang::Parser::assignment(ExpressionPtr target)
 {
+    if (AccessExpression* expr = instance<AccessExpression>(target); expr != nullptr) {
+
+        // TODO: extend modify to handle compound assignment
+        consume(fk::lang::TokenType::EQ, "'=' expected in assignment");
+
+        ExpressionPtr initializer = expression();
+
+        semicolon();
+
+        return make_statement<ModifyStatement>(std::move(expr->accessible), expr->accessor, std::move(initializer));
+    }
+
     IdentifierExpression *identifier = instance<IdentifierExpression>(target);
     if (identifier == nullptr) {
         panic<ParseException>("invalid assignment target");

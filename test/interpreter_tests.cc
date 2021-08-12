@@ -1270,6 +1270,69 @@ TEST_CASE("test access", "[interpreter]")
     }
 }
 
+TEST_CASE("modify expressions", "[interpreter]")
+{
+    TracingInterpreter interpreter(std::make_unique<fk::lang::Interpreter>());
+
+    SECTION("test accessing data member")
+    {
+        const std::string source = R"(
+            data Point {
+                x y
+            }
+
+            let p = Point(1, 2)
+
+            let x = p.x
+
+            p.x = 3
+
+            p.x
+        )";
+
+        INFO(source);
+
+
+        auto [program, results] = interpret(interpreter, source);
+        REQUIRE(!program.has_errors());
+
+        REQUIRE(interpreter.environment().value("x")->n == 1.0);
+        REQUIRE(interpreter.results().back().type == fk::lang::ExprResultType::RT_NUMBER);
+        REQUIRE(interpreter.results().back().n == 3.0);
+    }
+
+    SECTION("test accessing member, non-existent")
+    {
+        const std::string source = R"(
+            data Point {
+                x y
+            }
+
+            let p = Point(1, 2)
+
+            p.z = 3
+        )";
+
+        INFO(source);
+
+        REQUIRE_THROWS(interpret(interpreter, source));
+    }
+
+    SECTION("test accessing non-data")
+    {
+        const std::string source = R"(
+            let p = 3
+
+            p.z = "foo"
+        )";
+
+        INFO(source);
+
+        REQUIRE_THROWS(interpret(interpreter, source));
+    }
+
+}
+
 TEST_CASE("constructor environment overrides each other", "[interpreter][!mayfail]")
 {
     const std::string source = R"(

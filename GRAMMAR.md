@@ -21,7 +21,7 @@ statement             → expression_statement
 
 variable_declaration  → storage_class identifier "=" expression semicolon
 storage_class         → "let" | "export"
-assignment            → identifier ( "=" | "+=" | "-=" | "*=" | "/=" ) expression semicolon
+assignment            → ( operable "." )? identifier ( "=" | "+=" | "-=" | "*=" | "/=" ) expression semicolon
 inc_dec               → ( "++" | "--" ) expression semicolon
 expression_statement  → expression semicolon
 print_statement       → "print" expression semicolon

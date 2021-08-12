@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <string>
+
 #include <fak/lang/env.h>
 
 namespace fk::lang {
@@ -12,6 +14,11 @@ struct Object
 
     Object(EnvironmentPtr<T> env)
         : env(env) {}
+
+    bool set(const std::string& name, T value) noexcept
+    {
+        return env->assign(name, value);
+    }
 };
 
 template <class T>

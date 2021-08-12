@@ -14,6 +14,7 @@ struct PrintStatement;
 struct ExpressionStatement;
 struct VariableDeclaration;
 struct AssignmentStatement;
+struct ModifyStatement;
 struct BlockStatement;
 struct IfStatement;
 struct WhileStatement;
@@ -29,6 +30,7 @@ struct StatementVisitor {
     virtual R visit(ExpressionStatement *stmt) = 0;
     virtual R visit(VariableDeclaration *stmt) = 0;
     virtual R visit(AssignmentStatement *stmt) = 0;
+    virtual R visit(ModifyStatement* stmt) = 0;
     virtual R visit(BlockStatement *stmt) = 0;
     virtual R visit(IfStatement *stmt) = 0;
     virtual R visit(WhileStatement *stmt) = 0;
@@ -126,6 +128,32 @@ struct AssignmentStatement
     virtual std::string stringify() const noexcept override
     {
         return name.str + " = " + initializer->stringify();
+    }
+};
+
+struct ModifyStatement
+    : public Statement
+{
+    ExpressionPtr object;
+    Token name;
+    ExpressionPtr value;
+
+    ModifyStatement(ExpressionPtr object, Token name, ExpressionPtr value)
+        : object(std::move(object)), name(std::move(name)), value(std::move(value)) {}
+
+    virtual void accept(StatementVisitor<void>* visitor) override
+    {
+        return visitor->visit(this);
+    }
+
+    virtual StatementPtr clone() const noexcept override
+    {
+        return make_statement<ModifyStatement>(object->clone(), name, value->clone());
+    }
+
+    virtual std::string stringify() const noexcept override
+    {
+        return object->stringify() + "." + name.str + " = " + value->stringify();
     }
 };
 
@@ -354,5 +382,7 @@ struct DataDeclaration
         return result;
     }
 };
+
+
 
 }

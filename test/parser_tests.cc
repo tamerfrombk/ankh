@@ -147,6 +147,31 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(literal->literal.str == "3");
     }
 
+    SECTION("parse modify statement")
+    {
+        const std::string source =
+        R"(
+            a.b.c = 3
+        )";
+
+        auto program = fk::lang::parse(source);
+
+        REQUIRE(program.size() == 1);
+
+        auto modify = fk::lang::instance<fk::lang::ModifyStatement>(program[0]);
+        REQUIRE(modify != nullptr);
+        REQUIRE(modify->name.str == "c");
+
+        auto access = fk::lang::instance<fk::lang::AccessExpression>(modify->object);
+        REQUIRE(access != nullptr);
+        REQUIRE(access->accessor.str == "b");
+
+        auto literal = fk::lang::instance<fk::lang::LiteralExpression>(modify->value);;
+        REQUIRE(literal != nullptr);
+
+        REQUIRE(literal->literal.str == "3");
+    }
+
     SECTION("parse increment statement")
     {
         const std::string source =
