@@ -236,48 +236,102 @@ TEST_CASE("parse language statements", "[parser]")
         }
     }
 
-    SECTION("parse increment statement")
+    SECTION("parse increment statement, identifier")
     {
         const std::string source =
         R"(
-            let i = 2
             ++i
         )";
 
         auto program = fk::lang::parse(source);
 
-        REQUIRE(program.size() == 2);
+        REQUIRE(program.size() == 1);
+        REQUIRE(!program.has_errors());
 
-        auto assignment = fk::lang::instance<fk::lang::AssignmentStatement>(program[1]);
-        REQUIRE(assignment != nullptr);
+        auto modify = fk::lang::instance<fk::lang::IncOrDecIdentifierStatement>(program[0]);
+        REQUIRE(modify != nullptr);
 
-        REQUIRE(assignment->name.str == "i");
-
-        auto binary = fk::lang::instance<fk::lang::BinaryExpression>(assignment->initializer);
-        REQUIRE(binary != nullptr);
-        REQUIRE(binary->op.type == fk::lang::TokenType::PLUS);
+        REQUIRE(modify->op.str == "++");
+        REQUIRE(fk::lang::instanceof<fk::lang::IdentifierExpression>(modify->expr));
     }
 
-    SECTION("parse decrement statement")
+    SECTION("parse increment statement, access")
     {
         const std::string source =
         R"(
-            let i = 2
+            ++i.x
+        )";
+
+        auto program = fk::lang::parse(source);
+
+        REQUIRE(program.size() == 1);
+        REQUIRE(!program.has_errors());
+
+        auto modify = fk::lang::instance<fk::lang::IncOrDecAccessStatement>(program[0]);
+        REQUIRE(modify != nullptr);
+
+        REQUIRE(modify->op.str == "++");
+        REQUIRE(fk::lang::instanceof<fk::lang::AccessExpression>(modify->expr));
+    }
+
+    SECTION("parse increment statement, invalid target")
+    {
+        const std::string source =
+            R"(
+            ++"foo"
+        )";
+
+        auto program = fk::lang::parse(source);
+        REQUIRE(program.has_errors());
+    }
+
+    SECTION("parse decrement statement, identifier")
+    {
+        const std::string source =
+        R"(
             --i
         )";
 
         auto program = fk::lang::parse(source);
 
-        REQUIRE(program.size() == 2);
+        REQUIRE(program.size() == 1);
+        REQUIRE(!program.has_errors());
 
-        auto assignment = fk::lang::instance<fk::lang::AssignmentStatement>(program[1]);
-        REQUIRE(assignment != nullptr);
+        auto modify = fk::lang::instance<fk::lang::IncOrDecIdentifierStatement>(program[0]);
+        REQUIRE(modify != nullptr);
 
-        REQUIRE(assignment->name.str == "i");
+        REQUIRE(modify->op.str == "--");
+        REQUIRE(fk::lang::instanceof<fk::lang::IdentifierExpression>(modify->expr));
+    }
 
-        auto binary = fk::lang::instance<fk::lang::BinaryExpression>(assignment->initializer);
-        REQUIRE(binary != nullptr);
-        REQUIRE(binary->op.type == fk::lang::TokenType::MINUS);
+    SECTION("parse decrement statement, access")
+    {
+        const std::string source =
+            R"(
+            --i.x
+        )";
+
+        auto program = fk::lang::parse(source);
+
+        REQUIRE(program.size() == 1);
+        REQUIRE(!program.has_errors());
+
+        auto modify = fk::lang::instance<fk::lang::IncOrDecAccessStatement>(program[0]);
+        REQUIRE(modify != nullptr);
+
+        REQUIRE(modify->op.str == "--");
+        REQUIRE(fk::lang::instanceof<fk::lang::AccessExpression>(modify->expr));
+    }
+
+    SECTION("parse decrement statement, invalid target")
+    {
+        const std::string source =
+            R"(
+            --"foo"
+        )";
+
+        auto program = fk::lang::parse(source);
+        REQUIRE(program.has_errors());
     }
 
     SECTION("parse print statement")

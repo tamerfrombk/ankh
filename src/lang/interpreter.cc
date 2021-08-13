@@ -588,6 +588,56 @@ void fk::lang::Interpreter::visit(fk::lang::CompoundModify* stmt)
     }
 }
 
+void fk::lang::Interpreter::visit(fk::lang::IncOrDecAccessStatement *stmt)
+{
+    AccessExpression* access = static_cast<AccessExpression*>(stmt->expr.get());
+    
+    ExprResult obj = evaluate(access->accessible);
+    
+    auto possible_rhs = obj.obj->env->value(access->accessor.str);
+    if (!possible_rhs) {
+        ::panic("{}:{}, '{}' is not a member", access->accessor.line, access->accessor.col, access->accessor.str);
+    }
+
+    ExprResult value;
+    if (stmt->op.str == "++") {
+        value = plus(*possible_rhs, 1.0);
+    } else if (stmt->op.str == "--") {
+        value = arithmetic(*possible_rhs, 1.0, std::minus<>{});
+    } else {
+        // this shouldn't happen since the parser validates the token is one of the above
+        // but those are famous last words ;)
+        FK_FATAL("'{}' is not a valid increment or decrement operation", stmt->op.str);
+    }
+
+    if (!obj.obj->env->assign(access->accessor.str, value)) {
+        FK_FATAL("{}:{}, unable to assign '{}'", access->accessor.str);
+    }
+}
+
+void fk::lang::Interpreter::visit(fk::lang::IncOrDecIdentifierStatement* stmt)
+{
+    ExprResult rhs = evaluate(stmt->expr);
+    
+    ExprResult value;
+    if (stmt->op.str == "++") {
+        value = plus(rhs, 1.0);
+    }
+    else if (stmt->op.str == "--") {
+        value = arithmetic(rhs, 1.0, std::minus<>{});
+    }
+    else {
+        // this shouldn't happen since the parser validates the token is one of the above
+        // but those are famous last words ;)
+        FK_FATAL("'{}' is not a valid increment or decrement operation", stmt->op.str);
+    }
+
+    IdentifierExpression* expr = static_cast<IdentifierExpression*>(stmt->expr.get());
+    if (!current_env_->assign(expr->name.str, value)) {
+        FK_FATAL("{}:{}, unable to assign '{}'", expr->name.str);
+    }
+}
+
 void fk::lang::Interpreter::visit(BlockStatement *stmt)
 {
     execute_block(stmt, current_env_);

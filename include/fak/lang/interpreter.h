@@ -59,8 +59,10 @@ private:
     virtual void visit(VariableDeclaration *stmt) override;
     virtual void visit(AssignmentStatement *stmt) override;
     virtual void visit(CompoundAssignment* stmt) override;
-    virtual void visit(ModifyStatement* expr) override;
+    virtual void visit(ModifyStatement* stmt) override;
     virtual void visit(CompoundModify* expr) override;
+    virtual void visit(IncOrDecIdentifierStatement* stmt) override;
+    virtual void visit(IncOrDecAccessStatement* stmt) override;
     virtual void visit(BlockStatement *stmt) override;
     virtual void visit(IfStatement *stmt) override;
     virtual void visit(WhileStatement *stmt) override;

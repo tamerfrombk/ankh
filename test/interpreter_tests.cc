@@ -727,6 +727,105 @@ TEST_CASE("boolean", "[interpreter]")
     }
 }
 
+TEST_CASE("increment/decrement statements", "[interpreter]")
+{
+    TracingInterpreter interpreter(std::make_unique<fk::lang::Interpreter>());
+
+    SECTION("increment, identifier")
+    {
+        const std::string source = R"(
+            let i = 0
+            ++i
+        )";
+
+        INFO(source);
+        auto [program, results] = interpret(interpreter, source);
+
+        REQUIRE(!program.has_errors());
+        REQUIRE(interpreter.environment().value("i")->n == 1.0);
+    }
+
+    SECTION("increment, access")
+    {
+        const std::string source = R"(
+            data Point { x y }
+            
+            let p = Point(1, 2)
+
+            ++p.x
+
+            let result = p.x
+        )";
+
+        INFO(source);
+        auto [program, results] = interpret(interpreter, source);
+
+        REQUIRE(!program.has_errors());
+        REQUIRE(interpreter.environment().value("result")->n == 2.0);
+    }
+
+    SECTION("increment, unallowed expression")
+    {
+        const std::string source = R"(
+            data Point { x y }
+            
+            let p = Point(1, 2)
+
+            ++p
+        )";
+
+        INFO(source);
+        REQUIRE_THROWS(interpret(interpreter, source));
+    }
+
+    SECTION("decrement, identifier")
+    {
+        const std::string source = R"(
+            let i = 0
+            --i
+        )";
+
+        INFO(source);
+        auto [program, results] = interpret(interpreter, source);
+
+        REQUIRE(!program.has_errors());
+        REQUIRE(interpreter.environment().value("i")->n == -1.0);
+    }
+
+    SECTION("decrement, access")
+    {
+        const std::string source = R"(
+            data Point { x y }
+            
+            let p = Point(1, 2)
+
+            --p.x
+
+            let result = p.x
+        )";
+
+        INFO(source);
+        auto [program, results] = interpret(interpreter, source);
+
+        REQUIRE(!program.has_errors());
+        REQUIRE(interpreter.environment().value("result")->n == 0.0);
+    }
+
+    SECTION("decrement, unallowed expression")
+    {
+        const std::string source = R"(
+            data Point { x y }
+            
+            let p = Point(1, 2)
+
+            --p
+        )";
+
+        INFO(source);
+        REQUIRE_THROWS(interpret(interpreter, source));
+    }
+}
+
 TEST_CASE("arrays", "[interpreter]")
 {
     TracingInterpreter interpreter(std::make_unique<fk::lang::Interpreter>());

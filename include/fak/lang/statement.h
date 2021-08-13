@@ -17,6 +17,8 @@ struct AssignmentStatement;
 struct CompoundAssignment;
 struct ModifyStatement;
 struct CompoundModify;
+struct IncOrDecIdentifierStatement;
+struct IncOrDecAccessStatement;
 struct BlockStatement;
 struct IfStatement;
 struct WhileStatement;
@@ -32,6 +34,8 @@ struct StatementVisitor {
     virtual R visit(ExpressionStatement *stmt) = 0;
     virtual R visit(VariableDeclaration *stmt) = 0;
     virtual R visit(AssignmentStatement *stmt) = 0;
+    virtual R visit(IncOrDecIdentifierStatement* stmt) = 0;
+    virtual R visit(IncOrDecAccessStatement *stmt) = 0;
     virtual R visit(CompoundAssignment* stmt) = 0;
     virtual R visit(ModifyStatement* stmt) = 0;
     virtual R visit(CompoundModify* stmt) = 0;
@@ -293,6 +297,35 @@ struct BlockStatement
         return result;
     }
 };
+
+template <class Derived>
+struct IncOrDecStatement
+    : public Statement
+{
+    Token op;
+    ExpressionPtr expr;
+
+    IncOrDecStatement(Token op, ExpressionPtr expr)
+        : op(std::move(op)), expr(std::move(expr)) {}
+
+    virtual void accept(StatementVisitor<void>* visitor) override
+    {
+        visitor->visit(static_cast<Derived*>(this));
+    }
+
+    virtual StatementPtr clone() const noexcept override
+    {
+        return make_statement<Derived>(op, expr->clone());
+    }
+
+    virtual std::string stringify() const noexcept override
+    {
+        return op.str + expr->stringify();
+    }
+};
+
+struct IncOrDecIdentifierStatement : public IncOrDecStatement<IncOrDecIdentifierStatement> { using IncOrDecStatement::IncOrDecStatement; };
+struct IncOrDecAccessStatement     : public IncOrDecStatement<IncOrDecAccessStatement>     { using IncOrDecStatement::IncOrDecStatement; };
 
 struct IfStatement
     : public Statement

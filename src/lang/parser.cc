@@ -1,5 +1,3 @@
-#include "fak/lang/expr.h"
-#include "fak/lang/statement.h"
 #include <algorithm>
 #include <initializer_list>
 #include <random>
@@ -50,55 +48,6 @@ static fk::lang::StatementPtr desugar_for_into_while(
     statements.push_back(std::move(while_stmt));
     
     return fk::lang::make_statement<fk::lang::BlockStatement>(std::move(statements));
-}
-
-// this turns a statement like
-// ++i
-// into:
-// i = i + 1
-static fk::lang::StatementPtr desugar_inc_dec(const fk::lang::Token& op, fk::lang::ExpressionPtr target)
-{
-    // TODO: verify the line and column positions
-    fk::lang::Token rhs_op{"", fk::lang::TokenType::UNKNOWN, op.line, op.col};
-    switch (op.str[0]) {
-    case '+':
-        rhs_op.str = "+";
-        rhs_op.type = fk::lang::TokenType::PLUS;
-        break;
-    case '-':
-        rhs_op.str = "-";
-        rhs_op.type = fk::lang::TokenType::MINUS;
-        break;
-    default:
-        FK_FATAL("unknown increment or decrement operator");
-    }
-
-    // TODO: for now, these operators only work on identifiers
-    // Once we add other targets like record members, we need to update this logic here
-    // to accept those as well
-    fk::lang::IdentifierExpression *identifier = fk::lang::instance<fk::lang::IdentifierExpression>(target);
-    if (identifier == nullptr) {
-        const std::string opstr = op.type == fk::lang::TokenType::INC
-            ? "increment"
-            : "decrement";
-        fk::lang::panic<fk::lang::ParseException>("invalid {} target", opstr);
-    }
-
-
-    // TODO: figure out the line, col positions for these new tokens
-    fk::lang::ExpressionPtr one = fk::lang::make_expression<fk::lang::LiteralExpression>(
-        fk::lang::Token{"1", fk::lang::TokenType::NUMBER, 0, 0}
-    );
-
-    // target + 1
-    fk::lang::ExpressionPtr right = fk::lang::make_expression<fk::lang::BinaryExpression>(
-        fk::lang::make_expression<fk::lang::IdentifierExpression>(identifier->name)
-        , rhs_op
-        , std::move(one)
-    );
-
-    // target = target + 1
-    return fk::lang::make_statement<fk::lang::AssignmentStatement>(identifier->name, std::move(right));
 }
 
 static char generate_random_alpha_char() noexcept
@@ -352,10 +301,18 @@ fk::lang::StatementPtr fk::lang::Parser::parse_inc_dec()
     const Token& op = advance();
 
     ExpressionPtr target = expression();
-
+    
     semicolon();
+    
+    if (instanceof<IdentifierExpression>(target)) {
+        return make_statement<IncOrDecIdentifierStatement>(op, std::move(target));
+    }
 
-    return desugar_inc_dec(op, std::move(target));
+    if (instanceof<AccessExpression>(target)) {
+        return make_statement<IncOrDecAccessStatement>(op, std::move(target));
+    }
+
+    panic<ParseException>("{},{}: only identifiers and access expressions are valid increment/decrement targets", op.line, op.col);
 }
 
 fk::lang::StatementPtr fk::lang::Parser::block()
