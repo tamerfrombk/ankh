@@ -4,16 +4,16 @@
 #include <unordered_map>
 #include <string>
 
-#include <fak/lang/expr_result.h>
-#include <fak/lang/expr.h>
-#include <fak/lang/statement.h>
-#include <fak/lang/program.h>
-#include <fak/lang/lambda.h>
-#include <fak/lang/env.h>
-#include <fak/lang/callable.h>
-#include <fak/lang/types/data.h>
+#include <ankh/lang/expr_result.h>
+#include <ankh/lang/expr.h>
+#include <ankh/lang/statement.h>
+#include <ankh/lang/program.h>
+#include <ankh/lang/lambda.h>
+#include <ankh/lang/env.h>
+#include <ankh/lang/callable.h>
+#include <ankh/lang/types/data.h>
 
-namespace fk::lang {
+namespace ankh::lang {
 
 class Interpreter
     : public ExpressionVisitor<ExprResult>
@@ -78,11 +78,11 @@ private:
 
     class Scope {
     public:
-        Scope(fk::lang::Interpreter *interpreter, fk::lang::EnvironmentPtr<ExprResult> enclosing);
+        Scope(ankh::lang::Interpreter *interpreter, ankh::lang::EnvironmentPtr<ExprResult> enclosing);
         ~Scope();
     private:
-        fk::lang::Interpreter *interpreter_;
-        fk::lang::EnvironmentPtr<ExprResult> prev_;
+        ankh::lang::Interpreter *interpreter_;
+        ankh::lang::EnvironmentPtr<ExprResult> prev_;
     };
 
     // TODO: this assumes all functions are in global namespace

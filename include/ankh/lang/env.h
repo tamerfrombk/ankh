@@ -6,9 +6,9 @@
 #include <memory>
 #include <utility>
 
-#include <fak/log.h>
+#include <ankh/log.h>
 
-namespace fk::lang {
+namespace ankh::lang {
 
 template <class T>
 class Environment;
@@ -24,10 +24,10 @@ public:
         : enclosing_(enclosing)
         , scope_(enclosing_ == nullptr ? 0 : 1 + enclosing->scope()) {}
 
-    FK_NO_DISCARD bool assign(const std::string& name, const T& result) noexcept
+    ankh_NO_DISCARD bool assign(const std::string& name, const T& result) noexcept
     {
         if (contains(name)) {
-            FK_DEBUG("ASSIGNMENT '{}' = '{}' @ scope '{}'", name, result.stringify(), scope());
+            ankh_DEBUG("ASSIGNMENT '{}' = '{}' @ scope '{}'", name, result.stringify(), scope());
 
             values_[name] = result;
 
@@ -35,18 +35,18 @@ public:
         }
 
         if (enclosing_ != nullptr) {
-            FK_DEBUG("ASSIGNMENT LOOKUP '{}' = '{}' @ enclosing scope '{}'", name, result.stringify(), enclosing_->scope());
+            ankh_DEBUG("ASSIGNMENT LOOKUP '{}' = '{}' @ enclosing scope '{}'", name, result.stringify(), enclosing_->scope());
             return enclosing_->assign(name, result);
         }
 
         return false;
     }
 
-    FK_NO_DISCARD bool declare(const std::string& name, const T& result) noexcept
+    ankh_NO_DISCARD bool declare(const std::string& name, const T& result) noexcept
     {
-        FK_DEBUG("PUT '{}' = '{}' @ scope '{}'", name, result.stringify(), scope());
+        ankh_DEBUG("PUT '{}' = '{}' @ scope '{}'", name, result.stringify(), scope());
         if (contains(name)) {
-            FK_DEBUG("'{}' cannot be declared because it already exists in scope {}", name, scope());
+            ankh_DEBUG("'{}' cannot be declared because it already exists in scope {}", name, scope());
             return false;
         }
 
@@ -58,12 +58,12 @@ public:
     std::optional<T> value(const std::string& name) const noexcept
     {
         if (const auto it = values_.find(name); it != values_.end()) {
-            FK_DEBUG("IDENTIFIER '{}' = '{}' @ scope '{}'", name, it->second.stringify(), scope());
+            ankh_DEBUG("IDENTIFIER '{}' = '{}' @ scope '{}'", name, it->second.stringify(), scope());
             return { it->second };
         }
 
         if (enclosing_ != nullptr) {
-            FK_DEBUG("IDENTIFIER LOOKUP '{}' @ enclosing scope '{}'", name, enclosing_->scope());
+            ankh_DEBUG("IDENTIFIER LOOKUP '{}' @ enclosing scope '{}'", name, enclosing_->scope());
             return enclosing_->value(name);
         }
 

@@ -6,9 +6,9 @@
 #include <string>
 #include <optional>
 
-#include <fak/lang/types/entry.h>
+#include <ankh/lang/types/entry.h>
 
-namespace fk::lang {
+namespace ankh::lang {
 
 template <class T>
 class Dictionary 

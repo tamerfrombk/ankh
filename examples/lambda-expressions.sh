@@ -1,4 +1,4 @@
-#!/usr/bin/env fak
+#!/usr/bin/env ankhsh
 
 fn join(a, b, c, joiner) {
     return joiner(joiner(a, b), c)

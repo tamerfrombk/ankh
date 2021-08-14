@@ -3,9 +3,9 @@
 #include <string>
 #include <vector>
 
-#include <fak/lang/token.h>
+#include <ankh/lang/token.h>
 
-namespace fk::lang {
+namespace ankh::lang {
 
 class Lexer {
 public:

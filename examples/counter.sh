@@ -1,4 +1,4 @@
-#!/usr/bin/env fak
+#!/usr/bin/env ankhsh
 
 fn makeCounter() {
   let i = 0

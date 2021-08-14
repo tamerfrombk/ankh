@@ -1,108 +1,108 @@
-#include <fak/lang/token.h>
-#include <fak/log.h>
+#include <ankh/lang/token.h>
+#include <ankh/log.h>
 
-std::string fk::lang::token_type_str(fk::lang::TokenType type) noexcept
+std::string ankh::lang::token_type_str(ankh::lang::TokenType type) noexcept
 {
     switch (type) {
-    case fk::lang::TokenType::IDENTIFIER:
+    case ankh::lang::TokenType::IDENTIFIER:
         return "IDENTIFIER";
-    case fk::lang::TokenType::EQ:
+    case ankh::lang::TokenType::EQ:
         return "EQ";
-    case fk::lang::TokenType::EQEQ:
+    case ankh::lang::TokenType::EQEQ:
         return "EQEQ";
-    case fk::lang::TokenType::NEQ:
+    case ankh::lang::TokenType::NEQ:
         return "NEQ";
-    case fk::lang::TokenType::LT:
+    case ankh::lang::TokenType::LT:
         return "LT";
-    case fk::lang::TokenType::LTE:
+    case ankh::lang::TokenType::LTE:
         return "LTE";
-    case fk::lang::TokenType::GT:
+    case ankh::lang::TokenType::GT:
         return "GT";
-    case fk::lang::TokenType::GTE:
+    case ankh::lang::TokenType::GTE:
         return "GTE";
-    case fk::lang::TokenType::MINUS:
+    case ankh::lang::TokenType::MINUS:
         return "MINUS";
-    case fk::lang::TokenType::MINUSEQ:
+    case ankh::lang::TokenType::MINUSEQ:
         return "MINUSEQ";
-    case fk::lang::TokenType::PLUS:
+    case ankh::lang::TokenType::PLUS:
         return "PLUS";
-    case fk::lang::TokenType::PLUSEQ:
+    case ankh::lang::TokenType::PLUSEQ:
         return "PLUSEQ";
-    case fk::lang::TokenType::FSLASH:
+    case ankh::lang::TokenType::FSLASH:
         return "FSLASH";
-    case fk::lang::TokenType::FSLASHEQ:
+    case ankh::lang::TokenType::FSLASHEQ:
         return "FSLASHEQ";
-    case fk::lang::TokenType::STAR:
+    case ankh::lang::TokenType::STAR:
         return "STAR";
-    case fk::lang::TokenType::STAREQ:
+    case ankh::lang::TokenType::STAREQ:
         return "STAREQ";
-    case fk::lang::TokenType::BANG:
+    case ankh::lang::TokenType::BANG:
         return "BANG";
-    case fk::lang::TokenType::LPAREN:
+    case ankh::lang::TokenType::LPAREN:
         return "LPAREN";
-    case fk::lang::TokenType::RPAREN:
+    case ankh::lang::TokenType::RPAREN:
         return "RPAREN";
-    case fk::lang::TokenType::LBRACE:
+    case ankh::lang::TokenType::LBRACE:
         return "LBRACE";
-    case fk::lang::TokenType::RBRACE:
+    case ankh::lang::TokenType::RBRACE:
         return "RBRACE";
-    case fk::lang::TokenType::LBRACKET:
+    case ankh::lang::TokenType::LBRACKET:
         return "LBRACKET";
-    case fk::lang::TokenType::RBRACKET:
+    case ankh::lang::TokenType::RBRACKET:
         return "RBRACKET";
-    case fk::lang::TokenType::FK_TRUE:
+    case ankh::lang::TokenType::ankh_TRUE:
         return "BTRUE";
-    case fk::lang::TokenType::FK_FALSE:
+    case ankh::lang::TokenType::ankh_FALSE:
         return "BFALSE";
-    case fk::lang::TokenType::NIL:
+    case ankh::lang::TokenType::NIL:
         return "NIL";
-    case fk::lang::TokenType::PRINT:
+    case ankh::lang::TokenType::PRINT:
         return "PRINT";
-    case fk::lang::TokenType::IF:
+    case ankh::lang::TokenType::IF:
         return "IF";
-    case fk::lang::TokenType::ELSE:
+    case ankh::lang::TokenType::ELSE:
         return "ELSE";
-    case fk::lang::TokenType::AND:
+    case ankh::lang::TokenType::AND:
         return "AND";
-    case fk::lang::TokenType::OR:
+    case ankh::lang::TokenType::OR:
         return "OR";
-    case fk::lang::TokenType::WHILE:
+    case ankh::lang::TokenType::WHILE:
         return "WHILE";
-    case fk::lang::TokenType::FOR:
+    case ankh::lang::TokenType::FOR:
         return "FOR";
-    case fk::lang::TokenType::SEMICOLON:
+    case ankh::lang::TokenType::SEMICOLON:
         return "SEMICOLON";
-    case fk::lang::TokenType::LET:
+    case ankh::lang::TokenType::LET:
         return "LET";
-    case fk::lang::TokenType::EXPORT:
+    case ankh::lang::TokenType::EXPORT:
         return "EXPORT";
-    case fk::lang::TokenType::COMMA:
+    case ankh::lang::TokenType::COMMA:
         return "COMMA";
-    case fk::lang::TokenType::FN:
+    case ankh::lang::TokenType::FN:
         return "FN";
-    case fk::lang::TokenType::FK_RETURN:
+    case ankh::lang::TokenType::ankh_RETURN:
         return "RETURN";
-    case fk::lang::TokenType::DATA:
+    case ankh::lang::TokenType::DATA:
         return "DATA";
-    case fk::lang::TokenType::INC:
+    case ankh::lang::TokenType::INC:
         return "INC";
-    case fk::lang::TokenType::DEC:
+    case ankh::lang::TokenType::DEC:
         return "DEC";
-    case fk::lang::TokenType::COLON:
+    case ankh::lang::TokenType::COLON:
         return "COLON";
-    case fk::lang::TokenType::DOT:
+    case ankh::lang::TokenType::DOT:
         return "DOT";
-    case fk::lang::TokenType::NUMBER:
+    case ankh::lang::TokenType::NUMBER:
         return "NUMBER";
-    case fk::lang::TokenType::STRING:
+    case ankh::lang::TokenType::STRING:
         return "STRING";
-    case fk::lang::TokenType::COMMAND:
+    case ankh::lang::TokenType::COMMAND:
         return "COMMAND";
-    case fk::lang::TokenType::FK_EOF:
+    case ankh::lang::TokenType::ankh_EOF:
         return "EOF";
-    case fk::lang::TokenType::UNKNOWN:
+    case ankh::lang::TokenType::UNKNOWN:
         return "UNKNOWN";
     default:
-        FK_FATAL("unknown token type: this should never happen");
+        ankh_FATAL("unknown token type: this should never happen");
     }
 }

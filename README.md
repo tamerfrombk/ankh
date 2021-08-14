@@ -1,16 +1,14 @@
-# fak
+# ankh
 
-`fak` is a scripting language and REPL shell with an emphasis on simplicity and readability.
-
-Don't get frustrated; `fak` it!
+`ankh` is a scripting language and REPL shell with an emphasis on simplicity and readability.
 
 ### Running
 
-`fak` will execute a shell while `fak <script>` will run the provided script.
+`ankhsh` will execute a shell while `ankhsh <script>` will run the provided script.
 
 ### Dependencies
 
-* [CMake](https://cmake.org/)
+- [CMake](https://cmake.org/)
 
 ### Building
 
@@ -23,7 +21,7 @@ cmake -DCMAKE_BUILD_TYPE=release ..
 cmake --build .
 ```
 
-This will build the `fak` binary in the `build` directory.
+This will build the `ankhsh` binary in the `build` directory.
 
 ### Installing/Uninstalling
 

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <fak/lang/expr.h>
-#include <fak/lang/statement.h>
+#include <ankh/lang/expr.h>
+#include <ankh/lang/statement.h>
 
-namespace fk::lang {
+namespace ankh::lang {
 
 // This is here instead of in lang/expr.h because we need both expression and statement constructs
 // to create a lambda

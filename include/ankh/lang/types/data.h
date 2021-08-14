@@ -4,10 +4,10 @@
 #include <string>
 #include <vector>
 
-#include <fak/lang/env.h>
-#include <fak/lang/callable.h>
+#include <ankh/lang/env.h>
+#include <ankh/lang/callable.h>
 
-namespace fk::lang {
+namespace ankh::lang {
 
 // TODO: fix all the callables to take the interpreter in the invoke() function
 // and templatize that
@@ -34,7 +34,7 @@ public:
         for (size_t i = 0; i < args.size(); ++i) {
             const ExprResult result = interpreter_->evaluate(args[i]);
             if (!env_->assign(members_[i], result)) {
-                FK_FATAL("unable to declare {} in {} data constructor", members_[i], name());
+                ankh_FATAL("unable to declare {} in {} data constructor", members_[i], name());
             }
         }
     }

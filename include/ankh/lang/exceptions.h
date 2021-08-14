@@ -5,9 +5,9 @@
 #include <fmt/core.h>
 #include <fmt/format.h>
 
-#include <fak/def.h>
+#include <ankh/def.h>
 
-namespace fk::lang {
+namespace ankh::lang {
 
 struct ScanException
     : public std::runtime_error
@@ -31,7 +31,7 @@ struct ParseException
 };
 
 template <class E, class... Args>
-FK_NO_RETURN void panic(const char *fmt, Args&&... args)
+ankh_NO_RETURN void panic(const char *fmt, Args&&... args)
 {
     const std::string str = fmt::format(fmt, std::forward<Args>(args)...);
 

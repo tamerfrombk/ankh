@@ -2,13 +2,13 @@
 
 #include <string>
 
-#include <fak/lang/types/dictionary.h>
-#include <fak/lang/types/array.h>
-#include <fak/lang/types/object.h>
+#include <ankh/lang/types/dictionary.h>
+#include <ankh/lang/types/array.h>
+#include <ankh/lang/types/object.h>
 
-#include <fak/log.h>
+#include <ankh/log.h>
 
-namespace fk::lang {
+namespace ankh::lang {
 
 using Number = double;
 
@@ -25,19 +25,19 @@ enum class ExprResultType {
     RT_NIL
 };
 
-inline std::string expr_result_type_str(fk::lang::ExprResultType type) noexcept
+inline std::string expr_result_type_str(ankh::lang::ExprResultType type) noexcept
 {
     switch (type) {
-    case fk::lang::ExprResultType::RT_STRING:    return "STRING";
-    case fk::lang::ExprResultType::RT_NUMBER:    return "NUMBER";
-    case fk::lang::ExprResultType::RT_BOOL:      return "BOOL";
-    case fk::lang::ExprResultType::RT_CALLABLE:  return "RT_CALLABLE";
-    case fk::lang::ExprResultType::RT_ARRAY:     return "RT_ARRAY";
-    case fk::lang::ExprResultType::RT_DICT:      return "RT_DICT";
-    case fk::lang::ExprResultType::RT_OBJECT:    return "RT_OBJECT";
-    case fk::lang::ExprResultType::RT_NIL:       return "NIL";
+    case ankh::lang::ExprResultType::RT_STRING:    return "STRING";
+    case ankh::lang::ExprResultType::RT_NUMBER:    return "NUMBER";
+    case ankh::lang::ExprResultType::RT_BOOL:      return "BOOL";
+    case ankh::lang::ExprResultType::RT_CALLABLE:  return "RT_CALLABLE";
+    case ankh::lang::ExprResultType::RT_ARRAY:     return "RT_ARRAY";
+    case ankh::lang::ExprResultType::RT_DICT:      return "RT_DICT";
+    case ankh::lang::ExprResultType::RT_OBJECT:    return "RT_OBJECT";
+    case ankh::lang::ExprResultType::RT_NIL:       return "NIL";
     default:                                       
-        FK_FATAL("expr_result_type_str(): unknown expression result type!");
+        ankh_FATAL("expr_result_type_str(): unknown expression result type!");
     }
 }
 
@@ -84,7 +84,7 @@ struct ExprResult {
         case ExprResultType::RT_DICT:     return lhs.dict  == rhs.dict;
         // TODO: this is a shallow comparison, is this what we want??
         case ExprResultType::RT_OBJECT:   return lhs.obj == rhs.obj; 
-        default: FK_FATAL("unknown expression result type");
+        default: ankh_FATAL("unknown expression result type");
         }
     }
 

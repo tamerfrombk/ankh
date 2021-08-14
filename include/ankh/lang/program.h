@@ -3,9 +3,9 @@
 #include <vector>
 #include <string>
 
-#include <fak/lang/statement.h>
+#include <ankh/lang/statement.h>
 
-namespace fk::lang {
+namespace ankh::lang {
 
 class Program
 {

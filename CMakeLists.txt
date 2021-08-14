@@ -1,18 +1,22 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0.0)
-PROJECT(fak VERSION 1.0.0)
+PROJECT(ankh VERSION 1.0.0)
 
 SET(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 SET(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
-# @PLATFORM: this works with Clang/GCC but will be an issue with MSVC
-SET(CMAKE_CXX_WARNING_FLAGS "-Wall -Wextra -Wpedantic")
+if (WIN32) 
+    SET(CMAKE_CXX_WARNING_FLAGS "/W3")
+else() 
+    SET(CMAKE_CXX_WARNING_FLAGS "-Wall -Wextra -Wpedantic")
+endif()
+
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_WARNING_FLAGS}")
 
-SET(APP_EXE fak)
-SET(APP_LIB fakapi)
+SET(APP_EXE ankhsh)
+SET(APP_LIB ankh)
 SET(APP_SOURCES 
-    src/fak.cc 
+    src/ankh.cc 
     src/lang/lexer.cc 
     src/lang/token.cc 
     src/lang/parser.cc

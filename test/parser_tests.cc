@@ -3,24 +3,24 @@
 #include <string>
 #include <vector>
 
-#include <fak/lang/token.h>
-#include <fak/lang/exceptions.h>
-#include <fak/lang/expr.h>
-#include <fak/lang/statement.h>
-#include <fak/lang/lambda.h>
-#include <fak/lang/parser.h>
+#include <ankh/lang/token.h>
+#include <ankh/lang/exceptions.h>
+#include <ankh/lang/expr.h>
+#include <ankh/lang/statement.h>
+#include <ankh/lang/lambda.h>
+#include <ankh/lang/parser.h>
 
 static void test_binary_expression_parse(const std::string& op) noexcept
 {
     const std::string source("1" + op + "2" + "\n");
     
-    auto program = fk::lang::parse(source);
+    auto program = ankh::lang::parse(source);
     REQUIRE(program.size() == 1);
 
-    auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+    auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
     REQUIRE(stmt != nullptr);
 
-    auto binary = fk::lang::instance<fk::lang::BinaryExpression>(stmt->expr);
+    auto binary = ankh::lang::instance<ankh::lang::BinaryExpression>(stmt->expr);
     REQUIRE(binary != nullptr);
     REQUIRE(binary->left != nullptr);
     REQUIRE(binary->right != nullptr);
@@ -31,13 +31,13 @@ static void test_boolean_binary_expression(const std::string& op) noexcept
 {
     const std::string source("true" + op + "false" + "\n");
     
-    auto program = fk::lang::parse(source);
+    auto program = ankh::lang::parse(source);
     REQUIRE(program.size() == 1);
 
-    auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+    auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
     REQUIRE(stmt != nullptr);
 
-    auto binary = fk::lang::instance<fk::lang::BinaryExpression>(stmt->expr);
+    auto binary = ankh::lang::instance<ankh::lang::BinaryExpression>(stmt->expr);
     REQUIRE(binary != nullptr);
     REQUIRE(binary->left != nullptr);
     REQUIRE(binary->right != nullptr);
@@ -47,14 +47,14 @@ static void test_unary_expression(const std::string& op) noexcept
 {
     const std::string source(op + "3" + "\n");
 
-    auto program = fk::lang::parse(source);
+    auto program = ankh::lang::parse(source);
 
     REQUIRE(program.size() == 1);
 
-    auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+    auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
     REQUIRE(stmt != nullptr);
     
-    auto unary = fk::lang::instance<fk::lang::UnaryExpression>(stmt->expr);
+    auto unary = ankh::lang::instance<ankh::lang::UnaryExpression>(stmt->expr);
     REQUIRE(unary != nullptr);
     REQUIRE(unary->right != nullptr);
     REQUIRE(unary->op.str == op);
@@ -69,14 +69,14 @@ TEST_CASE("parse language statements", "[parser]")
             1 + 2
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
 
-        auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+        auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
 
-        auto binary = fk::lang::instance<fk::lang::BinaryExpression>(stmt->expr);
+        auto binary = ankh::lang::instance<ankh::lang::BinaryExpression>(stmt->expr);
         REQUIRE(binary != nullptr);
     }
 
@@ -87,16 +87,16 @@ TEST_CASE("parse language statements", "[parser]")
             let i = 1
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
 
-        auto declaration = fk::lang::instance<fk::lang::VariableDeclaration>(program[0]);
+        auto declaration = ankh::lang::instance<ankh::lang::VariableDeclaration>(program[0]);
         REQUIRE(declaration != nullptr);
 
         REQUIRE(declaration->name.str == "i");
 
-        auto literal = fk::lang::instance<fk::lang::LiteralExpression>(declaration->initializer);
+        auto literal = ankh::lang::instance<ankh::lang::LiteralExpression>(declaration->initializer);
         REQUIRE(literal != nullptr);
 
         REQUIRE(literal->literal.str == "1");
@@ -109,16 +109,16 @@ TEST_CASE("parse language statements", "[parser]")
             export i = 1
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
 
-        auto declaration = fk::lang::instance<fk::lang::VariableDeclaration>(program[0]);
+        auto declaration = ankh::lang::instance<ankh::lang::VariableDeclaration>(program[0]);
         REQUIRE(declaration != nullptr);
 
         REQUIRE(declaration->name.str == "i");
 
-        auto literal = fk::lang::instance<fk::lang::LiteralExpression>(declaration->initializer);
+        auto literal = ankh::lang::instance<ankh::lang::LiteralExpression>(declaration->initializer);
         REQUIRE(literal != nullptr);
 
         REQUIRE(literal->literal.str == "1");
@@ -132,16 +132,16 @@ TEST_CASE("parse language statements", "[parser]")
             i = 3
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 2);
 
-        auto assignment = fk::lang::instance<fk::lang::AssignmentStatement>(program[1]);
+        auto assignment = ankh::lang::instance<ankh::lang::AssignmentStatement>(program[1]);
         REQUIRE(assignment != nullptr);
 
         REQUIRE(assignment->name.str == "i");
 
-        auto literal = fk::lang::instance<fk::lang::LiteralExpression>(assignment->initializer);
+        auto literal = ankh::lang::instance<ankh::lang::LiteralExpression>(assignment->initializer);
         REQUIRE(literal != nullptr);
 
         REQUIRE(literal->literal.str == "3");
@@ -161,17 +161,17 @@ TEST_CASE("parse language statements", "[parser]")
         for (const auto& source : sources) {
             INFO(source);
 
-            auto program = fk::lang::parse(source);
+            auto program = ankh::lang::parse(source);
             REQUIRE(!program.has_errors());
             REQUIRE(program.size() == 1);
 
-            auto assignment = fk::lang::instance<fk::lang::CompoundAssignment>(program[0]);
+            auto assignment = ankh::lang::instance<ankh::lang::CompoundAssignment>(program[0]);
             REQUIRE(assignment != nullptr);
 
             REQUIRE(assignment->target.str == "i");
             REQUIRE(assignment->op.str == ops[i++]);
 
-            auto literal = fk::lang::instance<fk::lang::LiteralExpression>(assignment->value);
+            auto literal = ankh::lang::instance<ankh::lang::LiteralExpression>(assignment->value);
             REQUIRE(literal != nullptr);
 
             REQUIRE(literal->literal.str == "3");
@@ -185,19 +185,19 @@ TEST_CASE("parse language statements", "[parser]")
             a.b.c = 3
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
 
-        auto modify = fk::lang::instance<fk::lang::ModifyStatement>(program[0]);
+        auto modify = ankh::lang::instance<ankh::lang::ModifyStatement>(program[0]);
         REQUIRE(modify != nullptr);
         REQUIRE(modify->name.str == "c");
 
-        auto access = fk::lang::instance<fk::lang::AccessExpression>(modify->object);
+        auto access = ankh::lang::instance<ankh::lang::AccessExpression>(modify->object);
         REQUIRE(access != nullptr);
         REQUIRE(access->accessor.str == "b");
 
-        auto literal = fk::lang::instance<fk::lang::LiteralExpression>(modify->value);;
+        auto literal = ankh::lang::instance<ankh::lang::LiteralExpression>(modify->value);;
         REQUIRE(literal != nullptr);
 
         REQUIRE(literal->literal.str == "3");
@@ -217,19 +217,19 @@ TEST_CASE("parse language statements", "[parser]")
         for (const auto& source : sources) {
             INFO(source);
 
-            auto program = fk::lang::parse(source);
+            auto program = ankh::lang::parse(source);
             REQUIRE(!program.has_errors());
             REQUIRE(program.size() == 1);
 
-            auto modify = fk::lang::instance<fk::lang::CompoundModify>(program[0]);
+            auto modify = ankh::lang::instance<ankh::lang::CompoundModify>(program[0]);
             REQUIRE(modify != nullptr);
 
             REQUIRE(modify->op.str == ops[i++]);
 
-            auto target = fk::lang::instance<fk::lang::IdentifierExpression>(modify->object);
+            auto target = ankh::lang::instance<ankh::lang::IdentifierExpression>(modify->object);
             REQUIRE(target != nullptr);
 
-            auto literal = fk::lang::instance<fk::lang::LiteralExpression>(modify->value);
+            auto literal = ankh::lang::instance<ankh::lang::LiteralExpression>(modify->value);
             REQUIRE(literal != nullptr);
 
             REQUIRE(literal->literal.str == "3");
@@ -243,16 +243,16 @@ TEST_CASE("parse language statements", "[parser]")
             ++i
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
         REQUIRE(!program.has_errors());
 
-        auto modify = fk::lang::instance<fk::lang::IncOrDecIdentifierStatement>(program[0]);
+        auto modify = ankh::lang::instance<ankh::lang::IncOrDecIdentifierStatement>(program[0]);
         REQUIRE(modify != nullptr);
 
         REQUIRE(modify->op.str == "++");
-        REQUIRE(fk::lang::instanceof<fk::lang::IdentifierExpression>(modify->expr));
+        REQUIRE(ankh::lang::instanceof<ankh::lang::IdentifierExpression>(modify->expr));
     }
 
     SECTION("parse increment statement, access")
@@ -262,16 +262,16 @@ TEST_CASE("parse language statements", "[parser]")
             ++i.x
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
         REQUIRE(!program.has_errors());
 
-        auto modify = fk::lang::instance<fk::lang::IncOrDecAccessStatement>(program[0]);
+        auto modify = ankh::lang::instance<ankh::lang::IncOrDecAccessStatement>(program[0]);
         REQUIRE(modify != nullptr);
 
         REQUIRE(modify->op.str == "++");
-        REQUIRE(fk::lang::instanceof<fk::lang::AccessExpression>(modify->expr));
+        REQUIRE(ankh::lang::instanceof<ankh::lang::AccessExpression>(modify->expr));
     }
 
     SECTION("parse increment statement, invalid target")
@@ -281,7 +281,7 @@ TEST_CASE("parse language statements", "[parser]")
             ++"foo"
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
         REQUIRE(program.has_errors());
     }
 
@@ -292,16 +292,16 @@ TEST_CASE("parse language statements", "[parser]")
             --i
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
         REQUIRE(!program.has_errors());
 
-        auto modify = fk::lang::instance<fk::lang::IncOrDecIdentifierStatement>(program[0]);
+        auto modify = ankh::lang::instance<ankh::lang::IncOrDecIdentifierStatement>(program[0]);
         REQUIRE(modify != nullptr);
 
         REQUIRE(modify->op.str == "--");
-        REQUIRE(fk::lang::instanceof<fk::lang::IdentifierExpression>(modify->expr));
+        REQUIRE(ankh::lang::instanceof<ankh::lang::IdentifierExpression>(modify->expr));
     }
 
     SECTION("parse decrement statement, access")
@@ -311,16 +311,16 @@ TEST_CASE("parse language statements", "[parser]")
             --i.x
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
         REQUIRE(!program.has_errors());
 
-        auto modify = fk::lang::instance<fk::lang::IncOrDecAccessStatement>(program[0]);
+        auto modify = ankh::lang::instance<ankh::lang::IncOrDecAccessStatement>(program[0]);
         REQUIRE(modify != nullptr);
 
         REQUIRE(modify->op.str == "--");
-        REQUIRE(fk::lang::instanceof<fk::lang::AccessExpression>(modify->expr));
+        REQUIRE(ankh::lang::instanceof<ankh::lang::AccessExpression>(modify->expr));
     }
 
     SECTION("parse decrement statement, invalid target")
@@ -330,7 +330,7 @@ TEST_CASE("parse language statements", "[parser]")
             --"foo"
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
         REQUIRE(program.has_errors());
     }
 
@@ -341,16 +341,16 @@ TEST_CASE("parse language statements", "[parser]")
             print "hello"
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
 
-        auto print = fk::lang::instance<fk::lang::PrintStatement>(program[0]);
+        auto print = ankh::lang::instance<ankh::lang::PrintStatement>(program[0]);
         REQUIRE(print != nullptr);
 
-        auto literal = fk::lang::instance<fk::lang::StringExpression>(print->expr);
+        auto literal = ankh::lang::instance<ankh::lang::StringExpression>(print->expr);
         REQUIRE(literal != nullptr);
-        REQUIRE(literal->str.type == fk::lang::TokenType::STRING);
+        REQUIRE(literal->str.type == ankh::lang::TokenType::STRING);
     }
 
     SECTION("parse block statement")
@@ -363,11 +363,11 @@ TEST_CASE("parse language statements", "[parser]")
             }
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
 
-        auto block = fk::lang::instance<fk::lang::BlockStatement>(program[0]);
+        auto block = ankh::lang::instance<ankh::lang::BlockStatement>(program[0]);
         REQUIRE(block != nullptr);
 
         REQUIRE(block->statements.size() == 2);
@@ -382,14 +382,14 @@ TEST_CASE("parse language statements", "[parser]")
             }
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
 
-        auto if_stmt = fk::lang::instance<fk::lang::IfStatement>(program[0]);
+        auto if_stmt = ankh::lang::instance<ankh::lang::IfStatement>(program[0]);
         REQUIRE(if_stmt != nullptr);
 
-        auto then_block = fk::lang::instance<fk::lang::BlockStatement>(if_stmt->then_block);
+        auto then_block = ankh::lang::instance<ankh::lang::BlockStatement>(if_stmt->then_block);
         REQUIRE(then_block != nullptr);
         REQUIRE(if_stmt->else_block == nullptr);
     }
@@ -405,17 +405,17 @@ TEST_CASE("parse language statements", "[parser]")
             }
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
 
-        auto if_stmt = fk::lang::instance<fk::lang::IfStatement>(program[0]);
+        auto if_stmt = ankh::lang::instance<ankh::lang::IfStatement>(program[0]);
         REQUIRE(if_stmt != nullptr);
 
-        auto then_block = fk::lang::instance<fk::lang::BlockStatement>(if_stmt->then_block);
+        auto then_block = ankh::lang::instance<ankh::lang::BlockStatement>(if_stmt->then_block);
         REQUIRE(then_block != nullptr);
 
-        auto else_block = fk::lang::instance<fk::lang::BlockStatement>(if_stmt->else_block);
+        auto else_block = ankh::lang::instance<ankh::lang::BlockStatement>(if_stmt->else_block);
         REQUIRE(else_block != nullptr);
     }
 
@@ -430,17 +430,17 @@ TEST_CASE("parse language statements", "[parser]")
             }
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
 
-        auto if_stmt = fk::lang::instance<fk::lang::IfStatement>(program[0]);
+        auto if_stmt = ankh::lang::instance<ankh::lang::IfStatement>(program[0]);
         REQUIRE(if_stmt != nullptr);
 
-        auto then_block = fk::lang::instance<fk::lang::BlockStatement>(if_stmt->then_block);
+        auto then_block = ankh::lang::instance<ankh::lang::BlockStatement>(if_stmt->then_block);
         REQUIRE(then_block != nullptr);
 
-        auto else_block = fk::lang::instance<fk::lang::IfStatement>(if_stmt->else_block);
+        auto else_block = ankh::lang::instance<ankh::lang::IfStatement>(if_stmt->else_block);
         REQUIRE(else_block != nullptr);
     }
 
@@ -454,14 +454,14 @@ TEST_CASE("parse language statements", "[parser]")
             }
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 2);
 
-        auto while_stmt = fk::lang::instance<fk::lang::WhileStatement>(program[1]);
+        auto while_stmt = ankh::lang::instance<ankh::lang::WhileStatement>(program[1]);
         REQUIRE(while_stmt != nullptr);
 
-        auto body = fk::lang::instance<fk::lang::BlockStatement>(while_stmt->body);
+        auto body = ankh::lang::instance<ankh::lang::BlockStatement>(while_stmt->body);
         REQUIRE(body != nullptr);
 
         REQUIRE(while_stmt->condition != nullptr);
@@ -476,21 +476,21 @@ TEST_CASE("parse language statements", "[parser]")
             }
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
 
-        auto block = fk::lang::instance<fk::lang::BlockStatement>(program[0]);
+        auto block = ankh::lang::instance<ankh::lang::BlockStatement>(program[0]);
         REQUIRE(block != nullptr);
         REQUIRE(block->statements.size() == 2);
 
-        auto init = fk::lang::instance<fk::lang::VariableDeclaration>(block->statements[0]);
+        auto init = ankh::lang::instance<ankh::lang::VariableDeclaration>(block->statements[0]);
         REQUIRE(init != nullptr);
 
-        auto while_stmt = fk::lang::instance<fk::lang::WhileStatement>(block->statements[1]);
+        auto while_stmt = ankh::lang::instance<ankh::lang::WhileStatement>(block->statements[1]);
         REQUIRE(while_stmt != nullptr);
 
-        auto while_block = fk::lang::instance<fk::lang::BlockStatement>(while_stmt->body);
+        auto while_block = ankh::lang::instance<ankh::lang::BlockStatement>(while_stmt->body);
         REQUIRE(while_block != nullptr);
         REQUIRE(while_block->statements.size() == 2);
     }
@@ -504,21 +504,21 @@ TEST_CASE("parse language statements", "[parser]")
             }
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
 
-        auto fn = fk::lang::instance<fk::lang::FunctionDeclaration>(program[0]);
+        auto fn = ankh::lang::instance<ankh::lang::FunctionDeclaration>(program[0]);
         REQUIRE(fn != nullptr);
         REQUIRE(fn->body != nullptr);
         REQUIRE(!fn->name.str.empty());
         REQUIRE(fn->params.size() == 3);
 
-        auto body = fk::lang::instance<fk::lang::BlockStatement>(fn->body);
+        auto body = ankh::lang::instance<ankh::lang::BlockStatement>(fn->body);
         REQUIRE(body != nullptr);
         REQUIRE(body->statements.size() == 1);
 
-        auto return_stmt = fk::lang::instance<fk::lang::ReturnStatement>(body->statements[0]);
+        auto return_stmt = ankh::lang::instance<ankh::lang::ReturnStatement>(body->statements[0]);
         REQUIRE(return_stmt != nullptr);
         REQUIRE(return_stmt->expr != nullptr);
     }
@@ -532,21 +532,21 @@ TEST_CASE("parse language statements", "[parser]")
                 }
             )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
 
-        auto fn = fk::lang::instance<fk::lang::FunctionDeclaration>(program[0]);
+        auto fn = ankh::lang::instance<ankh::lang::FunctionDeclaration>(program[0]);
 
-        auto body = fk::lang::instance<fk::lang::BlockStatement>(fn->body);
+        auto body = ankh::lang::instance<ankh::lang::BlockStatement>(fn->body);
         REQUIRE(body->statements.size() == 2);
 
-        REQUIRE(fk::lang::instanceof<fk::lang::PrintStatement>(body->statements[0]));
+        REQUIRE(ankh::lang::instanceof<ankh::lang::PrintStatement>(body->statements[0]));
 
-        auto return_stmt = fk::lang::instance<fk::lang::ReturnStatement>(body->statements[1]);
+        auto return_stmt = ankh::lang::instance<ankh::lang::ReturnStatement>(body->statements[1]);
         REQUIRE(return_stmt != nullptr);
         
-        auto nil = fk::lang::instance<fk::lang::LiteralExpression>(return_stmt->expr);
+        auto nil = ankh::lang::instance<ankh::lang::LiteralExpression>(return_stmt->expr);
         REQUIRE(nil != nullptr);
         REQUIRE(nil->literal.str == "nil");
     }
@@ -563,21 +563,21 @@ TEST_CASE("parse language statements", "[parser]")
                 }
             )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
 
-        auto fn = fk::lang::instance<fk::lang::FunctionDeclaration>(program[0]);
+        auto fn = ankh::lang::instance<ankh::lang::FunctionDeclaration>(program[0]);
 
-        auto body = fk::lang::instance<fk::lang::BlockStatement>(fn->body);
+        auto body = ankh::lang::instance<ankh::lang::BlockStatement>(fn->body);
         REQUIRE(body->statements.size() == 2);
 
-        REQUIRE(fk::lang::instanceof<fk::lang::VariableDeclaration>(body->statements[0]));
+        REQUIRE(ankh::lang::instanceof<ankh::lang::VariableDeclaration>(body->statements[0]));
 
-        auto block = fk::lang::instance<fk::lang::BlockStatement>(body->statements[1]);
+        auto block = ankh::lang::instance<ankh::lang::BlockStatement>(body->statements[1]);
         REQUIRE(block != nullptr);
         REQUIRE(block->statements.size() == 1);
-        REQUIRE(fk::lang::instanceof<fk::lang::ReturnStatement>(block->statements[0]));
+        REQUIRE(ankh::lang::instanceof<ankh::lang::ReturnStatement>(block->statements[0]));
     }
 
     SECTION("data declaration")
@@ -587,12 +587,12 @@ TEST_CASE("parse language statements", "[parser]")
             data Point { x y }
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(!program.has_errors());
         REQUIRE(program.size() == 1);
 
-        auto data = fk::lang::instance<fk::lang::DataDeclaration>(program[0]);
+        auto data = ankh::lang::instance<ankh::lang::DataDeclaration>(program[0]);
         REQUIRE(data != nullptr);
         REQUIRE(data->name.str == "Point");
         REQUIRE(data->members.size() == 2);
@@ -607,7 +607,7 @@ TEST_CASE("parse language statements", "[parser]")
             data Point { }
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
         REQUIRE(program.has_errors());
     }
 
@@ -618,7 +618,7 @@ TEST_CASE("parse language statements", "[parser]")
             data Point { x
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
         REQUIRE(program.has_errors());
     }
 }
@@ -635,15 +635,15 @@ TEST_CASE("parse language expressions", "[parser]")
             nil
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 4);
 
         const auto& statements = program.statements();
         for (const auto& stmt : statements) {
-            auto literal = fk::lang::instance<fk::lang::ExpressionStatement>(stmt);
+            auto literal = ankh::lang::instance<ankh::lang::ExpressionStatement>(stmt);
             REQUIRE(literal != nullptr);
-            REQUIRE(fk::lang::instanceof<fk::lang::LiteralExpression>(literal->expr));
+            REQUIRE(ankh::lang::instanceof<ankh::lang::LiteralExpression>(literal->expr));
         }
     }
 
@@ -654,14 +654,14 @@ TEST_CASE("parse language expressions", "[parser]")
             ( "an expression" )
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
 
-        auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+        auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
 
-        REQUIRE(fk::lang::instanceof<fk::lang::ParenExpression>(stmt->expr));
+        REQUIRE(ankh::lang::instanceof<ankh::lang::ParenExpression>(stmt->expr));
     }
 
     SECTION("parse identifier")
@@ -671,14 +671,14 @@ TEST_CASE("parse language expressions", "[parser]")
             a
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
 
-        auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+        auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
 
-        REQUIRE(fk::lang::instanceof<fk::lang::IdentifierExpression>(stmt->expr));
+        REQUIRE(ankh::lang::instanceof<ankh::lang::IdentifierExpression>(stmt->expr));
     }
 
     SECTION("parse function call, no args")
@@ -688,21 +688,21 @@ TEST_CASE("parse language expressions", "[parser]")
             a()
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
         for (auto e : program.errors()) {
             INFO(e);
         }
 
         REQUIRE(program.size() == 1);
 
-        auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+        auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
         
-        auto call = fk::lang::instance<fk::lang::CallExpression>(stmt->expr);
+        auto call = ankh::lang::instance<ankh::lang::CallExpression>(stmt->expr);
         REQUIRE(call != nullptr);
         REQUIRE(call->args.size() == 0);
 
-        auto identifier = fk::lang::instance<fk::lang::IdentifierExpression>(call->callee);
+        auto identifier = ankh::lang::instance<ankh::lang::IdentifierExpression>(call->callee);
         REQUIRE(identifier != nullptr);
         REQUIRE(identifier->name.str == "a");
     }
@@ -714,18 +714,18 @@ TEST_CASE("parse language expressions", "[parser]")
             a(1, 2)
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
 
-        auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+        auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
         
-        auto call = fk::lang::instance<fk::lang::CallExpression>(stmt->expr);
+        auto call = ankh::lang::instance<ankh::lang::CallExpression>(stmt->expr);
         REQUIRE(call != nullptr);
         REQUIRE(call->args.size() == 2);
 
-        auto identifier = fk::lang::instance<fk::lang::IdentifierExpression>(call->callee);
+        auto identifier = ankh::lang::instance<ankh::lang::IdentifierExpression>(call->callee);
         REQUIRE(identifier != nullptr);
         REQUIRE(identifier->name.str == "a");
     }
@@ -737,22 +737,22 @@ TEST_CASE("parse language expressions", "[parser]")
             a(1, 2)()
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
 
-        auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+        auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
         
-        auto inner_call = fk::lang::instance<fk::lang::CallExpression>(stmt->expr);
+        auto inner_call = ankh::lang::instance<ankh::lang::CallExpression>(stmt->expr);
         REQUIRE(inner_call != nullptr);
         REQUIRE(inner_call->args.size() == 0);
 
-        auto callee = fk::lang::instance<fk::lang::CallExpression>(inner_call->callee);
+        auto callee = ankh::lang::instance<ankh::lang::CallExpression>(inner_call->callee);
         REQUIRE(callee != nullptr);
         REQUIRE(callee->args.size() == 2);
 
-        auto callee_name = fk::lang::instance<fk::lang::IdentifierExpression>(callee->callee);
+        auto callee_name = ankh::lang::instance<ankh::lang::IdentifierExpression>(callee->callee);
         REQUIRE(callee_name != nullptr);
         REQUIRE(callee_name->name.str == "a");
     }
@@ -766,14 +766,14 @@ TEST_CASE("parse language expressions", "[parser]")
             }
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
 
-        auto stmt = fk::lang::instance<fk::lang::VariableDeclaration>(program[0]);
+        auto stmt = ankh::lang::instance<ankh::lang::VariableDeclaration>(program[0]);
         REQUIRE(stmt != nullptr);
         
-        auto lambda = fk::lang::instance<fk::lang::LambdaExpression>(stmt->initializer);
+        auto lambda = ankh::lang::instance<ankh::lang::LambdaExpression>(stmt->initializer);
         REQUIRE(lambda != nullptr);
         REQUIRE(lambda->params.size() == 2);
         REQUIRE(lambda->body != nullptr);
@@ -825,17 +825,17 @@ TEST_CASE("parse language expressions", "[parser]")
             $(echo hello)
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
 
-        auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+        auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
         
-        auto cmd = fk::lang::instance<fk::lang::CommandExpression>(stmt->expr);
+        auto cmd = ankh::lang::instance<ankh::lang::CommandExpression>(stmt->expr);
         REQUIRE(cmd != nullptr);
         REQUIRE(cmd->cmd.str == "echo hello");
-        REQUIRE(cmd->cmd.type == fk::lang::TokenType::COMMAND);
+        REQUIRE(cmd->cmd.type == ankh::lang::TokenType::COMMAND);
     }
 
     SECTION("parse empty command")
@@ -845,7 +845,7 @@ TEST_CASE("parse language expressions", "[parser]")
             $()
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.has_errors());
     }
@@ -857,13 +857,13 @@ TEST_CASE("parse language expressions", "[parser]")
             [1, 2]
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
         REQUIRE(program.size() == 1);
 
-        auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+        auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
 
-        auto arr = fk::lang::instance<fk::lang::ArrayExpression>(stmt->expr);
+        auto arr = ankh::lang::instance<ankh::lang::ArrayExpression>(stmt->expr);
         REQUIRE(arr != nullptr);
         REQUIRE(arr->elems.size() == 2);
     }
@@ -875,13 +875,13 @@ TEST_CASE("parse language expressions", "[parser]")
             []
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
         REQUIRE(program.size() == 1);
         
-        auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+        auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
 
-        auto arr = fk::lang::instance<fk::lang::ArrayExpression>(stmt->expr);
+        auto arr = ankh::lang::instance<ankh::lang::ArrayExpression>(stmt->expr);
         REQUIRE(arr != nullptr);
         REQUIRE(arr->elems.size() == 0);
     }
@@ -893,14 +893,14 @@ TEST_CASE("parse language expressions", "[parser]")
             foo()[0]
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
 
-        auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+        auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
         
-        auto idx = fk::lang::instance<fk::lang::IndexExpression>(stmt->expr);
+        auto idx = ankh::lang::instance<ankh::lang::IndexExpression>(stmt->expr);
         REQUIRE(idx != nullptr);
     }
 
@@ -911,14 +911,14 @@ TEST_CASE("parse language expressions", "[parser]")
             foo[0]()
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.size() == 1);
 
-        auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+        auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
         
-        auto idx = fk::lang::instance<fk::lang::CallExpression>(stmt->expr);
+        auto idx = ankh::lang::instance<ankh::lang::CallExpression>(stmt->expr);
         REQUIRE(idx != nullptr);
     }
 
@@ -929,7 +929,7 @@ TEST_CASE("parse language expressions", "[parser]")
             foo[]
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.has_errors());
     }
@@ -943,22 +943,22 @@ TEST_CASE("parse language expressions", "[parser]")
             }
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(!program.has_errors());
         REQUIRE(program.size() == 1);
 
-        auto decl = fk::lang::instance<fk::lang::VariableDeclaration>(program[0]);
+        auto decl = ankh::lang::instance<ankh::lang::VariableDeclaration>(program[0]);
         REQUIRE(decl != nullptr);
         
-        auto dict = fk::lang::instance<fk::lang::DictionaryExpression>(decl->initializer);
+        auto dict = ankh::lang::instance<ankh::lang::DictionaryExpression>(decl->initializer);
         REQUIRE(dict != nullptr);
         REQUIRE(dict->entries.size() == 1);
         
-        auto key = fk::lang::instance<fk::lang::StringExpression>(dict->entries[0].key);
+        auto key = ankh::lang::instance<ankh::lang::StringExpression>(dict->entries[0].key);
         REQUIRE(key != nullptr);
 
-        auto value = fk::lang::instance<fk::lang::StringExpression>(dict->entries[0].value);
+        auto value = ankh::lang::instance<ankh::lang::StringExpression>(dict->entries[0].value);
         REQUIRE(value != nullptr);
     }
 
@@ -969,15 +969,15 @@ TEST_CASE("parse language expressions", "[parser]")
             let dict = {}
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(!program.has_errors());
         REQUIRE(program.size() == 1);
 
-        auto decl = fk::lang::instance<fk::lang::VariableDeclaration>(program[0]);
+        auto decl = ankh::lang::instance<ankh::lang::VariableDeclaration>(program[0]);
         REQUIRE(decl != nullptr);
         
-        auto dict = fk::lang::instance<fk::lang::DictionaryExpression>(decl->initializer);
+        auto dict = ankh::lang::instance<ankh::lang::DictionaryExpression>(decl->initializer);
         REQUIRE(dict != nullptr);
         REQUIRE(dict->entries.empty());
     }
@@ -992,23 +992,23 @@ TEST_CASE("parse language expressions", "[parser]")
             }
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(!program.has_errors());
         REQUIRE(program.size() == 1);
 
-        auto decl = fk::lang::instance<fk::lang::VariableDeclaration>(program[0]);
+        auto decl = ankh::lang::instance<ankh::lang::VariableDeclaration>(program[0]);
         REQUIRE(decl != nullptr);
         
-        auto dict = fk::lang::instance<fk::lang::DictionaryExpression>(decl->initializer);
+        auto dict = ankh::lang::instance<ankh::lang::DictionaryExpression>(decl->initializer);
         REQUIRE(dict != nullptr);
         REQUIRE(dict->entries.size() == 2);
         
         for (const auto& e : dict->entries) {
-            auto key = fk::lang::instance<fk::lang::StringExpression>(e.key);
+            auto key = ankh::lang::instance<ankh::lang::StringExpression>(e.key);
             REQUIRE(key != nullptr);
 
-            auto value = fk::lang::instance<fk::lang::StringExpression>(e.value);
+            auto value = ankh::lang::instance<ankh::lang::StringExpression>(e.value);
             REQUIRE(value != nullptr);
         }
     }
@@ -1022,22 +1022,22 @@ TEST_CASE("parse language expressions", "[parser]")
             }
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(!program.has_errors());
         REQUIRE(program.size() == 1);
 
-        auto decl = fk::lang::instance<fk::lang::VariableDeclaration>(program[0]);
+        auto decl = ankh::lang::instance<ankh::lang::VariableDeclaration>(program[0]);
         REQUIRE(decl != nullptr);
         
-        auto dict = fk::lang::instance<fk::lang::DictionaryExpression>(decl->initializer);
+        auto dict = ankh::lang::instance<ankh::lang::DictionaryExpression>(decl->initializer);
         REQUIRE(dict != nullptr);
         REQUIRE(dict->entries.size() == 1);
 
-        auto key = fk::lang::instance<fk::lang::BinaryExpression>(dict->entries[0].key);
+        auto key = ankh::lang::instance<ankh::lang::BinaryExpression>(dict->entries[0].key);
         REQUIRE(key != nullptr);
 
-        auto value = fk::lang::instance<fk::lang::LiteralExpression>(dict->entries[0].value);
+        auto value = ankh::lang::instance<ankh::lang::LiteralExpression>(dict->entries[0].value);
         REQUIRE(value != nullptr);
     }
 
@@ -1052,15 +1052,15 @@ TEST_CASE("parse language expressions", "[parser]")
             }
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(!program.has_errors());
         REQUIRE(program.size() == 1);
 
-        auto decl = fk::lang::instance<fk::lang::VariableDeclaration>(program[0]);
+        auto decl = ankh::lang::instance<ankh::lang::VariableDeclaration>(program[0]);
         REQUIRE(decl != nullptr);
         
-        auto dict = fk::lang::instance<fk::lang::DictionaryExpression>(decl->initializer);
+        auto dict = ankh::lang::instance<ankh::lang::DictionaryExpression>(decl->initializer);
         REQUIRE(dict != nullptr);
         REQUIRE(dict->entries.size() == 3);
     }
@@ -1076,7 +1076,7 @@ TEST_CASE("parse language expressions", "[parser]")
             }
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(program.has_errors());
     }
@@ -1094,22 +1094,22 @@ TEST_CASE("parse language expressions", "[parser]")
             dict["f"]
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(!program.has_errors());
         REQUIRE(program.size() == 2);
 
-        auto decl = fk::lang::instance<fk::lang::VariableDeclaration>(program[0]);
+        auto decl = ankh::lang::instance<ankh::lang::VariableDeclaration>(program[0]);
         REQUIRE(decl != nullptr);
         
-        auto dict = fk::lang::instance<fk::lang::DictionaryExpression>(decl->initializer);
+        auto dict = ankh::lang::instance<ankh::lang::DictionaryExpression>(decl->initializer);
         REQUIRE(dict != nullptr);
         REQUIRE(dict->entries.size() == 3);
 
-        auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[1]);
+        auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[1]);
         REQUIRE(stmt != nullptr);
 
-        auto lookup = fk::lang::instance<fk::lang::IndexExpression>(stmt->expr);
+        auto lookup = ankh::lang::instance<ankh::lang::IndexExpression>(stmt->expr);
         REQUIRE(lookup != nullptr);
     }
 
@@ -1120,15 +1120,15 @@ TEST_CASE("parse language expressions", "[parser]")
             a.b
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(!program.has_errors());
         REQUIRE(program.size() == 1);
 
-        auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+        auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
         
-        auto access = fk::lang::instance<fk::lang::AccessExpression>(stmt->expr);
+        auto access = ankh::lang::instance<ankh::lang::AccessExpression>(stmt->expr);
         REQUIRE(access != nullptr);
         REQUIRE(access->accessor.str == "b");
     }
@@ -1140,19 +1140,19 @@ TEST_CASE("parse language expressions", "[parser]")
             a.b()
         )";
 
-        auto program = fk::lang::parse(source);
+        auto program = ankh::lang::parse(source);
 
         REQUIRE(!program.has_errors());
         REQUIRE(program.size() == 1);
 
-        auto stmt = fk::lang::instance<fk::lang::ExpressionStatement>(program[0]);
+        auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
         
-        auto call = fk::lang::instance<fk::lang::CallExpression>(stmt->expr);
+        auto call = ankh::lang::instance<ankh::lang::CallExpression>(stmt->expr);
         REQUIRE(call != nullptr);
         REQUIRE(call->args.size() == 0);
 
-        auto access = fk::lang::instance<fk::lang::AccessExpression>(call->callee);
+        auto access = ankh::lang::instance<ankh::lang::AccessExpression>(call->callee);
         REQUIRE(access != nullptr);
         REQUIRE(access->accessor.str == "b");
     }
@@ -1160,7 +1160,7 @@ TEST_CASE("parse language expressions", "[parser]")
 
 TEST_CASE("test parse statement without a empty line at the end does not infinite loop", "[parser]")
 {
-    auto program = fk::lang::parse("1 + 2");
+    auto program = ankh::lang::parse("1 + 2");
 
     REQUIRE(program.size() == 1);
 }
@@ -1173,12 +1173,12 @@ TEST_CASE("parse two arrays as two separate statements rather than an index oper
         [0]
     )";
 
-    auto program = fk::lang::parse(source);
+    auto program = ankh::lang::parse(source);
     REQUIRE(program.size() == 2);
 
     for (auto& stmt : program.statements()) {
-        auto ptr = fk::lang::instance<fk::lang::ExpressionStatement>(stmt);
+        auto ptr = ankh::lang::instance<ankh::lang::ExpressionStatement>(stmt);
         REQUIRE(ptr != nullptr);
-        REQUIRE(fk::lang::instanceof<fk::lang::ArrayExpression>(ptr->expr));   
+        REQUIRE(ankh::lang::instanceof<ankh::lang::ArrayExpression>(ptr->expr));   
     }
 }

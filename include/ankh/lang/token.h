@@ -5,7 +5,7 @@
 
 #include <fmt/core.h>
 
-namespace fk::lang {
+namespace ankh::lang {
 
 enum class TokenType {
     IDENTIFIER,
@@ -31,9 +31,9 @@ enum class TokenType {
     RBRACE,            // }
     LBRACKET,          // [
     RBRACKET,          // ]
-    // FK prefix is added to avoid clashing with the TRUE/FALSE macros defined in libc
-    FK_TRUE,           // "true"
-    FK_FALSE,          // "false"
+    // ankh prefix is added to avoid clashing with the TRUE/FALSE macros defined in libc
+    ankh_TRUE,           // "true"
+    ankh_FALSE,          // "false"
     NIL,               // "nil"
     PRINT,             // "print"
     IF,                // "if"
@@ -47,8 +47,8 @@ enum class TokenType {
     EXPORT,            // "export"
     COMMA,             // ,
     FN,                // "fn"
-    // prepended FK because RETURN is a macro defined in some library
-    FK_RETURN,         // "return"
+    // prepended ankh because RETURN is a macro defined in some library
+    ankh_RETURN,         // "return"
     DATA,              // "data"
     INC,               // ++
     DEC,               // --
@@ -57,7 +57,7 @@ enum class TokenType {
     NUMBER,
     STRING,
     COMMAND,
-    FK_EOF,
+    ankh_EOF,
     UNKNOWN
 };
 
@@ -95,7 +95,7 @@ inline std::ostream& operator<<(std::ostream& os, const Token& t) noexcept
 }
 
 template<>
-struct fmt::formatter<fk::lang::Token>
+struct fmt::formatter<ankh::lang::Token>
 {
     template <typename ParseContext>
     constexpr auto parse(ParseContext& ctx)
@@ -104,7 +104,7 @@ struct fmt::formatter<fk::lang::Token>
     }
 
     template <typename FormatContext>
-    auto format(const fk::lang::Token& token, FormatContext& ctx)
+    auto format(const ankh::lang::Token& token, FormatContext& ctx)
     {
         return fmt::format_to(ctx.out(), "({}, {}, {}, {})", 
             token_type_str(token.type), token.str, token.line, token.col);

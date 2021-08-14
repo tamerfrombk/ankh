@@ -4,10 +4,10 @@
 #include <utility>
 #include <vector>
 
-#include <fak/lang/expr.h>
-#include <fak/lang/token.h>
+#include <ankh/lang/expr.h>
+#include <ankh/lang/token.h>
 
-namespace fk::lang {
+namespace ankh::lang {
 
 // forward declare statement types for visitor
 struct PrintStatement;
@@ -250,7 +250,7 @@ struct VariableDeclaration
         switch (storage_class) {
         case StorageClass::LOCAL:  result = "let";     break;
         case StorageClass::EXPORT: result = "export";  break;
-        default:                   FK_FATAL("unknown storage_class");
+        default:                   ankh_FATAL("unknown storage_class");
         }
 
         return result + " " + name.str + " = " + initializer->stringify();

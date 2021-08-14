@@ -5,10 +5,10 @@
 #include <string>
 #include <vector>
 
-#include <fak/lang/token.h>
-#include <fak/lang/expr_result.h>
+#include <ankh/lang/token.h>
+#include <ankh/lang/expr_result.h>
 
-namespace fk::lang {
+namespace ankh::lang {
 
 // forward declare our expression types for the visitor
 struct BinaryExpression;
@@ -252,7 +252,7 @@ struct CallExpression
 
     virtual std::string stringify() const noexcept override
     {
-        return callee->stringify() + "(" + fk::lang::stringify(args) + ")";
+        return callee->stringify() + "(" + ankh::lang::stringify(args) + ")";
     }
 };
 
@@ -312,7 +312,7 @@ struct ArrayExpression
 
     virtual std::string stringify() const noexcept override
     {
-        return "[" + fk::lang::stringify(elems) + "]";
+        return "[" + ankh::lang::stringify(elems) + "]";
     }
 };
 

@@ -2,13 +2,13 @@
 #include <initializer_list>
 #include <random>
 
-#include <fak/lang/parser.h>
-#include <fak/lang/lexer.h>
-#include <fak/lang/token.h>
-#include <fak/lang/exceptions.h>
-#include <fak/lang/lambda.h>
+#include <ankh/lang/parser.h>
+#include <ankh/lang/lexer.h>
+#include <ankh/lang/token.h>
+#include <ankh/lang/exceptions.h>
+#include <ankh/lang/lambda.h>
 
-#include <fak/log.h>
+#include <ankh/log.h>
 
 // desugar for loop into while loop
 // basically, this turns something like:
@@ -25,29 +25,29 @@
 //      i = i + 1
 //      }
 // }
-static fk::lang::StatementPtr desugar_for_into_while(
-    fk::lang::StatementPtr init
-    , fk::lang::ExpressionPtr condition
-    , fk::lang::StatementPtr mutator
-    , fk::lang::StatementPtr body
+static ankh::lang::StatementPtr desugar_for_into_while(
+    ankh::lang::StatementPtr init
+    , ankh::lang::ExpressionPtr condition
+    , ankh::lang::StatementPtr mutator
+    , ankh::lang::StatementPtr body
 ) noexcept
 {
-    std::vector<fk::lang::StatementPtr> while_body_statements;
+    std::vector<ankh::lang::StatementPtr> while_body_statements;
     while_body_statements.push_back(std::move(body));
     if (mutator != nullptr) {
         while_body_statements.push_back(std::move(mutator));
     }
 
-    auto while_body = fk::lang::make_statement<fk::lang::BlockStatement>(std::move(while_body_statements));
-    auto while_stmt = fk::lang::make_statement<fk::lang::WhileStatement>(std::move(condition), std::move(while_body)); 
+    auto while_body = ankh::lang::make_statement<ankh::lang::BlockStatement>(std::move(while_body_statements));
+    auto while_stmt = ankh::lang::make_statement<ankh::lang::WhileStatement>(std::move(condition), std::move(while_body)); 
 
-    std::vector<fk::lang::StatementPtr> statements;
+    std::vector<ankh::lang::StatementPtr> statements;
     if (init != nullptr) {
         statements.push_back(std::move(init));
     }
     statements.push_back(std::move(while_stmt));
     
-    return fk::lang::make_statement<fk::lang::BlockStatement>(std::move(statements));
+    return ankh::lang::make_statement<ankh::lang::BlockStatement>(std::move(statements));
 }
 
 static char generate_random_alpha_char() noexcept
@@ -69,14 +69,14 @@ static std::string generate_lambda_name() noexcept
     return name;
 }
 
-static bool block_has_return_statement(const fk::lang::BlockStatement *stmt)
+static bool block_has_return_statement(const ankh::lang::BlockStatement *stmt)
 {
     for (const auto& st : stmt->statements) {
-        if (auto block = fk::lang::instance<fk::lang::BlockStatement>(st); block != nullptr) {
+        if (auto block = ankh::lang::instance<ankh::lang::BlockStatement>(st); block != nullptr) {
             return block_has_return_statement(block);
         }
 
-        if (fk::lang::instanceof<fk::lang::ReturnStatement>(st)) {
+        if (ankh::lang::instanceof<ankh::lang::ReturnStatement>(st)) {
             return true;
         }
     }
@@ -84,29 +84,29 @@ static bool block_has_return_statement(const fk::lang::BlockStatement *stmt)
     return false;
 }
 
-fk::lang::Program fk::lang::parse(const std::string& source)
+ankh::lang::Program ankh::lang::parse(const std::string& source)
 {
-    const std::vector<fk::lang::Token> tokens = fk::lang::scan(source);
+    const std::vector<ankh::lang::Token> tokens = ankh::lang::scan(source);
 
-    fk::lang::Parser parser(tokens);
+    ankh::lang::Parser parser(tokens);
 
     return parser.parse();
 }
 
-fk::lang::Parser::Parser(const std::vector<Token>& tokens)
+ankh::lang::Parser::Parser(const std::vector<Token>& tokens)
     : tokens_(tokens) 
     , cursor_(0)
 {}
 
-fk::lang::Program fk::lang::Parser::parse() noexcept
+ankh::lang::Program ankh::lang::Parser::parse() noexcept
 {
     // PERFORMANCE: see if we can reserve some room up front
     Program program;
     while (!is_eof()) {
         try {
             program.add_statement(declaration());    
-        } catch (const fk::lang::ParseException& e) {
-            FK_DEBUG("parse exception: {}", e.what());
+        } catch (const ankh::lang::ParseException& e) {
+            ankh_DEBUG("parse exception: {}", e.what());
             program.add_error(e.what());
             synchronize_next_statement();
         }
@@ -115,16 +115,16 @@ fk::lang::Program fk::lang::Parser::parse() noexcept
     return program;
 }
 
-fk::lang::StatementPtr fk::lang::Parser::declaration()
+ankh::lang::StatementPtr ankh::lang::Parser::declaration()
 {
-    if (match(fk::lang::TokenType::FN)) {
+    if (match(ankh::lang::TokenType::FN)) {
         return parse_function_declaration();
     }
 
     return statement();
 }
 
-fk::lang::StatementPtr fk::lang::Parser::parse_variable_declaration()
+ankh::lang::StatementPtr ankh::lang::Parser::parse_variable_declaration()
 {
     StorageClass storage_class;
     if (match(TokenType::LET)) {
@@ -152,7 +152,7 @@ fk::lang::StatementPtr fk::lang::Parser::parse_variable_declaration()
     return make_statement<VariableDeclaration>(identifier->name, std::move(rhs), storage_class);  
 } 
 
-fk::lang::StatementPtr fk::lang::Parser::parse_function_declaration()
+ankh::lang::StatementPtr ankh::lang::Parser::parse_function_declaration()
 {
     const Token name = consume(TokenType::IDENTIFIER, "<identifier> expected as function name");
 
@@ -172,7 +172,7 @@ fk::lang::StatementPtr fk::lang::Parser::parse_function_declaration()
     
     // check to see we have a return statement inside the block
     if (BlockStatement* block = static_cast<BlockStatement*>(body.get()); !block_has_return_statement(block)) {
-        FK_DEBUG("function '{}' definition doesn't have a return statement so 'return nil' will be injected", name.str);
+        ankh_DEBUG("function '{}' definition doesn't have a return statement so 'return nil' will be injected", name.str);
         
         // TODO: figure out the line and column positions
         // Insert a "return nil" as the last statement in the block
@@ -183,7 +183,7 @@ fk::lang::StatementPtr fk::lang::Parser::parse_function_declaration()
     return make_statement<FunctionDeclaration>(name, std::move(params), std::move(body));
 }
 
-fk::lang::StatementPtr fk::lang::Parser::parse_data_declaration()
+ankh::lang::StatementPtr ankh::lang::Parser::parse_data_declaration()
 {
     // no need for a message since we know we have this token in this context
     consume(TokenType::DATA, "");
@@ -206,7 +206,7 @@ fk::lang::StatementPtr fk::lang::Parser::parse_data_declaration()
     return make_statement<DataDeclaration>(name, members);
 }
 
-fk::lang::StatementPtr fk::lang::Parser::assignment(ExpressionPtr target)
+ankh::lang::StatementPtr ankh::lang::Parser::assignment(ExpressionPtr target)
 {
     if (AccessExpression* expr = instance<AccessExpression>(target); expr != nullptr) {
         return modify(expr);
@@ -233,7 +233,7 @@ fk::lang::StatementPtr fk::lang::Parser::assignment(ExpressionPtr target)
     }
 }
 
-fk::lang::StatementPtr fk::lang::Parser::modify(AccessExpression* expr)
+ankh::lang::StatementPtr ankh::lang::Parser::modify(AccessExpression* expr)
 {
     // no need to check this since we already know that we have one of these
     match({ TokenType::EQ, TokenType::PLUSEQ, TokenType::MINUSEQ, TokenType::STAREQ, TokenType::FSLASHEQ });
@@ -251,25 +251,25 @@ fk::lang::StatementPtr fk::lang::Parser::modify(AccessExpression* expr)
     }
 }
 
-fk::lang::StatementPtr fk::lang::Parser::statement()
+ankh::lang::StatementPtr ankh::lang::Parser::statement()
 {
-    if (match(fk::lang::TokenType::PRINT)) {
+    if (match(ankh::lang::TokenType::PRINT)) {
         ExpressionPtr expr = expression();
 
         semicolon();
 
         return make_statement<PrintStatement>(std::move(expr));
-    } else if (check(fk::lang::TokenType::LBRACE)) {
+    } else if (check(ankh::lang::TokenType::LBRACE)) {
         // NOTE: we check instead of matching here so we can consume the left brace __in__ block()
         // This allows us to simply call block() whenever we need to parse a block e.g. in while statements
         return block();
-    } else if (match(fk::lang::TokenType::IF)) {
+    } else if (match(ankh::lang::TokenType::IF)) {
         return parse_if();
-    } else if (match(fk::lang::TokenType::WHILE)) {
+    } else if (match(ankh::lang::TokenType::WHILE)) {
         return parse_while();
-    } else if (match(fk::lang::TokenType::FOR)) {
+    } else if (match(ankh::lang::TokenType::FOR)) {
         return parse_for();
-    } else if (match(fk::lang::TokenType::FK_RETURN)) {
+    } else if (match(ankh::lang::TokenType::ankh_RETURN)) {
         return parse_return();
     } else if (check({ TokenType::INC, TokenType::DEC })) {
         return parse_inc_dec();
@@ -296,7 +296,7 @@ fk::lang::StatementPtr fk::lang::Parser::statement()
     }
 }
 
-fk::lang::StatementPtr fk::lang::Parser::parse_inc_dec()
+ankh::lang::StatementPtr ankh::lang::Parser::parse_inc_dec()
 {
     const Token& op = advance();
 
@@ -315,29 +315,29 @@ fk::lang::StatementPtr fk::lang::Parser::parse_inc_dec()
     panic<ParseException>("{},{}: only identifiers and access expressions are valid increment/decrement targets", op.line, op.col);
 }
 
-fk::lang::StatementPtr fk::lang::Parser::block()
+ankh::lang::StatementPtr ankh::lang::Parser::block()
 {
-    consume(fk::lang::TokenType::LBRACE, "'{' expected to start block");
+    consume(ankh::lang::TokenType::LBRACE, "'{' expected to start block");
 
     // PERFORMANCE: reserve some room ahead of time for the statements
-    std::vector<fk::lang::StatementPtr> statements;
-    while (!check(fk::lang::TokenType::RBRACE) && !is_eof()) {
+    std::vector<ankh::lang::StatementPtr> statements;
+    while (!check(ankh::lang::TokenType::RBRACE) && !is_eof()) {
         statements.emplace_back(declaration()); 
     }
 
-    consume(fk::lang::TokenType::RBRACE, "'}' expected to terminate block");
+    consume(ankh::lang::TokenType::RBRACE, "'}' expected to terminate block");
 
     return make_statement<BlockStatement>(std::move(statements));
 }
 
-fk::lang::StatementPtr fk::lang::Parser::parse_if()
+ankh::lang::StatementPtr ankh::lang::Parser::parse_if()
 {
     ExpressionPtr condition = expression();
     
     StatementPtr then_block = block();
 
     StatementPtr else_block = nullptr;
-    if (match(fk::lang::TokenType::ELSE)) {
+    if (match(ankh::lang::TokenType::ELSE)) {
         if (match(TokenType::IF)) {
             else_block = parse_if();
         } else {
@@ -348,7 +348,7 @@ fk::lang::StatementPtr fk::lang::Parser::parse_if()
     return make_statement<IfStatement>(std::move(condition), std::move(then_block), std::move(else_block));
 }
 
-fk::lang::StatementPtr fk::lang::Parser::parse_while()
+ankh::lang::StatementPtr ankh::lang::Parser::parse_while()
 {
     ExpressionPtr condition = expression();
     StatementPtr body = block();
@@ -356,24 +356,24 @@ fk::lang::StatementPtr fk::lang::Parser::parse_while()
     return make_statement<WhileStatement>(std::move(condition), std::move(body));
 }
 
-fk::lang::StatementPtr fk::lang::Parser::parse_for()
+ankh::lang::StatementPtr ankh::lang::Parser::parse_for()
 {
     StatementPtr init = nullptr;    
-    if (!match(fk::lang::TokenType::SEMICOLON)) {
+    if (!match(ankh::lang::TokenType::SEMICOLON)) {
         init = parse_variable_declaration();
     }
 
     ExpressionPtr condition;
-    if (match(fk::lang::TokenType::SEMICOLON)) {
+    if (match(ankh::lang::TokenType::SEMICOLON)) {
         const Token& semicolon = prev();
         // if there is no condition, we borrow from C and assume the condition is always true
-        condition = make_expression<LiteralExpression>(Token{"true", fk::lang::TokenType::FK_TRUE, semicolon.line, semicolon.col});
+        condition = make_expression<LiteralExpression>(Token{"true", ankh::lang::TokenType::ankh_TRUE, semicolon.line, semicolon.col});
     } else {
         condition = expression();
         semicolon();
     }
 
-    StatementPtr mutator = check(fk::lang::TokenType::LBRACE)
+    StatementPtr mutator = check(ankh::lang::TokenType::LBRACE)
         ? nullptr
         : statement();
 
@@ -382,7 +382,7 @@ fk::lang::StatementPtr fk::lang::Parser::parse_for()
     return desugar_for_into_while(std::move(init), std::move(condition), std::move(mutator), std::move(body));
 }
 
-fk::lang::StatementPtr fk::lang::Parser::parse_return()
+ankh::lang::StatementPtr ankh::lang::Parser::parse_return()
 {
     // if there is no expression, we return nil
     ExpressionPtr expr;
@@ -398,101 +398,101 @@ fk::lang::StatementPtr fk::lang::Parser::parse_return()
     return make_statement<ReturnStatement>(std::move(expr));
 }
 
-fk::lang::ExpressionPtr fk::lang::Parser::expression()
+ankh::lang::ExpressionPtr ankh::lang::Parser::expression()
 {
     return parse_or();
 }
 
-fk::lang::ExpressionPtr fk::lang::Parser::parse_or()
+ankh::lang::ExpressionPtr ankh::lang::Parser::parse_or()
 {
-    fk::lang::ExpressionPtr left = parse_and();
-    while (match(fk::lang::TokenType::OR)) {
+    ankh::lang::ExpressionPtr left = parse_and();
+    while (match(ankh::lang::TokenType::OR)) {
         const Token& op = prev();
-        fk::lang::ExpressionPtr right = parse_and();
-        left = make_expression<fk::lang::BinaryExpression>(std::move(left), op, std::move(right));
+        ankh::lang::ExpressionPtr right = parse_and();
+        left = make_expression<ankh::lang::BinaryExpression>(std::move(left), op, std::move(right));
     }
 
     return left;
 }
 
-fk::lang::ExpressionPtr fk::lang::Parser::parse_and()
+ankh::lang::ExpressionPtr ankh::lang::Parser::parse_and()
 {
-    fk::lang::ExpressionPtr left = equality();
-    while (match(fk::lang::TokenType::AND)) {
+    ankh::lang::ExpressionPtr left = equality();
+    while (match(ankh::lang::TokenType::AND)) {
         const Token& op = prev();
-        fk::lang::ExpressionPtr right = equality();
-        left = make_expression<fk::lang::BinaryExpression>(std::move(left), op, std::move(right));
+        ankh::lang::ExpressionPtr right = equality();
+        left = make_expression<ankh::lang::BinaryExpression>(std::move(left), op, std::move(right));
     }
 
     return left;
 }
 
-fk::lang::ExpressionPtr fk::lang::Parser::equality()
+ankh::lang::ExpressionPtr ankh::lang::Parser::equality()
 {
-    fk::lang::ExpressionPtr left = comparison();
-    while (match({ fk::lang::TokenType::EQEQ, fk::lang::TokenType::NEQ })) {
+    ankh::lang::ExpressionPtr left = comparison();
+    while (match({ ankh::lang::TokenType::EQEQ, ankh::lang::TokenType::NEQ })) {
         Token op = prev();
-        fk::lang::ExpressionPtr right = comparison();
+        ankh::lang::ExpressionPtr right = comparison();
         left = make_expression<BinaryExpression>(std::move(left), op, std::move(right));
     }
 
     return left;
 }
 
-fk::lang::ExpressionPtr fk::lang::Parser::comparison()
+ankh::lang::ExpressionPtr ankh::lang::Parser::comparison()
 {
-    fk::lang::ExpressionPtr left = term();
+    ankh::lang::ExpressionPtr left = term();
     while (match({ 
-        fk::lang::TokenType::LT
-        , fk::lang::TokenType::LTE
-        , fk::lang::TokenType::GT
-        , fk::lang::TokenType::GTE
+        ankh::lang::TokenType::LT
+        , ankh::lang::TokenType::LTE
+        , ankh::lang::TokenType::GT
+        , ankh::lang::TokenType::GTE
         })
     ) {
         Token op = prev();
-        fk::lang::ExpressionPtr right = term();
+        ankh::lang::ExpressionPtr right = term();
         left = make_expression<BinaryExpression>(std::move(left), op, std::move(right));
     }
 
     return left;
 }
 
-fk::lang::ExpressionPtr fk::lang::Parser::term()
+ankh::lang::ExpressionPtr ankh::lang::Parser::term()
 {
-    fk::lang::ExpressionPtr left = factor();
-    while (match({ fk::lang::TokenType::MINUS, fk::lang::TokenType::PLUS })) {
+    ankh::lang::ExpressionPtr left = factor();
+    while (match({ ankh::lang::TokenType::MINUS, ankh::lang::TokenType::PLUS })) {
         Token op = prev();
-        fk::lang::ExpressionPtr right = factor();
+        ankh::lang::ExpressionPtr right = factor();
         left = make_expression<BinaryExpression>(std::move(left), op, std::move(right));
     }
 
     return left;
 }
 
-fk::lang::ExpressionPtr fk::lang::Parser::factor()
+ankh::lang::ExpressionPtr ankh::lang::Parser::factor()
 {
-    fk::lang::ExpressionPtr left = unary();
-    while (match({ fk::lang::TokenType::STAR, fk::lang::TokenType::FSLASH })) {
+    ankh::lang::ExpressionPtr left = unary();
+    while (match({ ankh::lang::TokenType::STAR, ankh::lang::TokenType::FSLASH })) {
         Token op = prev();
-        fk::lang::ExpressionPtr right = unary();
+        ankh::lang::ExpressionPtr right = unary();
         left = make_expression<BinaryExpression>(std::move(left), op, std::move(right));
     }
 
     return left;
 }
 
-fk::lang::ExpressionPtr fk::lang::Parser::unary()
+ankh::lang::ExpressionPtr ankh::lang::Parser::unary()
 {
-    if (match({ fk::lang::TokenType::BANG, fk::lang::TokenType::MINUS })) {
+    if (match({ ankh::lang::TokenType::BANG, ankh::lang::TokenType::MINUS })) {
         Token op = prev();
-        fk::lang::ExpressionPtr right = unary();
+        ankh::lang::ExpressionPtr right = unary();
         return make_expression<UnaryExpression>(op, std::move(right));
     }
 
     return operable();
 }
 
-fk::lang::ExpressionPtr fk::lang::Parser::operable()
+ankh::lang::ExpressionPtr ankh::lang::Parser::operable()
 {
     ExpressionPtr expr = primary();
     while (check({ TokenType::LPAREN, TokenType::LBRACKET, TokenType::DOT, TokenType::SEMICOLON })) {
@@ -516,7 +516,7 @@ fk::lang::ExpressionPtr fk::lang::Parser::operable()
     return expr;
 }
 
-fk::lang::ExpressionPtr fk::lang::Parser::call(ExpressionPtr callee)
+ankh::lang::ExpressionPtr ankh::lang::Parser::call(ExpressionPtr callee)
 {
     // no message requires since we know we have this token
     consume(TokenType::LPAREN, "");
@@ -533,7 +533,7 @@ fk::lang::ExpressionPtr fk::lang::Parser::call(ExpressionPtr callee)
     return make_expression<CallExpression>(std::move(callee), std::move(args));
 }
 
-fk::lang::ExpressionPtr fk::lang::Parser::index(ExpressionPtr indexee)
+ankh::lang::ExpressionPtr ankh::lang::Parser::index(ExpressionPtr indexee)
 {
     // no message required since we know we have this token
     consume(TokenType::LBRACKET, "");
@@ -545,7 +545,7 @@ fk::lang::ExpressionPtr fk::lang::Parser::index(ExpressionPtr indexee)
     return make_expression<IndexExpression>(std::move(indexee), std::move(idx));
 }
 
-fk::lang::ExpressionPtr fk::lang::Parser::access(ExpressionPtr accessible)
+ankh::lang::ExpressionPtr ankh::lang::Parser::access(ExpressionPtr accessible)
 {
     // no message required here since we know we have a DOT
     consume(TokenType::DOT, "");
@@ -555,7 +555,7 @@ fk::lang::ExpressionPtr fk::lang::Parser::access(ExpressionPtr accessible)
     return make_expression<AccessExpression>(std::move(accessible), identifier);
 }
 
-fk::lang::ExpressionPtr fk::lang::Parser::primary()
+ankh::lang::ExpressionPtr ankh::lang::Parser::primary()
 {
     if (match(TokenType::STRING)) {
         return make_expression<StringExpression>(prev());
@@ -563,8 +563,8 @@ fk::lang::ExpressionPtr fk::lang::Parser::primary()
 
     if (match({ 
         TokenType::NUMBER
-        , TokenType::FK_TRUE
-        , TokenType::FK_FALSE
+        , TokenType::ankh_TRUE
+        , TokenType::ankh_FALSE
         , TokenType::NIL
         })
     ) {
@@ -607,7 +607,7 @@ fk::lang::ExpressionPtr fk::lang::Parser::primary()
     panic<ParseException>("primary expression expected");
 }
 
-fk::lang::ExpressionPtr fk::lang::Parser::lambda()
+ankh::lang::ExpressionPtr ankh::lang::Parser::lambda()
 {
     consume(TokenType::LPAREN, "starting '(' expected in lambda expression");
 
@@ -626,7 +626,7 @@ fk::lang::ExpressionPtr fk::lang::Parser::lambda()
     const std::string name = generate_lambda_name();
     
     if (BlockStatement* block = static_cast<BlockStatement*>(body.get()); !block_has_return_statement(block)) {
-        FK_DEBUG("lambda '{}' definition doesn't have a return statement so 'return nil' will be injected", name);
+        ankh_DEBUG("lambda '{}' definition doesn't have a return statement so 'return nil' will be injected", name);
         
         // TODO: figure out the line and column positions
         // Insert a "return nil" as the last statement in the block
@@ -637,7 +637,7 @@ fk::lang::ExpressionPtr fk::lang::Parser::lambda()
     return make_expression<LambdaExpression>(name, std::move(params), std::move(body));
 }
 
-fk::lang::ExpressionPtr fk::lang::Parser::parse_array()
+ankh::lang::ExpressionPtr ankh::lang::Parser::parse_array()
 {
     consume(TokenType::LBRACKET, "starting '[' expected in array expression");
 
@@ -653,7 +653,7 @@ fk::lang::ExpressionPtr fk::lang::Parser::parse_array()
     return make_expression<ArrayExpression>(std::move(elems));
 }
 
-fk::lang::ExpressionPtr fk::lang::Parser::dict()
+ankh::lang::ExpressionPtr ankh::lang::Parser::dict()
 {
     consume(TokenType::LBRACE, "'{' expected to begin dictionary expression");
 
@@ -670,7 +670,7 @@ fk::lang::ExpressionPtr fk::lang::Parser::dict()
     return make_expression<DictionaryExpression>(std::move(entries));
 }
 
-fk::lang::Entry<fk::lang::ExpressionPtr> fk::lang::Parser::entry()
+ankh::lang::Entry<ankh::lang::ExpressionPtr> ankh::lang::Parser::entry()
 {
     ExpressionPtr keyv = key();
 
@@ -681,11 +681,11 @@ fk::lang::Entry<fk::lang::ExpressionPtr> fk::lang::Parser::entry()
     return { std::move(keyv), std::move(value) };
 }
 
-fk::lang::ExpressionPtr fk::lang::Parser::key()
+ankh::lang::ExpressionPtr ankh::lang::Parser::key()
 {
     if (match(TokenType::IDENTIFIER)) {
         Token str = prev();
-        str.type = fk::lang::TokenType::STRING;
+        str.type = ankh::lang::TokenType::STRING;
         return make_expression<StringExpression>(str);
     }
 
@@ -698,17 +698,17 @@ fk::lang::ExpressionPtr fk::lang::Parser::key()
     return expr;
 }
 
-const fk::lang::Token& fk::lang::Parser::prev() const noexcept
+const ankh::lang::Token& ankh::lang::Parser::prev() const noexcept
 {
     return tokens_[cursor_ - 1];
 }
 
-const fk::lang::Token& fk::lang::Parser::curr() const noexcept
+const ankh::lang::Token& ankh::lang::Parser::curr() const noexcept
 {
     return tokens_[cursor_];
 }
 
-const fk::lang::Token& fk::lang::Parser::advance() noexcept
+const ankh::lang::Token& ankh::lang::Parser::advance() noexcept
 {
     if (!is_eof()) {
         ++cursor_;
@@ -717,12 +717,12 @@ const fk::lang::Token& fk::lang::Parser::advance() noexcept
     return prev();
 }
 
-bool fk::lang::Parser::is_eof() const noexcept
+bool ankh::lang::Parser::is_eof() const noexcept
 {
-    return curr().type == fk::lang::TokenType::FK_EOF;
+    return curr().type == ankh::lang::TokenType::ankh_EOF;
 }
 
-bool fk::lang::Parser::match(fk::lang::TokenType type) noexcept
+bool ankh::lang::Parser::match(ankh::lang::TokenType type) noexcept
 {
     if (check(type)) {
         advance();
@@ -732,14 +732,14 @@ bool fk::lang::Parser::match(fk::lang::TokenType type) noexcept
     return false;
 }
 
-bool fk::lang::Parser::match(std::initializer_list<fk::lang::TokenType> types) noexcept
+bool ankh::lang::Parser::match(std::initializer_list<ankh::lang::TokenType> types) noexcept
 {
     return std::any_of(types.begin(), types.end(), [&](TokenType type) {
         return match(type);
     });
 }
 
-bool fk::lang::Parser::check(fk::lang::TokenType type) const noexcept
+bool ankh::lang::Parser::check(ankh::lang::TokenType type) const noexcept
 {
     if (is_eof()) {
         return false;
@@ -748,14 +748,14 @@ bool fk::lang::Parser::check(fk::lang::TokenType type) const noexcept
     return curr().type == type;
 }
 
-bool fk::lang::Parser::check(std::initializer_list<TokenType> types) const noexcept
+bool ankh::lang::Parser::check(std::initializer_list<TokenType> types) const noexcept
 {
     return std::any_of(types.begin(), types.end(), [&](TokenType type) {
         return check(type);
     });
 }
 
-fk::lang::Token fk::lang::Parser::consume(TokenType type, const std::string& msg)
+ankh::lang::Token ankh::lang::Parser::consume(TokenType type, const std::string& msg)
 {
     if (!match(type)) {
         const Token& current = curr();
@@ -765,13 +765,13 @@ fk::lang::Token fk::lang::Parser::consume(TokenType type, const std::string& msg
     return prev();
 }
 
-void fk::lang::Parser::semicolon()
+void ankh::lang::Parser::semicolon()
 {
     // semicolons are optional so eat it if one is present
     match(TokenType::SEMICOLON);
 }
 
-void fk::lang::Parser::synchronize_next_statement() noexcept
+void ankh::lang::Parser::synchronize_next_statement() noexcept
 {
     const auto statement_initializer_tokens = {
         TokenType::PRINT,
@@ -779,7 +779,7 @@ void fk::lang::Parser::synchronize_next_statement() noexcept
         TokenType::IF,
         TokenType::WHILE,
         TokenType::FOR,
-        TokenType::FK_RETURN,
+        TokenType::ankh_RETURN,
         TokenType::INC,
         TokenType::DEC,
         TokenType::FN,

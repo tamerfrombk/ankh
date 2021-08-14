@@ -3,12 +3,12 @@
 #include <string>
 #include <vector>
 
-#include <fak/lang/expr.h>
-#include <fak/lang/statement.h>
-#include <fak/lang/token.h>
-#include <fak/lang/program.h>
+#include <ankh/lang/expr.h>
+#include <ankh/lang/statement.h>
+#include <ankh/lang/token.h>
+#include <ankh/lang/program.h>
 
-namespace fk::lang {
+namespace ankh::lang {
 
 class Parser 
 {

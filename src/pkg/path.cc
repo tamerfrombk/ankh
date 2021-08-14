@@ -1,12 +1,12 @@
-#include <fak/pkg/path.h>
+#include <ankh/pkg/path.h>
 
-#include <fak/log.h>
+#include <ankh/log.h>
 
-std::string_view fk::pkg::parse_file_name_from_full_path(const std::string_view& path) noexcept
+std::string_view ankh::pkg::parse_file_name_from_full_path(const std::string_view& path) noexcept
 {
         const size_t ptr = path.find_last_of('/');
 
-        FK_VERIFY(ptr != std::string_view::npos);                
+        ankh_VERIFY(ptr != std::string_view::npos);                
 
         return path.substr(ptr + 1);
 }

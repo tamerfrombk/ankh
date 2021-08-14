@@ -1,42 +1,42 @@
 #include <cctype>
 #include <unordered_map>
 
-#include <fak/lang/lexer.h>
-#include <fak/lang/exceptions.h>
+#include <ankh/lang/lexer.h>
+#include <ankh/lang/exceptions.h>
 
-#include <fak/log.h>
+#include <ankh/log.h>
 
-static const std::unordered_map<std::string, fk::lang::TokenType> KEYWORDS = {
-      { "true", fk::lang::TokenType::FK_TRUE }
-    , { "false", fk::lang::TokenType::FK_FALSE }
-    , { "nil", fk::lang::TokenType::NIL }
-    , { "print", fk::lang::TokenType::PRINT }
-    , { "if", fk::lang::TokenType::IF }
-    , { "else", fk::lang::TokenType::ELSE }
-    , { "while", fk::lang::TokenType::WHILE }
-    , { "for", fk::lang::TokenType::FOR }
-    , { "fn", fk::lang::TokenType::FN }
-    , { "let", fk::lang::TokenType::LET }
-    , { "export", fk::lang::TokenType::EXPORT }
-    , { "return", fk::lang::TokenType::FK_RETURN }
-    , { "data", fk::lang::TokenType::DATA }
+static const std::unordered_map<std::string, ankh::lang::TokenType> KEYWORDS = {
+      { "true", ankh::lang::TokenType::ankh_TRUE }
+    , { "false", ankh::lang::TokenType::ankh_FALSE }
+    , { "nil", ankh::lang::TokenType::NIL }
+    , { "print", ankh::lang::TokenType::PRINT }
+    , { "if", ankh::lang::TokenType::IF }
+    , { "else", ankh::lang::TokenType::ELSE }
+    , { "while", ankh::lang::TokenType::WHILE }
+    , { "for", ankh::lang::TokenType::FOR }
+    , { "fn", ankh::lang::TokenType::FN }
+    , { "let", ankh::lang::TokenType::LET }
+    , { "export", ankh::lang::TokenType::EXPORT }
+    , { "return", ankh::lang::TokenType::ankh_RETURN }
+    , { "data", ankh::lang::TokenType::DATA }
 };
 
-fk::lang::Lexer::Lexer(std::string text)
+ankh::lang::Lexer::Lexer(std::string text)
     : text_(std::move(text))
     , cursor_(0)
     , line_(1)
     , col_(1)
 {}
 
-fk::lang::Token fk::lang::Lexer::next()
+ankh::lang::Token ankh::lang::Lexer::next()
 {
     skip_whitespace();
 
     if (is_eof()) {
         // We avoid using tokenize() because we don't need line and col
         // calculations on the sentinel EOF token
-        return { "EOF", TokenType::FK_EOF, line_, col_ };
+        return { "EOF", TokenType::ankh_EOF, line_, col_ };
     }
 
     const char c = advance();
@@ -112,23 +112,23 @@ fk::lang::Token fk::lang::Lexer::next()
     }
 }
 
-fk::lang::Token fk::lang::Lexer::peek() noexcept
+ankh::lang::Token ankh::lang::Lexer::peek() noexcept
 {
     size_t old_cursor = cursor_;
     
-    fk::lang::Token token = next();
+    ankh::lang::Token token = next();
 
     cursor_ = old_cursor;
 
     return token;
 }
 
-bool fk::lang::Lexer::is_eof() const noexcept
+bool ankh::lang::Lexer::is_eof() const noexcept
 {
     return cursor_ >= text_.length();
 }
 
-void fk::lang::Lexer::skip_whitespace() noexcept
+void ankh::lang::Lexer::skip_whitespace() noexcept
 {
     while (!is_eof() && std::isspace(curr())) {
         if (curr() == '\n') {
@@ -139,14 +139,14 @@ void fk::lang::Lexer::skip_whitespace() noexcept
     }
 }
 
-void fk::lang::Lexer::skip_comment() noexcept
+void ankh::lang::Lexer::skip_comment() noexcept
 {
     while (!is_eof() && curr() != '\n') {
         advance();
     }
 }
 
-fk::lang::Token fk::lang::Lexer::scan_alnum() noexcept
+ankh::lang::Token ankh::lang::Lexer::scan_alnum() noexcept
 {
     std::string token(1, prev());
     while (!is_eof()) {
@@ -166,7 +166,7 @@ fk::lang::Token fk::lang::Lexer::scan_alnum() noexcept
     return tokenize(token, type);
 }
 
-fk::lang::Token fk::lang::Lexer::scan_string()
+ankh::lang::Token ankh::lang::Lexer::scan_string()
 {
     std::string str;
 
@@ -196,7 +196,7 @@ fk::lang::Token fk::lang::Lexer::scan_string()
     return { str, TokenType::STRING, line_, col_ - str.length() - 2 + n_meta };
 }
 
-fk::lang::Token fk::lang::Lexer::scan_number()
+ankh::lang::Token ankh::lang::Lexer::scan_number()
 {
     std::string num(1, prev());
 
@@ -221,7 +221,7 @@ fk::lang::Token fk::lang::Lexer::scan_number()
     return tokenize(num, TokenType::NUMBER);
 }
 
-fk::lang::Token fk::lang::Lexer::scan_compound_operator(char expected, TokenType then, TokenType otherwise) noexcept
+ankh::lang::Token ankh::lang::Lexer::scan_compound_operator(char expected, TokenType then, TokenType otherwise) noexcept
 {
     const std::string before(1, prev());
     if (curr() == expected) {
@@ -232,7 +232,7 @@ fk::lang::Token fk::lang::Lexer::scan_compound_operator(char expected, TokenType
     return tokenize(before, otherwise);
 }
 
-fk::lang::Token fk::lang::Lexer::scan_command()
+ankh::lang::Token ankh::lang::Lexer::scan_command()
 { 
     if (curr() != '(') {
         panic<ScanException>("'(' token is expected after '$' for command");
@@ -255,22 +255,22 @@ fk::lang::Token fk::lang::Lexer::scan_command()
     return tokenize(value, TokenType::COMMAND);
 }
 
-char fk::lang::Lexer::prev() const noexcept
+char ankh::lang::Lexer::prev() const noexcept
 {
     return text_[cursor_ - 1];
 }
 
-char fk::lang::Lexer::curr() const noexcept
+char ankh::lang::Lexer::curr() const noexcept
 {
     return text_[cursor_];
 }
 
-char fk::lang::Lexer::peekc() const noexcept
+char ankh::lang::Lexer::peekc() const noexcept
 {
     return text_[cursor_ + 1];
 }
 
-char fk::lang::Lexer::advance() noexcept
+char ankh::lang::Lexer::advance() noexcept
 {
     char c = text_[cursor_++];
 
@@ -279,35 +279,35 @@ char fk::lang::Lexer::advance() noexcept
     return c;
 }
 
-fk::lang::Token fk::lang::Lexer::tokenize(char c, TokenType type) const noexcept
+ankh::lang::Token ankh::lang::Lexer::tokenize(char c, TokenType type) const noexcept
 {
     return tokenize(std::string(1, c), type);
 }
 
-fk::lang::Token fk::lang::Lexer::tokenize(const std::string& s, TokenType type) const noexcept
+ankh::lang::Token ankh::lang::Lexer::tokenize(const std::string& s, TokenType type) const noexcept
 {
     return { s, type, line_, col_ - s.length() };
 }
 
-bool fk::lang::is_keyword(const std::string& str) noexcept
+bool ankh::lang::is_keyword(const std::string& str) noexcept
 {
     return KEYWORDS.find(str) != KEYWORDS.cend();
 }
 
-std::vector<fk::lang::Token> fk::lang::scan(const std::string& source)
+std::vector<ankh::lang::Token> ankh::lang::scan(const std::string& source)
 {
     // The new line is added here so that that while loop below will continue one last iteration
     // after the last character in the actual source and emit a EOF token.
     // It didn't need to be a new line; any whitespace character would have worked as well
-    fk::lang::Lexer lexer(source + "\n");
+    ankh::lang::Lexer lexer(source + "\n");
 
-    std::vector<fk::lang::Token> tokens;
+    std::vector<ankh::lang::Token> tokens;
     while (!lexer.is_eof()) {
         tokens.push_back(lexer.next());
     }
 
     for (const auto& tok : tokens) {
-        FK_DEBUG("{}", tok);
+        ankh_DEBUG("{}", tok);
     }
 
     return tokens;

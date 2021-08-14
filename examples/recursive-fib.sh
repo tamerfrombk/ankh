@@ -1,4 +1,4 @@
-#!/usr/bin/env fak
+#!/usr/bin/env ankhsh
 
 # This function calculates the nth fibonnaci number recursively
 fn fib(n) {

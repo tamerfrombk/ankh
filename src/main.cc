@@ -1,6 +1,6 @@
-#include <fak/fak.h>
+#include <ankh/ankh.h>
 
 int main(int argc, char **argv) {
-    return fk::shell_loop(argc, argv);
+    return ankh::shell_loop(argc, argv);
 }
 

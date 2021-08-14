@@ -4,12 +4,12 @@
 #include <optional>
 #include <string>
 
-#include <fak/log.h>
-#include <fak/fak.h>
+#include <ankh/log.h>
+#include <ankh/ankh.h>
 
-#include <fak/lang/parser.h>
-#include <fak/lang/interpreter.h>
-#include <fak/lang/exceptions.h>
+#include <ankh/lang/parser.h>
+#include <ankh/lang/interpreter.h>
+#include <ankh/lang/exceptions.h>
 
 #include <fmt/color.h>
 
@@ -23,9 +23,9 @@ static void print_error(const std::string& msg) noexcept
     print_error(msg.c_str());
 }
 
-static int execute(fk::lang::Interpreter& interpreter, const std::string& script) noexcept
+static int execute(ankh::lang::Interpreter& interpreter, const std::string& script) noexcept
 {
-    const fk::lang::Program program = fk::lang::parse(script);
+    const ankh::lang::Program program = ankh::lang::parse(script);
     if (program.has_errors()) {
         const auto& errors = program.errors();
         for (const auto& e : errors) {
@@ -36,7 +36,7 @@ static int execute(fk::lang::Interpreter& interpreter, const std::string& script
 
     try {
         interpreter.interpret(program);
-    } catch (const fk::lang::InterpretationException& e) {
+    } catch (const ankh::lang::InterpretationException& e) {
         print_error(e.what());
         return EXIT_FAILURE;
     }
@@ -73,16 +73,16 @@ static std::optional<std::string> readline(const char *prompt) noexcept
     return std::nullopt;
 }
 
-int fk::shell_loop(int argc, char **argv)
+int ankh::shell_loop(int argc, char **argv)
 {
-    fk::lang::Interpreter interpreter;
+    ankh::lang::Interpreter interpreter;
 
     if (argc > 1) {
         if (auto possible_script = read_file(argv[1]); possible_script) {
             return execute(interpreter, possible_script.value());
         }
         
-        fk::log::error("could not open script '%s'\n", argv[1]);
+        ankh::log::error("could not open script '%s'\n", argv[1]);
 
         return EXIT_FAILURE;
     }
@@ -93,15 +93,15 @@ int fk::shell_loop(int argc, char **argv)
     while (true) {
         auto possible_line = readline("> ");
         if (!possible_line.has_value()) {
-            FK_DEBUG("EOF");
+            ankh_DEBUG("EOF");
             break;
         }
         
         const std::string line = possible_line.value();
         if (line.empty()) {
-            FK_DEBUG("empty line");
+            ankh_DEBUG("empty line");
         } else {
-            FK_DEBUG("read line: {}", line);
+            ankh_DEBUG("read line: {}", line);
             prev_process_exit_code = execute(interpreter, line);
         }
     }

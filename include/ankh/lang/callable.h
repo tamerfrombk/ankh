@@ -4,15 +4,15 @@
 #include <vector>
 #include <memory>
 
-#include <fak/lang/expr.h>
-#include <fak/lang/statement.h>
-#include <fak/lang/lambda.h>
+#include <ankh/lang/expr.h>
+#include <ankh/lang/statement.h>
+#include <ankh/lang/lambda.h>
 
-#include <fak/lang/env.h>
+#include <ankh/lang/env.h>
 
-#include <fak/log.h>
+#include <ankh/log.h>
 
-namespace fk::lang {
+namespace ankh::lang {
 
 struct Callable
 {
@@ -57,11 +57,11 @@ public:
     virtual void invoke(const std::vector<ExpressionPtr>& args) override
     {
         EnvironmentPtr<T> environment(make_env<T>(closure_));
-        FK_DEBUG("closure environment {} created", environment->scope());
+        ankh_DEBUG("closure environment {} created", environment->scope());
         for (size_t i = 0; i < args.size(); ++i) {
             const ExprResult arg = interpreter_->evaluate(args[i]);
             if (!environment->declare(decl_->params[i].str, arg)) {
-                FK_FATAL("function parameter '{}' should always be declarable");
+                ankh_FATAL("function parameter '{}' should always be declarable");
             }
         }
 
@@ -100,11 +100,11 @@ public:
     virtual void invoke(const std::vector<ExpressionPtr>& args) override
     {
         EnvironmentPtr<T> environment(make_env<T>(closure_));
-        FK_DEBUG("closure environment {} created", environment->scope());
+        ankh_DEBUG("closure environment {} created", environment->scope());
         for (size_t i = 0; i < args.size(); ++i) {
             const ExprResult arg = interpreter_->evaluate(args[i]);
             if (!environment->declare(lambda_->params[i].str, arg)) {
-                FK_FATAL("function parameter '{}' should always be declarable");
+                ankh_FATAL("function parameter '{}' should always be declarable");
             }
         }
 
