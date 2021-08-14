@@ -32,8 +32,8 @@ enum class TokenType {
     LBRACKET,          // [
     RBRACKET,          // ]
     // ankh prefix is added to avoid clashing with the TRUE/FALSE macros defined in libc
-    ankh_TRUE,           // "true"
-    ankh_FALSE,          // "false"
+    ANKH_TRUE,           // "true"
+    ANKH_FALSE,          // "false"
     NIL,               // "nil"
     PRINT,             // "print"
     IF,                // "if"
@@ -48,7 +48,7 @@ enum class TokenType {
     COMMA,             // ,
     FN,                // "fn"
     // prepended ankh because RETURN is a macro defined in some library
-    ankh_RETURN,         // "return"
+    ANKH_RETURN,         // "return"
     DATA,              // "data"
     INC,               // ++
     DEC,               // --
@@ -57,7 +57,7 @@ enum class TokenType {
     NUMBER,
     STRING,
     COMMAND,
-    ankh_EOF,
+    ANKH_EOF,
     UNKNOWN
 };
 

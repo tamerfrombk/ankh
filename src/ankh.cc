@@ -93,15 +93,15 @@ int ankh::shell_loop(int argc, char **argv)
     while (true) {
         auto possible_line = readline("> ");
         if (!possible_line.has_value()) {
-            ankh_DEBUG("EOF");
+            ANKH_DEBUG("EOF");
             break;
         }
         
         const std::string line = possible_line.value();
         if (line.empty()) {
-            ankh_DEBUG("empty line");
+            ANKH_DEBUG("empty line");
         } else {
-            ankh_DEBUG("read line: {}", line);
+            ANKH_DEBUG("read line: {}", line);
             prev_process_exit_code = execute(interpreter, line);
         }
     }

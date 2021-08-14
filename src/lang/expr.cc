@@ -42,7 +42,7 @@ static std::string stringify(const ankh::lang::Dictionary<ankh::lang::ExprResult
 
 static std::string stringify(const ankh::lang::ObjectPtr<ankh::lang::ExprResult> & obj) noexcept
 {
-    ankh_UNUSED(obj);
+    ANKH_UNUSED(obj);
     
     return "{ object }";
 }
@@ -67,6 +67,6 @@ std::string ankh::lang::ExprResult::stringify() const noexcept
     case ankh::lang::ExprResultType::RT_OBJECT:
         return ::stringify(obj);
     default:
-        ankh_FATAL("stringify(): unknown expression result type '{}'!", expr_result_type_str(type));
+        ANKH_FATAL("stringify(): unknown expression result type '{}'!", expr_result_type_str(type));
     }
 }

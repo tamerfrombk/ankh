@@ -38,14 +38,14 @@ struct ReturnException
 };
 
 template <class... Args>
-ankh_NO_RETURN static void panic(const char *fmt, Args&&... args)
+ANKH_NO_RETURN static void panic(const char *fmt, Args&&... args)
 {
     const std::string msg = fmt::format(fmt, std::forward<Args>(args)...);
     ankh::lang::panic<ankh::lang::InterpretationException>("runtime error: {}", msg);
 }
 
 template <class... Args>
-ankh_NO_RETURN static void panic(const ankh::lang::ExprResult& result, const char *fmt, Args&&... args)
+ANKH_NO_RETURN static void panic(const ankh::lang::ExprResult& result, const char *fmt, Args&&... args)
 {
     const std::string typestr = ankh::lang::expr_result_type_str(result.type);
 
@@ -55,7 +55,7 @@ ankh_NO_RETURN static void panic(const ankh::lang::ExprResult& result, const cha
 }
 
 template <class... Args>
-ankh_NO_RETURN static void panic(
+ANKH_NO_RETURN static void panic(
     const ankh::lang::ExprResult& left
     , const ankh::lang::ExprResult& right
     , const char *fmt
@@ -221,7 +221,7 @@ void ankh::lang::Interpreter::interpret(const Program& program)
     const auto& statements = program.statements();
     for (const auto& stmt : statements) {
 #ifndef NDEBUG
-        ankh_DEBUG("{}", stmt->stringify());
+        ANKH_DEBUG("{}", stmt->stringify());
 #endif
         execute(stmt);
     }
@@ -282,9 +282,9 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(LiteralExpression *expr)
         return to_num(expr->literal.str);
     case TokenType::STRING:
         return expr->literal.str;
-    case TokenType::ankh_TRUE:
+    case TokenType::ANKH_TRUE:
         return true;
-    case TokenType::ankh_FALSE:
+    case TokenType::ANKH_FALSE:
         return false;
     case TokenType::NIL:
         return {};
@@ -300,7 +300,7 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(ParenExpression *expr)
 
 ankh::lang::ExprResult ankh::lang::Interpreter::visit(IdentifierExpression *expr)
 {
-    ankh_DEBUG("evaluating identifier expression '{}'", expr->name.str);
+    ANKH_DEBUG("evaluating identifier expression '{}'", expr->name.str);
 
     auto possible_value = current_env_->value(expr->name.str);
     if (possible_value.has_value()) {
@@ -312,7 +312,7 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(IdentifierExpression *expr
 
 ankh::lang::ExprResult ankh::lang::Interpreter::visit(CallExpression *expr)
 {
-    ankh_DEBUG("evaluating call expression");
+    ANKH_DEBUG("evaluating call expression");
 
     const ExprResult callee = evaluate(expr->callee);
     if (callee.type != ExprResultType::RT_CALLABLE) {
@@ -325,7 +325,7 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(CallExpression *expr)
         ::panic("expected {} arguments to function '{}' instead of {}", callable->arity(), name, expr->args.size());
     }
 
-    ankh_DEBUG("function '{}' with matching arity '{}' found", name, expr->args.size());
+    ANKH_DEBUG("function '{}' with matching arity '{}' found", name, expr->args.size());
 
     try {
         callable->invoke(expr->args);
@@ -334,7 +334,7 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(CallExpression *expr)
         // Constructors do not return anything (yet)
         // Every other function has a return statement.
         // We take advantage of this here to implement object generation.
-        ankh_VERIFY(data_declarations_[name]);
+        ANKH_VERIFY(data_declarations_[name]);
         
         auto data = static_cast<Data<ExprResult, Interpreter>*>(functions_[name].get());
 
@@ -344,14 +344,14 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(CallExpression *expr)
         return e.result;
     }
 
-    ankh_FATAL("callables should always return");
+    ANKH_FATAL("callables should always return");
 }
 
 ankh::lang::ExprResult ankh::lang::Interpreter::visit(LambdaExpression *expr)
 {
     const std::string& name = expr->generated_name;
     if (functions_.count(name) > 0) {
-        ankh_FATAL("lambda function generated name '{}' is duplicated", name);
+        ANKH_FATAL("lambda function generated name '{}' is duplicated", name);
     }
 
     CallablePtr callable = make_callable<Lambda<ExprResult, Interpreter>>(this, expr->clone(), current_env_);
@@ -364,21 +364,21 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(LambdaExpression *expr)
         ::panic("'{}' is already defined", name);
     }
 
-    ankh_DEBUG("function '{}' added to scope {}", name, current_env_->scope());
+    ANKH_DEBUG("function '{}' added to scope {}", name, current_env_->scope());
 
     return result;
 }
 
 ankh::lang::ExprResult ankh::lang::Interpreter::visit(ankh::lang::CommandExpression *expr)
 {
-    ankh_DEBUG("executing {}", expr->cmd.str);
+    ANKH_DEBUG("executing {}", expr->cmd.str);
 
     // TODO: popen() uses the underlying shell to invoke commands
     // This limits the language from being used as a shell itself
     // Come back and explore if that's something we want to consider doing
     std::FILE *fp = popen(expr->cmd.str.c_str(), "r");
     if (fp == nullptr) {
-        ankh_FATAL("popen: unable to launch {}", expr->cmd.str);
+        ANKH_FATAL("popen: unable to launch {}", expr->cmd.str);
     }
 
     char buf[512];
@@ -480,7 +480,7 @@ void ankh::lang::Interpreter::visit(PrintStatement *stmt)
 
 void ankh::lang::Interpreter::visit(ExpressionStatement *stmt)
 {
-    ankh_DEBUG("executing expression statement");
+    ANKH_DEBUG("executing expression statement");
     const ExprResult result = evaluate(stmt->expr);
     print(result);
 }
@@ -493,7 +493,7 @@ void ankh::lang::Interpreter::visit(VariableDeclaration *stmt)
 
     const ExprResult result = evaluate(stmt->initializer);
 
-    ankh_DEBUG("DECLARATION '{}' = '{}'", stmt->name.str, result.stringify());
+    ANKH_DEBUG("DECLARATION '{}' = '{}'", stmt->name.str, result.stringify());
 
     if (!current_env_->declare(stmt->name.str, result)) {
         ::panic("'{}' is already defined", stmt->name.str);
@@ -607,11 +607,11 @@ void ankh::lang::Interpreter::visit(ankh::lang::IncOrDecAccessStatement *stmt)
     } else {
         // this shouldn't happen since the parser validates the token is one of the above
         // but those are famous last words ;)
-        ankh_FATAL("'{}' is not a valid increment or decrement operation", stmt->op.str);
+        ANKH_FATAL("'{}' is not a valid increment or decrement operation", stmt->op.str);
     }
 
     if (!obj.obj->env->assign(access->accessor.str, value)) {
-        ankh_FATAL("{}:{}, unable to assign '{}'", access->accessor.str);
+        ANKH_FATAL("{}:{}, unable to assign '{}'", access->accessor.str);
     }
 }
 
@@ -629,12 +629,12 @@ void ankh::lang::Interpreter::visit(ankh::lang::IncOrDecIdentifierStatement* stm
     else {
         // this shouldn't happen since the parser validates the token is one of the above
         // but those are famous last words ;)
-        ankh_FATAL("'{}' is not a valid increment or decrement operation", stmt->op.str);
+        ANKH_FATAL("'{}' is not a valid increment or decrement operation", stmt->op.str);
     }
 
     IdentifierExpression* expr = static_cast<IdentifierExpression*>(stmt->expr.get());
     if (!current_env_->assign(expr->name.str, value)) {
-        ankh_FATAL("{}:{}, unable to assign '{}'", expr->name.str);
+        ANKH_FATAL("{}:{}, unable to assign '{}'", expr->name.str);
     }
 }
 
@@ -677,7 +677,7 @@ void ankh::lang::Interpreter::visit(ankh::lang::FunctionDeclaration *stmt)
 
 void ankh::lang::Interpreter::declare_function(FunctionDeclaration *decl, EnvironmentPtr<ExprResult> env)
 {
-    ankh_DEBUG("evaluating function declaration of '{}'", decl->name.str);
+    ANKH_DEBUG("evaluating function declaration of '{}'", decl->name.str);
 
     const std::string& name = decl->name.str;
     if (functions_.count(name) > 0) {
@@ -694,12 +694,12 @@ void ankh::lang::Interpreter::declare_function(FunctionDeclaration *decl, Enviro
         ::panic("'{}' is already defined", name);
     }
 
-    ankh_DEBUG("function '{}' added to scope {}", name, current_env_->scope());
+    ANKH_DEBUG("function '{}' added to scope {}", name, current_env_->scope());
 }
 
 void ankh::lang::Interpreter::visit(ReturnStatement *stmt)
 {
-    ankh_DEBUG("evaluating return statement");
+    ANKH_DEBUG("evaluating return statement");
 
     const ExprResult result = evaluate(stmt->expr);
 
@@ -708,7 +708,7 @@ void ankh::lang::Interpreter::visit(ReturnStatement *stmt)
 
 void ankh::lang::Interpreter::visit(DataDeclaration *stmt)
 {
-    ankh_DEBUG("evaluating data '{}' declaration", stmt->name.str);
+    ANKH_DEBUG("evaluating data '{}' declaration", stmt->name.str);
 
     if (data_declarations_[stmt->name.str]) {
         ::panic("{}:{}, '{}' is already a data declaration", stmt->name.line, stmt->name.col, stmt->name.str);
@@ -718,7 +718,7 @@ void ankh::lang::Interpreter::visit(DataDeclaration *stmt)
     std::vector<std::string> members;
     for (const auto& member : stmt->members) {
         if (!env->declare(member.str, ExprResult{})) {
-            ankh_FATAL("unable to declare data member '{}'", member.str);
+            ANKH_FATAL("unable to declare data member '{}'", member.str);
         }
         members.push_back(member.str);
     }
@@ -726,12 +726,12 @@ void ankh::lang::Interpreter::visit(DataDeclaration *stmt)
     functions_[stmt->name.str] = make_callable<Data<ExprResult, Interpreter>>(this, stmt->name.str, env, members);
 
     if (!current_env_->declare(stmt->name.str, functions_[stmt->name.str].get())) {
-        ankh_FATAL("unable to declare constructor for data declaration '{}'", stmt->name.str);
+        ANKH_FATAL("unable to declare constructor for data declaration '{}'", stmt->name.str);
     }
 
     data_declarations_[stmt->name.str] = true;
 
-    ankh_DEBUG("data '{}' declared", stmt->name.str);
+    ANKH_DEBUG("data '{}' declared", stmt->name.str);
 }
 
 ankh::lang::ExprResult ankh::lang::Interpreter::evaluate(const ExpressionPtr& expr)
@@ -778,10 +778,10 @@ std::string ankh::lang::Interpreter::substitute(const StringExpression *expr)
             }
 
             const std::string expr_str = expr->str.str.substr(start_idx + 1, expr_length);
-            ankh_DEBUG("{}:{}, parsed expression string '{}' starting @ {}", expr->str.line, expr->str.col, expr_str, start_idx);
+            ANKH_DEBUG("{}:{}, parsed expression string '{}' starting @ {}", expr->str.line, expr->str.col, expr_str, start_idx);
 
             const ExprResult expr_result = evaluate_single_expr(expr_str);
-            ankh_DEBUG("'{}' => '{}'", expr_str, expr_result.stringify());
+            ANKH_DEBUG("'{}' => '{}'", expr_str, expr_result.stringify());
 
             result += expr_result.stringify();
 
@@ -829,11 +829,11 @@ ankh::lang::Interpreter::Scope::Scope(ankh::lang::Interpreter *interpreter, ankh
 {
     prev_ = interpreter->current_env_;
     interpreter->current_env_ = make_env<ExprResult>(enclosing);
-    ankh_DEBUG("new scope created from {} to {} through {}", prev_->scope(), interpreter_->current_env_->scope(), enclosing->scope());
+    ANKH_DEBUG("new scope created from {} to {} through {}", prev_->scope(), interpreter_->current_env_->scope(), enclosing->scope());
 }
 
 ankh::lang::Interpreter::Scope::~Scope()
 {
-    ankh_DEBUG("scope exiting from {} to {}", interpreter_->current_env_->scope(), prev_->scope());
+    ANKH_DEBUG("scope exiting from {} to {}", interpreter_->current_env_->scope(), prev_->scope());
     interpreter_->current_env_ = prev_;
 }

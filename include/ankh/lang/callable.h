@@ -57,11 +57,11 @@ public:
     virtual void invoke(const std::vector<ExpressionPtr>& args) override
     {
         EnvironmentPtr<T> environment(make_env<T>(closure_));
-        ankh_DEBUG("closure environment {} created", environment->scope());
+        ANKH_DEBUG("closure environment {} created", environment->scope());
         for (size_t i = 0; i < args.size(); ++i) {
             const ExprResult arg = interpreter_->evaluate(args[i]);
             if (!environment->declare(decl_->params[i].str, arg)) {
-                ankh_FATAL("function parameter '{}' should always be declarable");
+                ANKH_FATAL("function parameter '{}' should always be declarable");
             }
         }
 
@@ -100,11 +100,11 @@ public:
     virtual void invoke(const std::vector<ExpressionPtr>& args) override
     {
         EnvironmentPtr<T> environment(make_env<T>(closure_));
-        ankh_DEBUG("closure environment {} created", environment->scope());
+        ANKH_DEBUG("closure environment {} created", environment->scope());
         for (size_t i = 0; i < args.size(); ++i) {
             const ExprResult arg = interpreter_->evaluate(args[i]);
             if (!environment->declare(lambda_->params[i].str, arg)) {
-                ankh_FATAL("function parameter '{}' should always be declarable");
+                ANKH_FATAL("function parameter '{}' should always be declarable");
             }
         }
 

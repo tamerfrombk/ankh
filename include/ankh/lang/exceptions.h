@@ -31,7 +31,7 @@ struct ParseException
 };
 
 template <class E, class... Args>
-ankh_NO_RETURN void panic(const char *fmt, Args&&... args)
+ANKH_NO_RETURN void panic(const char *fmt, Args&&... args)
 {
     const std::string str = fmt::format(fmt, std::forward<Args>(args)...);
 

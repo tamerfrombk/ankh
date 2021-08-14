@@ -7,8 +7,8 @@
 #include <ankh/log.h>
 
 static const std::unordered_map<std::string, ankh::lang::TokenType> KEYWORDS = {
-      { "true", ankh::lang::TokenType::ankh_TRUE }
-    , { "false", ankh::lang::TokenType::ankh_FALSE }
+      { "true", ankh::lang::TokenType::ANKH_TRUE }
+    , { "false", ankh::lang::TokenType::ANKH_FALSE }
     , { "nil", ankh::lang::TokenType::NIL }
     , { "print", ankh::lang::TokenType::PRINT }
     , { "if", ankh::lang::TokenType::IF }
@@ -18,7 +18,7 @@ static const std::unordered_map<std::string, ankh::lang::TokenType> KEYWORDS = {
     , { "fn", ankh::lang::TokenType::FN }
     , { "let", ankh::lang::TokenType::LET }
     , { "export", ankh::lang::TokenType::EXPORT }
-    , { "return", ankh::lang::TokenType::ankh_RETURN }
+    , { "return", ankh::lang::TokenType::ANKH_RETURN }
     , { "data", ankh::lang::TokenType::DATA }
 };
 
@@ -36,7 +36,7 @@ ankh::lang::Token ankh::lang::Lexer::next()
     if (is_eof()) {
         // We avoid using tokenize() because we don't need line and col
         // calculations on the sentinel EOF token
-        return { "EOF", TokenType::ankh_EOF, line_, col_ };
+        return { "EOF", TokenType::ANKH_EOF, line_, col_ };
     }
 
     const char c = advance();
@@ -307,7 +307,7 @@ std::vector<ankh::lang::Token> ankh::lang::scan(const std::string& source)
     }
 
     for (const auto& tok : tokens) {
-        ankh_DEBUG("{}", tok);
+        ANKH_DEBUG("{}", tok);
     }
 
     return tokens;

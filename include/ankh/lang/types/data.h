@@ -34,7 +34,7 @@ public:
         for (size_t i = 0; i < args.size(); ++i) {
             const ExprResult result = interpreter_->evaluate(args[i]);
             if (!env_->assign(members_[i], result)) {
-                ankh_FATAL("unable to declare {} in {} data constructor", members_[i], name());
+                ANKH_FATAL("unable to declare {} in {} data constructor", members_[i], name());
             }
         }
     }

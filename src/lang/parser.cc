@@ -106,7 +106,7 @@ ankh::lang::Program ankh::lang::Parser::parse() noexcept
         try {
             program.add_statement(declaration());    
         } catch (const ankh::lang::ParseException& e) {
-            ankh_DEBUG("parse exception: {}", e.what());
+            ANKH_DEBUG("parse exception: {}", e.what());
             program.add_error(e.what());
             synchronize_next_statement();
         }
@@ -172,7 +172,7 @@ ankh::lang::StatementPtr ankh::lang::Parser::parse_function_declaration()
     
     // check to see we have a return statement inside the block
     if (BlockStatement* block = static_cast<BlockStatement*>(body.get()); !block_has_return_statement(block)) {
-        ankh_DEBUG("function '{}' definition doesn't have a return statement so 'return nil' will be injected", name.str);
+        ANKH_DEBUG("function '{}' definition doesn't have a return statement so 'return nil' will be injected", name.str);
         
         // TODO: figure out the line and column positions
         // Insert a "return nil" as the last statement in the block
@@ -269,7 +269,7 @@ ankh::lang::StatementPtr ankh::lang::Parser::statement()
         return parse_while();
     } else if (match(ankh::lang::TokenType::FOR)) {
         return parse_for();
-    } else if (match(ankh::lang::TokenType::ankh_RETURN)) {
+    } else if (match(ankh::lang::TokenType::ANKH_RETURN)) {
         return parse_return();
     } else if (check({ TokenType::INC, TokenType::DEC })) {
         return parse_inc_dec();
@@ -367,7 +367,7 @@ ankh::lang::StatementPtr ankh::lang::Parser::parse_for()
     if (match(ankh::lang::TokenType::SEMICOLON)) {
         const Token& semicolon = prev();
         // if there is no condition, we borrow from C and assume the condition is always true
-        condition = make_expression<LiteralExpression>(Token{"true", ankh::lang::TokenType::ankh_TRUE, semicolon.line, semicolon.col});
+        condition = make_expression<LiteralExpression>(Token{"true", ankh::lang::TokenType::ANKH_TRUE, semicolon.line, semicolon.col});
     } else {
         condition = expression();
         semicolon();
@@ -563,8 +563,8 @@ ankh::lang::ExpressionPtr ankh::lang::Parser::primary()
 
     if (match({ 
         TokenType::NUMBER
-        , TokenType::ankh_TRUE
-        , TokenType::ankh_FALSE
+        , TokenType::ANKH_TRUE
+        , TokenType::ANKH_FALSE
         , TokenType::NIL
         })
     ) {
@@ -626,7 +626,7 @@ ankh::lang::ExpressionPtr ankh::lang::Parser::lambda()
     const std::string name = generate_lambda_name();
     
     if (BlockStatement* block = static_cast<BlockStatement*>(body.get()); !block_has_return_statement(block)) {
-        ankh_DEBUG("lambda '{}' definition doesn't have a return statement so 'return nil' will be injected", name);
+        ANKH_DEBUG("lambda '{}' definition doesn't have a return statement so 'return nil' will be injected", name);
         
         // TODO: figure out the line and column positions
         // Insert a "return nil" as the last statement in the block
@@ -719,7 +719,7 @@ const ankh::lang::Token& ankh::lang::Parser::advance() noexcept
 
 bool ankh::lang::Parser::is_eof() const noexcept
 {
-    return curr().type == ankh::lang::TokenType::ankh_EOF;
+    return curr().type == ankh::lang::TokenType::ANKH_EOF;
 }
 
 bool ankh::lang::Parser::match(ankh::lang::TokenType type) noexcept
@@ -779,7 +779,7 @@ void ankh::lang::Parser::synchronize_next_statement() noexcept
         TokenType::IF,
         TokenType::WHILE,
         TokenType::FOR,
-        TokenType::ankh_RETURN,
+        TokenType::ANKH_RETURN,
         TokenType::INC,
         TokenType::DEC,
         TokenType::FN,

@@ -37,7 +37,7 @@ inline std::string expr_result_type_str(ankh::lang::ExprResultType type) noexcep
     case ankh::lang::ExprResultType::RT_OBJECT:    return "RT_OBJECT";
     case ankh::lang::ExprResultType::RT_NIL:       return "NIL";
     default:                                       
-        ankh_FATAL("expr_result_type_str(): unknown expression result type!");
+        ANKH_FATAL("expr_result_type_str(): unknown expression result type!");
     }
 }
 
@@ -84,7 +84,7 @@ struct ExprResult {
         case ExprResultType::RT_DICT:     return lhs.dict  == rhs.dict;
         // TODO: this is a shallow comparison, is this what we want??
         case ExprResultType::RT_OBJECT:   return lhs.obj == rhs.obj; 
-        default: ankh_FATAL("unknown expression result type");
+        default: ANKH_FATAL("unknown expression result type");
         }
     }
 

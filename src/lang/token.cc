@@ -50,9 +50,9 @@ std::string ankh::lang::token_type_str(ankh::lang::TokenType type) noexcept
         return "LBRACKET";
     case ankh::lang::TokenType::RBRACKET:
         return "RBRACKET";
-    case ankh::lang::TokenType::ankh_TRUE:
+    case ankh::lang::TokenType::ANKH_TRUE:
         return "BTRUE";
-    case ankh::lang::TokenType::ankh_FALSE:
+    case ankh::lang::TokenType::ANKH_FALSE:
         return "BFALSE";
     case ankh::lang::TokenType::NIL:
         return "NIL";
@@ -80,7 +80,7 @@ std::string ankh::lang::token_type_str(ankh::lang::TokenType type) noexcept
         return "COMMA";
     case ankh::lang::TokenType::FN:
         return "FN";
-    case ankh::lang::TokenType::ankh_RETURN:
+    case ankh::lang::TokenType::ANKH_RETURN:
         return "RETURN";
     case ankh::lang::TokenType::DATA:
         return "DATA";
@@ -98,11 +98,11 @@ std::string ankh::lang::token_type_str(ankh::lang::TokenType type) noexcept
         return "STRING";
     case ankh::lang::TokenType::COMMAND:
         return "COMMAND";
-    case ankh::lang::TokenType::ankh_EOF:
+    case ankh::lang::TokenType::ANKH_EOF:
         return "EOF";
     case ankh::lang::TokenType::UNKNOWN:
         return "UNKNOWN";
     default:
-        ankh_FATAL("unknown token type: this should never happen");
+        ANKH_FATAL("unknown token type: this should never happen");
     }
 }

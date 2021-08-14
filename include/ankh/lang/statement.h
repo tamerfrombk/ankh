@@ -250,7 +250,7 @@ struct VariableDeclaration
         switch (storage_class) {
         case StorageClass::LOCAL:  result = "let";     break;
         case StorageClass::EXPORT: result = "export";  break;
-        default:                   ankh_FATAL("unknown storage_class");
+        default:                   ANKH_FATAL("unknown storage_class");
         }
 
         return result + " " + name.str + " = " + initializer->stringify();

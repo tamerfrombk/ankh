@@ -34,7 +34,7 @@ public:
         return results_;
     }
 
-    ankh_NO_DISCARD bool has_function(const std::string& name) const noexcept
+    ANKH_NO_DISCARD bool has_function(const std::string& name) const noexcept
     {
         return functions().count(name) == 1;
     }
