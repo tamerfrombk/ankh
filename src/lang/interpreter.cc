@@ -1,3 +1,4 @@
+#include "ankh/lang/statement.h"
 #include <cstddef>
 #include <cstdlib>
 #include <cstdio>
@@ -35,6 +36,13 @@ struct ReturnException
         : std::runtime_error(""), result(std::move(result)) {}
 
     ankh::lang::ExprResult result;
+};
+
+struct BreakException
+    : public std::runtime_error
+{
+    BreakException() 
+        : std::runtime_error("") {}
 };
 
 template <class... Args>
@@ -663,10 +671,12 @@ void ankh::lang::Interpreter::visit(IfStatement *stmt)
 
 void ankh::lang::Interpreter::visit(WhileStatement *stmt)
 {
-    ExprResult result = evaluate(stmt->condition);
-    while (truthy(result)) {
-        execute(stmt->body);
-        result = evaluate(stmt->condition);
+    while (truthy(evaluate(stmt->condition))) {
+        try {
+            execute(stmt->body);
+        } catch (const BreakException&) {
+            return;
+        }
     }
 }
 
@@ -679,11 +689,23 @@ void ankh::lang::Interpreter::visit(ForStatement *stmt)
     }
 
     while (stmt->condition ? truthy(evaluate(stmt->condition)) : true) {
-        execute(stmt->body);
+        try {
+            execute(stmt->body);
+        } catch (const BreakException&) {
+            return;
+        }
+
         if (stmt->mutator) {
             execute(stmt->mutator);
         }
     }
+}
+
+void ankh::lang::Interpreter::visit(ankh::lang::BreakStatement *stmt)
+{
+    ANKH_UNUSED(stmt);
+    
+    throw BreakException();
 }
 
 void ankh::lang::Interpreter::visit(ankh::lang::FunctionDeclaration *stmt)

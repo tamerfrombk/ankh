@@ -15,6 +15,7 @@ static const std::unordered_map<std::string, ankh::lang::TokenType> KEYWORDS = {
     , { "else", ankh::lang::TokenType::ELSE }
     , { "while", ankh::lang::TokenType::WHILE }
     , { "for", ankh::lang::TokenType::FOR }
+    , { "break", ankh::lang::TokenType::BREAK }
     , { "fn", ankh::lang::TokenType::FN }
     , { "let", ankh::lang::TokenType::LET }
     , { "export", ankh::lang::TokenType::EXPORT }

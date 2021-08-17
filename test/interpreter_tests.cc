@@ -776,6 +776,75 @@ TEST_CASE("for statement interpretation", "[interpreter]")
         REQUIRE(!interpreter.environment().value("i"));
         REQUIRE(interpreter.environment().value("result")->n == 2.0);
     }
+
+    SECTION("for-loop, infinite")
+    {
+        const std::string source = R"(
+            let result = 0
+            for {
+                if result == 2 {
+                    break
+                }
+                ++result
+            }
+        )";
+
+        INFO(source);
+        auto [program, results] = interpret(interpreter, source);
+
+        REQUIRE(interpreter.environment().value("result")->n == 2.0);
+    }
+}
+
+TEST_CASE("while statement interpretation", "[interpreter]")
+{
+    TracingInterpreter interpreter(std::make_unique<ankh::lang::Interpreter>());
+
+    SECTION("while-loop")
+    {
+        const std::string source = R"(
+            let result = 0
+            while result != 2 {
+                ++result
+            }
+        )";
+
+        INFO(source);
+        auto [program, results] = interpret(interpreter, source);
+
+        REQUIRE(interpreter.environment().value("result")->n == 2.0);
+    }
+
+    SECTION("while-loop, infinite")
+    {
+        const std::string source = R"(
+            let result = 0
+            while true {
+                if result == 2 {
+                    break
+                }
+                ++result
+            }
+        )";
+
+        INFO(source);
+        auto [program, results] = interpret(interpreter, source);
+
+        REQUIRE(interpreter.environment().value("result")->n == 2.0);
+    }
+}
+
+TEST_CASE("top level break statement disallowed", "[interpreter]")
+{
+    TracingInterpreter interpreter(std::make_unique<ankh::lang::Interpreter>());
+
+    const std::string source = R"(
+        break
+    )";
+
+    INFO(source);
+    
+    REQUIRE_THROWS(interpret(interpreter, source));
 }
 
 TEST_CASE("increment/decrement statements", "[interpreter]")

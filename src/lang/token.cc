@@ -70,6 +70,8 @@ std::string ankh::lang::token_type_str(ankh::lang::TokenType type) noexcept
         return "WHILE";
     case ankh::lang::TokenType::FOR:
         return "FOR";
+    case ankh::lang::TokenType::BREAK:
+        return "BREAK";
     case ankh::lang::TokenType::SEMICOLON:
         return "SEMICOLON";
     case ankh::lang::TokenType::LET:

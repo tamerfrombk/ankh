@@ -23,6 +23,7 @@ struct BlockStatement;
 struct IfStatement;
 struct WhileStatement;
 struct ForStatement;
+struct BreakStatement;
 struct FunctionDeclaration;
 struct ReturnStatement;
 struct DataDeclaration;
@@ -44,6 +45,7 @@ struct StatementVisitor {
     virtual R visit(IfStatement *stmt) = 0;
     virtual R visit(WhileStatement *stmt) = 0;
     virtual R visit(ForStatement *stmt) = 0;
+    virtual R visit(BreakStatement *stmt) = 0;
     virtual R visit(FunctionDeclaration *stmt) = 0;
     virtual R visit(ReturnStatement *stmt) = 0;
     virtual R visit(DataDeclaration *stmt) = 0;
@@ -414,6 +416,30 @@ struct ForStatement
             + ( condition ? condition->stringify()  + "; " : "" )
             + ( mutator   ? mutator->stringify()    + "; " : "" )
             + body->stringify();
+    }
+};
+
+struct BreakStatement
+    : public Statement
+{
+    Token tok;
+    
+    BreakStatement(Token tok)
+        : tok(std::move(tok)) {}
+
+    virtual void accept(StatementVisitor<void> *visitor) override
+    {
+        visitor->visit(this);
+    }
+
+    virtual StatementPtr clone() const noexcept override
+    {
+        return make_statement<BreakStatement>(tok);
+    }
+
+    virtual std::string stringify() const noexcept override
+    {
+        return tok.str; 
     }
 };
 

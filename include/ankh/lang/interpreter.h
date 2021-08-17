@@ -67,6 +67,7 @@ private:
     virtual void visit(IfStatement *stmt) override;
     virtual void visit(WhileStatement *stmt) override;
     virtual void visit(ForStatement *stmt) override;
+    virtual void visit(BreakStatement *stmt) override;
     virtual void visit(FunctionDeclaration *stmt) override;
     virtual void visit(ReturnStatement *stmt) override;
     virtual void visit(DataDeclaration *stmt) override;

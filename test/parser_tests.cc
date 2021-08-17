@@ -688,6 +688,21 @@ TEST_CASE("for statements", "[parser]")
     }
 }
 
+TEST_CASE("break statements", "[parser]")
+{
+    SECTION("keyword")
+    {
+        const std::string source = R"(
+            break
+        )";
+
+        auto program = ankh::lang::parse(source);
+        REQUIRE(!program.has_errors());
+
+        REQUIRE(ankh::lang::instanceof<ankh::lang::BreakStatement>(program[0]));
+    }
+}
+
 TEST_CASE("parse language expressions", "[parser]")
 {
     SECTION("parse primary")

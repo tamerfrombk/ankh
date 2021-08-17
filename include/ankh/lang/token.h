@@ -42,6 +42,7 @@ enum class TokenType {
     OR,                // ||
     WHILE,             // "while"
     FOR,               // "for"
+    BREAK,             // "break"
     SEMICOLON,         // ;
     LET,               // "let"
     EXPORT,            // "export"

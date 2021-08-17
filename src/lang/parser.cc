@@ -233,6 +233,8 @@ ankh::lang::StatementPtr ankh::lang::Parser::statement()
         return parse_for();
     } else if (match(ankh::lang::TokenType::ANKH_RETURN)) {
         return parse_return();
+    } else if (match(ankh::lang::TokenType::BREAK)) {
+        return make_statement<BreakStatement>(prev());
     } else if (check({ TokenType::INC, TokenType::DEC })) {
         return parse_inc_dec();
     } else if (check({ TokenType::LET, TokenType::EXPORT })) {
@@ -753,6 +755,7 @@ void ankh::lang::Parser::synchronize_next_statement() noexcept
         TokenType::LET,
         TokenType::EXPORT,
         TokenType::DATA,
+        TokenType::BREAK
     };
 
     while (!is_eof() && !check(statement_initializer_tokens)) {
