@@ -727,6 +727,57 @@ TEST_CASE("boolean", "[interpreter]")
     }
 }
 
+TEST_CASE("for statement interpretation", "[interpreter]")
+{
+    TracingInterpreter interpreter(std::make_unique<ankh::lang::Interpreter>());
+
+    SECTION("for-loop, 3 components")
+    {
+        const std::string source = R"(
+            let result = 0
+            for let i = 0; i < 2; ++i {
+                result = result + 1
+            }
+        )";
+
+        INFO(source);
+        auto [program, results] = interpret(interpreter, source);
+
+        REQUIRE(!interpreter.environment().value("i"));
+        REQUIRE(interpreter.environment().value("result")->n == 2.0);
+    }
+
+    SECTION("for-loop, init missing")
+    {
+        const std::string source = R"(
+            let result = 0
+            for ; result < 2; ++result {}
+        )";
+
+        INFO(source);
+        auto [program, results] = interpret(interpreter, source);
+
+        REQUIRE(interpreter.environment().value("result")->n == 2.0);
+    }
+
+    SECTION("for-loop, mutator missing")
+    {
+        const std::string source = R"(
+            let result = 0
+            for let i = 0; i < 2; {
+                ++result
+                ++i
+            }
+        )";
+
+        INFO(source);
+        auto [program, results] = interpret(interpreter, source);
+
+        REQUIRE(!interpreter.environment().value("i"));
+        REQUIRE(interpreter.environment().value("result")->n == 2.0);
+    }
+}
+
 TEST_CASE("increment/decrement statements", "[interpreter]")
 {
     TracingInterpreter interpreter(std::make_unique<ankh::lang::Interpreter>());

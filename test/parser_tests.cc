@@ -467,34 +467,6 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(while_stmt->condition != nullptr);
     }
 
-    SECTION("parse for statement")
-    {
-        const std::string source =
-        R"(
-            for let i = 1; i < 2; ++i {
-                print i
-            }
-        )";
-
-        auto program = ankh::lang::parse(source);
-
-        REQUIRE(program.size() == 1);
-
-        auto block = ankh::lang::instance<ankh::lang::BlockStatement>(program[0]);
-        REQUIRE(block != nullptr);
-        REQUIRE(block->statements.size() == 2);
-
-        auto init = ankh::lang::instance<ankh::lang::VariableDeclaration>(block->statements[0]);
-        REQUIRE(init != nullptr);
-
-        auto while_stmt = ankh::lang::instance<ankh::lang::WhileStatement>(block->statements[1]);
-        REQUIRE(while_stmt != nullptr);
-
-        auto while_block = ankh::lang::instance<ankh::lang::BlockStatement>(while_stmt->body);
-        REQUIRE(while_block != nullptr);
-        REQUIRE(while_block->statements.size() == 2);
-    }
-
     SECTION("parse function declaration")
     {
         const std::string source =
@@ -620,6 +592,99 @@ TEST_CASE("parse language statements", "[parser]")
 
         auto program = ankh::lang::parse(source);
         REQUIRE(program.has_errors());
+    }
+}
+
+TEST_CASE("for statements", "[parser]")
+{
+    SECTION("for loop, 3 components")
+    {
+        const std::string source = R"(
+            for let i = 0; i < 3; ++i {
+                print i
+            }
+        )";
+
+        auto program = ankh::lang::parse(source);
+        REQUIRE(!program.has_errors());
+
+        auto for_stmt = ankh::lang::instance<ankh::lang::ForStatement>(program[0]);
+        REQUIRE(for_stmt->init != nullptr);
+        REQUIRE(for_stmt->condition != nullptr);
+        REQUIRE(for_stmt->mutator != nullptr);
+        REQUIRE(for_stmt->body != nullptr);
+    }
+
+    SECTION("for loop, no init")
+    {
+        const std::string source = R"(
+            for ; i < 3; ++i {
+                print i
+            }
+        )";
+
+        auto program = ankh::lang::parse(source);
+        REQUIRE(!program.has_errors());
+
+        auto for_stmt = ankh::lang::instance<ankh::lang::ForStatement>(program[0]);
+        REQUIRE(for_stmt->init == nullptr);
+        REQUIRE(for_stmt->condition != nullptr);
+        REQUIRE(for_stmt->mutator != nullptr);
+        REQUIRE(for_stmt->body != nullptr);
+    }
+
+    SECTION("for loop, no condition")
+    {
+        const std::string source = R"(
+            for let i = 0; ; ++i {
+                print i
+            }
+        )";
+
+        auto program = ankh::lang::parse(source);
+        REQUIRE(!program.has_errors());
+
+        auto for_stmt = ankh::lang::instance<ankh::lang::ForStatement>(program[0]);
+        REQUIRE(for_stmt->init != nullptr);
+        REQUIRE(for_stmt->condition == nullptr);
+        REQUIRE(for_stmt->mutator != nullptr);
+        REQUIRE(for_stmt->body != nullptr);
+    }
+
+    SECTION("for loop, no mutator")
+    {
+        const std::string source = R"(
+            for let i = 0; i < 3; {
+                print i
+            }
+        )";
+
+        auto program = ankh::lang::parse(source);
+        REQUIRE(!program.has_errors());
+
+        auto for_stmt = ankh::lang::instance<ankh::lang::ForStatement>(program[0]);
+        REQUIRE(for_stmt->init != nullptr);
+        REQUIRE(for_stmt->condition != nullptr);
+        REQUIRE(for_stmt->mutator == nullptr);
+        REQUIRE(for_stmt->body != nullptr);
+    }
+
+    SECTION("infinite loop")
+    {
+        const std::string source = R"(
+            for {
+                print i
+            }
+        )";
+
+        auto program = ankh::lang::parse(source);
+        REQUIRE(!program.has_errors());
+
+        auto for_stmt = ankh::lang::instance<ankh::lang::ForStatement>(program[0]);
+        REQUIRE(for_stmt->init == nullptr);
+        REQUIRE(for_stmt->condition == nullptr);
+        REQUIRE(for_stmt->mutator == nullptr);
+        REQUIRE(for_stmt->body != nullptr);
     }
 }
 

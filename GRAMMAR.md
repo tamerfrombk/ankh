@@ -28,7 +28,7 @@ print_statement       → "print" expression semicolon
 block                 → "{" declaration* "}"
 if_statement          → "if" expression block ( "else" ( block | if_statement ) )?
 while_statement       → "while" expression block
-for_statement         → "for" ( variable_declaration | semicolon ) ( expression | semicolon ) statement? block
+for_statement         → "for" variable_declaration? expression_statement? statement? block
 return_statement      → "return" expression? semicolon
 
 expression            → or_expression

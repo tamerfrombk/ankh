@@ -22,6 +22,7 @@ struct IncOrDecAccessStatement;
 struct BlockStatement;
 struct IfStatement;
 struct WhileStatement;
+struct ForStatement;
 struct FunctionDeclaration;
 struct ReturnStatement;
 struct DataDeclaration;
@@ -42,6 +43,7 @@ struct StatementVisitor {
     virtual R visit(BlockStatement *stmt) = 0;
     virtual R visit(IfStatement *stmt) = 0;
     virtual R visit(WhileStatement *stmt) = 0;
+    virtual R visit(ForStatement *stmt) = 0;
     virtual R visit(FunctionDeclaration *stmt) = 0;
     virtual R visit(ReturnStatement *stmt) = 0;
     virtual R visit(DataDeclaration *stmt) = 0;
@@ -376,6 +378,42 @@ struct WhileStatement
     virtual std::string stringify() const noexcept override
     {
         return "while " + condition->stringify() + " " + body->stringify();
+    }
+};
+
+struct ForStatement
+    : public Statement
+{
+    StatementPtr init;
+    ExpressionPtr condition;
+    StatementPtr mutator;
+    StatementPtr body;
+
+    ForStatement(StatementPtr init, ExpressionPtr condition, StatementPtr mutator, StatementPtr body)
+        : init(std::move(init)), condition(std::move(condition)), mutator(std::move(mutator)), body(std::move(body)) {}
+
+    virtual void accept(StatementVisitor<void> *visitor) override
+    {
+        visitor->visit(this);
+    }
+
+    virtual StatementPtr clone() const noexcept override
+    {
+        return make_statement<ForStatement>(
+              init      ? init->clone()      : nullptr
+            , condition ? condition->clone() : nullptr
+            , mutator   ? mutator->clone()   : nullptr
+            , body->clone()
+        );
+    }
+
+    virtual std::string stringify() const noexcept override
+    {
+        return "for " 
+            + ( init      ? init->stringify()       + "; " : "" )
+            + ( condition ? condition->stringify()  + "; " : "" )
+            + ( mutator   ? mutator->stringify()    + "; " : "" )
+            + body->stringify();
     }
 };
 

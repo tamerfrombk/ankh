@@ -1,3 +1,5 @@
+#include "ankh/lang/expr.h"
+#include "ankh/lang/statement.h"
 #include <algorithm>
 #include <initializer_list>
 #include <random>
@@ -9,46 +11,6 @@
 #include <ankh/lang/lambda.h>
 
 #include <ankh/log.h>
-
-// desugar for loop into while loop
-// basically, this turns something like:
-// for i = 0; i < 10; i = i + 1 { 
-// /* for-loop-body */
-// }
-// into:
-// {
-//      i = 0
-//      while i < 10 {
-//      {
-//       /* for-loop-body */
-//      }
-//      i = i + 1
-//      }
-// }
-static ankh::lang::StatementPtr desugar_for_into_while(
-    ankh::lang::StatementPtr init
-    , ankh::lang::ExpressionPtr condition
-    , ankh::lang::StatementPtr mutator
-    , ankh::lang::StatementPtr body
-) noexcept
-{
-    std::vector<ankh::lang::StatementPtr> while_body_statements;
-    while_body_statements.push_back(std::move(body));
-    if (mutator != nullptr) {
-        while_body_statements.push_back(std::move(mutator));
-    }
-
-    auto while_body = ankh::lang::make_statement<ankh::lang::BlockStatement>(std::move(while_body_statements));
-    auto while_stmt = ankh::lang::make_statement<ankh::lang::WhileStatement>(std::move(condition), std::move(while_body)); 
-
-    std::vector<ankh::lang::StatementPtr> statements;
-    if (init != nullptr) {
-        statements.push_back(std::move(init));
-    }
-    statements.push_back(std::move(while_stmt));
-    
-    return ankh::lang::make_statement<ankh::lang::BlockStatement>(std::move(statements));
-}
 
 static char generate_random_alpha_char() noexcept
 {
@@ -358,17 +320,22 @@ ankh::lang::StatementPtr ankh::lang::Parser::parse_while()
 
 ankh::lang::StatementPtr ankh::lang::Parser::parse_for()
 {
-    StatementPtr init = nullptr;    
-    if (!match(ankh::lang::TokenType::SEMICOLON)) {
-        init = parse_variable_declaration();
+    // If we hit a brace, we know it is an infinite loop
+    if (check(TokenType::LBRACE)) {
+        StatementPtr body = block();
+
+        return make_statement<ForStatement>(nullptr, nullptr, nullptr, std::move(body));
     }
 
-    ExpressionPtr condition;
-    if (match(ankh::lang::TokenType::SEMICOLON)) {
-        const Token& semicolon = prev();
-        // if there is no condition, we borrow from C and assume the condition is always true
-        condition = make_expression<LiteralExpression>(Token{"true", ankh::lang::TokenType::ANKH_TRUE, semicolon.line, semicolon.col});
+    StatementPtr init = nullptr;
+    if (check(TokenType::LET)) {
+        init = parse_variable_declaration();
     } else {
+        consume(TokenType::SEMICOLON, "';' expected");
+    }
+
+    ExpressionPtr condition = nullptr;
+    if (!match(TokenType::SEMICOLON)) {
         condition = expression();
         semicolon();
     }
@@ -379,7 +346,7 @@ ankh::lang::StatementPtr ankh::lang::Parser::parse_for()
 
     StatementPtr body = block();
 
-    return desugar_for_into_while(std::move(init), std::move(condition), std::move(mutator), std::move(body));
+    return make_statement<ForStatement>(std::move(init), std::move(condition), std::move(mutator), std::move(body));
 }
 
 ankh::lang::StatementPtr ankh::lang::Parser::parse_return()

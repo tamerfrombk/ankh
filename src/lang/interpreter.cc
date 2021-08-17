@@ -670,6 +670,22 @@ void ankh::lang::Interpreter::visit(WhileStatement *stmt)
     }
 }
 
+void ankh::lang::Interpreter::visit(ForStatement *stmt)
+{
+    Scope for_scope(this, current_env_);
+    
+    if (stmt->init) {
+        execute(stmt->init);
+    }
+
+    while (stmt->condition ? truthy(evaluate(stmt->condition)) : true) {
+        execute(stmt->body);
+        if (stmt->mutator) {
+            execute(stmt->mutator);
+        }
+    }
+}
+
 void ankh::lang::Interpreter::visit(ankh::lang::FunctionDeclaration *stmt)
 {
     declare_function(stmt, current_env_);
