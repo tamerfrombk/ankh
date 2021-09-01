@@ -224,9 +224,11 @@ static void print(const ankh::lang::ExprResult& result)
 ankh::lang::Interpreter::Interpreter()
     : current_env_(make_env<ExprResult>()) {}
 
-void ankh::lang::Interpreter::interpret(const Program& program)
+void ankh::lang::Interpreter::interpret(Program&& program)
 {
-    const auto& statements = program.statements();
+    programs_.push_back(std::forward<Program>(program));
+
+    const auto& statements = programs_.back().statements();
     for (const auto& stmt : statements) {
 #ifndef NDEBUG
         ANKH_DEBUG("{}", stmt->stringify());
@@ -362,7 +364,7 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(LambdaExpression *expr)
         ANKH_FATAL("lambda function generated name '{}' is duplicated", name);
     }
 
-    CallablePtr callable = make_callable<Lambda<ExprResult, Interpreter>>(this, expr->clone(), current_env_);
+    CallablePtr callable = make_callable<Lambda<ExprResult, Interpreter>>(this, expr, current_env_);
 
     ExprResult result { callable.get() };
     
@@ -653,7 +655,7 @@ void ankh::lang::Interpreter::visit(BlockStatement *stmt)
 
 void ankh::lang::Interpreter::execute_block(const BlockStatement *stmt, EnvironmentPtr<ExprResult> environment)
 {
-    Scope block_scope(this, environment);
+    ScopeGuard block_scope(this, environment);
     for (const StatementPtr& statement : stmt->statements) {
         execute(statement);
     }
@@ -682,7 +684,7 @@ void ankh::lang::Interpreter::visit(WhileStatement *stmt)
 
 void ankh::lang::Interpreter::visit(ForStatement *stmt)
 {
-    Scope for_scope(this, current_env_);
+    ScopeGuard for_scope(this, current_env_);
     
     if (stmt->init) {
         execute(stmt->init);
@@ -722,7 +724,7 @@ void ankh::lang::Interpreter::declare_function(FunctionDeclaration *decl, Enviro
         ::panic("function '{}' is already declared", name);
     }
 
-    CallablePtr callable = make_callable<Function<ExprResult, Interpreter>>(this, decl->clone(), env);
+    CallablePtr callable = make_callable<Function<ExprResult, Interpreter>>(this, decl, env);
 
     ExprResult result { callable.get() };
     
@@ -861,7 +863,7 @@ void ankh::lang::Interpreter::execute(const StatementPtr& stmt)
     stmt->accept(this);
 }
 
-ankh::lang::Interpreter::Scope::Scope(ankh::lang::Interpreter *interpreter, ankh::lang::EnvironmentPtr<ExprResult> enclosing)
+ankh::lang::Interpreter::ScopeGuard::ScopeGuard(ankh::lang::Interpreter *interpreter, ankh::lang::EnvironmentPtr<ExprResult> enclosing)
     : interpreter_(interpreter)
     , prev_(nullptr)
 {
@@ -870,7 +872,7 @@ ankh::lang::Interpreter::Scope::Scope(ankh::lang::Interpreter *interpreter, ankh
     ANKH_DEBUG("new scope created from {} to {} through {}", prev_->scope(), interpreter_->current_env_->scope(), enclosing->scope());
 }
 
-ankh::lang::Interpreter::Scope::~Scope()
+ankh::lang::Interpreter::ScopeGuard::~ScopeGuard()
 {
     ANKH_DEBUG("scope exiting from {} to {}", interpreter_->current_env_->scope(), prev_->scope());
     interpreter_->current_env_ = prev_;

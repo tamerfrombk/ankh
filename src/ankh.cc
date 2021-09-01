@@ -25,7 +25,7 @@ static void print_error(const std::string& msg) noexcept
 
 static int execute(ankh::lang::Interpreter& interpreter, const std::string& script) noexcept
 {
-    const ankh::lang::Program program = ankh::lang::parse(script);
+    ankh::lang::Program program = ankh::lang::parse(script);
     if (program.has_errors()) {
         const auto& errors = program.errors();
         for (const auto& e : errors) {
@@ -35,7 +35,7 @@ static int execute(ankh::lang::Interpreter& interpreter, const std::string& scri
     }
 
     try {
-        interpreter.interpret(program);
+        interpreter.interpret(std::move(program));
     } catch (const ankh::lang::InterpretationException& e) {
         print_error(e.what());
         return EXIT_FAILURE;

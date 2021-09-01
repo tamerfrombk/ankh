@@ -57,7 +57,7 @@ ExecutionResult interpret(TracingInterpreter& interpreter, const std::string& so
         return { std::move(program), {} };
     }
 
-    interpreter.interpret(program);
+    interpreter.interpret(std::move(program));
 
     return { std::move(program), interpreter.results() };
 }

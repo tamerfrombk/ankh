@@ -59,7 +59,6 @@ struct Statement
     virtual ~Statement() = default;
 
     virtual void accept(StatementVisitor<void> *visitor) = 0;
-    virtual StatementPtr clone() const noexcept = 0;
     virtual std::string stringify() const noexcept = 0;
 };
 
@@ -83,11 +82,6 @@ struct PrintStatement
         visitor->visit(this);
     }
 
-    virtual StatementPtr clone() const noexcept override
-    {
-        return make_statement<PrintStatement>(expr->clone());
-    }
-
     virtual std::string stringify() const noexcept override
     {
         return expr->stringify();
@@ -105,11 +99,6 @@ struct ExpressionStatement
     virtual void accept(StatementVisitor<void> *visitor) override
     {
         visitor->visit(this);
-    }
-
-    virtual StatementPtr clone() const noexcept override
-    {
-        return make_statement<ExpressionStatement>(expr->clone());
     }
 
     virtual std::string stringify() const noexcept override
@@ -130,11 +119,6 @@ struct AssignmentStatement
     virtual void accept(StatementVisitor<void> *visitor) override
     {
         visitor->visit(this);
-    }
-
-    virtual StatementPtr clone() const noexcept override
-    {
-        return make_statement<AssignmentStatement>(name, initializer->clone());
     }
 
     virtual std::string stringify() const noexcept override
@@ -158,11 +142,6 @@ struct CompoundAssignment
         return visitor->visit(this);
     }
 
-    virtual StatementPtr clone() const noexcept override
-    {
-        return make_statement<CompoundAssignment>(target, op, value->clone());
-    }
-
     virtual std::string stringify() const noexcept override
     {
         return target.str + " " + op.str + " " + value->stringify();
@@ -182,11 +161,6 @@ struct ModifyStatement
     virtual void accept(StatementVisitor<void>* visitor) override
     {
         return visitor->visit(this);
-    }
-
-    virtual StatementPtr clone() const noexcept override
-    {
-        return make_statement<ModifyStatement>(object->clone(), name, value->clone());
     }
 
     virtual std::string stringify() const noexcept override
@@ -209,11 +183,6 @@ struct CompoundModify
     virtual void accept(StatementVisitor<void>* visitor) override
     {
         return visitor->visit(this);
-    }
-
-    virtual StatementPtr clone() const noexcept override
-    {
-        return make_statement<CompoundModify>(object->clone(), name, op, value->clone());
     }
 
     virtual std::string stringify() const noexcept override
@@ -243,11 +212,6 @@ struct VariableDeclaration
         visitor->visit(this);
     }
 
-    virtual StatementPtr clone() const noexcept override
-    {
-        return make_statement<VariableDeclaration>(name, initializer->clone(), storage_class);
-    }
-
     virtual std::string stringify() const noexcept override
     {
         std::string result;
@@ -272,17 +236,6 @@ struct BlockStatement
     virtual void accept(StatementVisitor<void> *visitor) override
     {
         visitor->visit(this);
-    }
-
-    virtual StatementPtr clone() const noexcept override
-    {
-        std::vector<StatementPtr> cloned;
-        cloned.reserve(statements.size());
-        for (const auto& stmt : statements) {
-            cloned.push_back(stmt->clone());
-        }
-
-        return make_statement<BlockStatement>(std::move(cloned));
     }
 
     virtual std::string stringify() const noexcept override
@@ -317,11 +270,6 @@ struct IncOrDecStatement
         visitor->visit(static_cast<Derived*>(this));
     }
 
-    virtual StatementPtr clone() const noexcept override
-    {
-        return make_statement<Derived>(op, expr->clone());
-    }
-
     virtual std::string stringify() const noexcept override
     {
         return op.str + expr->stringify();
@@ -347,11 +295,6 @@ struct IfStatement
         visitor->visit(this);
     }
 
-    virtual StatementPtr clone() const noexcept override
-    {
-        return make_statement<IfStatement>(condition->clone(), then_block->clone(), else_block ? else_block->clone() : nullptr);
-    }
-
     virtual std::string stringify() const noexcept override
     {
         return "if " + condition->stringify() + " " + then_block->stringify() + (else_block ? " " + else_block->stringify() : "");
@@ -370,11 +313,6 @@ struct WhileStatement
     virtual void accept(StatementVisitor<void> *visitor) override
     {
         visitor->visit(this);
-    }
-
-    virtual StatementPtr clone() const noexcept override
-    {
-        return make_statement<WhileStatement>(condition->clone(), body->clone());
     }
 
     virtual std::string stringify() const noexcept override
@@ -397,16 +335,6 @@ struct ForStatement
     virtual void accept(StatementVisitor<void> *visitor) override
     {
         visitor->visit(this);
-    }
-
-    virtual StatementPtr clone() const noexcept override
-    {
-        return make_statement<ForStatement>(
-              init      ? init->clone()      : nullptr
-            , condition ? condition->clone() : nullptr
-            , mutator   ? mutator->clone()   : nullptr
-            , body->clone()
-        );
     }
 
     virtual std::string stringify() const noexcept override
@@ -432,11 +360,6 @@ struct BreakStatement
         visitor->visit(this);
     }
 
-    virtual StatementPtr clone() const noexcept override
-    {
-        return make_statement<BreakStatement>(tok);
-    }
-
     virtual std::string stringify() const noexcept override
     {
         return tok.str; 
@@ -456,11 +379,6 @@ struct FunctionDeclaration
     virtual void accept(StatementVisitor<void> *visitor) override
     {
         visitor->visit(this);
-    }
-
-    virtual StatementPtr clone() const noexcept override
-    {
-        return make_statement<FunctionDeclaration>(name, params, body->clone());
     }
 
     virtual std::string stringify() const noexcept override
@@ -494,11 +412,6 @@ struct ReturnStatement
         visitor->visit(this);
     }
 
-    virtual StatementPtr clone() const noexcept override
-    {
-        return make_statement<ReturnStatement>(expr->clone());
-    }
-
     virtual std::string stringify() const noexcept override
     {
         return "return " + expr->stringify();
@@ -517,11 +430,6 @@ struct DataDeclaration
     virtual void accept(StatementVisitor<void> *visitor) override
     {
         visitor->visit(this);
-    }
-
-    virtual StatementPtr clone() const noexcept override
-    {
-        return make_statement<DataDeclaration>(name, members);
     }
 
     virtual std::string stringify() const noexcept override

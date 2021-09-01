@@ -52,8 +52,7 @@ struct Expression {
     virtual ~Expression() = default;
 
     virtual ExprResult    accept(ExpressionVisitor<ExprResult> *visitor) = 0;
-    virtual ExpressionPtr clone() const noexcept = 0;
-    virtual std::string stringify() const noexcept = 0;
+    virtual std::string   stringify() const noexcept = 0;
 };
 
 template <class T>
@@ -92,11 +91,6 @@ struct BinaryExpression
         return visitor->visit(this);
     }
 
-    virtual ExpressionPtr clone() const noexcept override
-    {
-        return make_expression<BinaryExpression>(left->clone(), op, right->clone());
-    }
-
     virtual std::string stringify() const noexcept override
     {
         return left->stringify() + " " + op.str + " " + right->stringify();
@@ -115,11 +109,6 @@ struct UnaryExpression
     virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
     {
         return visitor->visit(this);
-    }
-
-    virtual ExpressionPtr clone() const noexcept override
-    {
-        return make_expression<UnaryExpression>(op, right->clone());
     }
 
     virtual std::string stringify() const noexcept override
@@ -141,11 +130,6 @@ struct LiteralExpression
         return visitor->visit(this);
     }
 
-    virtual ExpressionPtr clone() const noexcept override
-    {
-        return make_expression<LiteralExpression>(literal);
-    }
-
     virtual std::string stringify() const noexcept override
     {
         return literal.str;
@@ -163,11 +147,6 @@ struct StringExpression
     virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
     {
         return visitor->visit(this);
-    }
-
-    virtual ExpressionPtr clone() const noexcept override
-    {
-        return make_expression<StringExpression>(str);
     }
 
     virtual std::string stringify() const noexcept override
@@ -189,11 +168,6 @@ struct ParenExpression
         return visitor->visit(this);
     }
 
-    virtual ExpressionPtr clone() const noexcept override
-    {
-        return make_expression<ParenExpression>(expr->clone());
-    }
-
     virtual std::string stringify() const noexcept override
     {
         return expr->stringify();
@@ -211,11 +185,6 @@ struct IdentifierExpression
     virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
     {
         return visitor->visit(this);
-    }
-
-    virtual ExpressionPtr clone() const noexcept override
-    {
-        return make_expression<IdentifierExpression>(name);
     }
 
     virtual std::string stringify() const noexcept override
@@ -238,18 +207,6 @@ struct CallExpression
         return visitor->visit(this);
     }
 
-    virtual ExpressionPtr clone() const noexcept override
-    {
-        std::vector<ExpressionPtr> cloned;
-        cloned.reserve(args.size());
-
-        for (const auto& arg : args) {
-            cloned.push_back(arg->clone());
-        }
-
-        return make_expression<CallExpression>(callee->clone(), std::move(cloned));
-    }
-
     virtual std::string stringify() const noexcept override
     {
         return callee->stringify() + "(" + ankh::lang::stringify(args) + ")";
@@ -269,11 +226,6 @@ struct CommandExpression
         return visitor->visit(this);
     }
 
-    virtual ExpressionPtr clone() const noexcept override
-    {
-        return make_expression<CommandExpression>(cmd);
-    }
-
     virtual std::string stringify() const noexcept override
     {
         return cmd.str;
@@ -291,18 +243,6 @@ struct ArrayExpression
     virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
     {
         return visitor->visit(this);
-    }
-
-    virtual ExpressionPtr clone() const noexcept override
-    {
-        std::vector<ExpressionPtr> cloned;
-        cloned.reserve(elems.size());
-
-        for (const auto& elem : elems) {
-            cloned.push_back(elem->clone());
-        }
-
-        return make_expression<ArrayExpression>(std::move(cloned));
     }
 
     size_t size() const noexcept
@@ -330,11 +270,6 @@ struct IndexExpression
         return visitor->visit(this);
     }
 
-    virtual ExpressionPtr clone() const noexcept override
-    {
-        return make_expression<IndexExpression>(indexee->clone(), index->clone());
-    }
-
     virtual std::string stringify() const noexcept override
     {
         return indexee->stringify() + "[" + index->stringify() + "]";
@@ -352,16 +287,6 @@ struct DictionaryExpression
     virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
     {
         return visitor->visit(this);
-    }
-
-    virtual ExpressionPtr clone() const noexcept override
-    {
-        std::vector<Entry<ExpressionPtr>> cloned;
-        for (const auto& [key, value] : entries) {
-            cloned.emplace_back(key->clone(), value->clone());
-        }
-
-        return make_expression<DictionaryExpression>(std::move(cloned));
     }
 
     virtual std::string stringify() const noexcept override
@@ -394,11 +319,6 @@ struct AccessExpression
     virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
     {
         return visitor->visit(this);
-    }
-
-    virtual ExpressionPtr clone() const noexcept override
-    {
-        return make_expression<AccessExpression>(accessible->clone(), accessor);
     }
 
     virtual std::string stringify() const noexcept override

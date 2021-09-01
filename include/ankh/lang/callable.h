@@ -38,10 +38,9 @@ class Function
     : public Callable
 {
 public:
-    Function(I* interpreter, StatementPtr stmt, EnvironmentPtr<T> closure)
+    Function(I* interpreter, FunctionDeclaration* decl, EnvironmentPtr<T> closure)
         : interpreter_(interpreter)
-        , stmt_(std::move(stmt))
-        , decl_(static_cast<FunctionDeclaration*>(stmt_.get()))
+        , decl_(decl)
         , closure_(closure) {}
     
     virtual std::string name() const noexcept override
@@ -71,7 +70,6 @@ public:
 
 private:
     I *interpreter_;
-    StatementPtr stmt_;
     FunctionDeclaration *decl_;
     EnvironmentPtr<T> closure_;
 };
@@ -81,10 +79,9 @@ class Lambda
     : public Callable
 {
 public:
-    Lambda(I* interpreter, ExpressionPtr expr, EnvironmentPtr<T> closure)
+    Lambda(I* interpreter, LambdaExpression* lambda, EnvironmentPtr<T> closure)
         : interpreter_(interpreter)
-        , expr_(std::move(expr))
-        , lambda_(static_cast<LambdaExpression*>(expr_.get()))
+        , lambda_(lambda)
         , closure_(closure) {}
     
     virtual std::string name() const noexcept override
@@ -114,7 +111,6 @@ public:
 
 private:
     I *interpreter_;
-    ExpressionPtr expr_;
     LambdaExpression *lambda_;
     EnvironmentPtr<T> closure_;
 };

@@ -22,7 +22,7 @@ class Interpreter
 public:
     Interpreter();
 
-    void interpret(const Program& program);
+    void interpret(Program&& program);
 
     virtual ExprResult evaluate(const ExpressionPtr& expr);
     void execute(const StatementPtr& stmt);
@@ -77,11 +77,12 @@ private:
     void declare_function(FunctionDeclaration *decl, EnvironmentPtr<ExprResult> env);
 private:
     EnvironmentPtr<ExprResult> current_env_;
+    std::vector<Program> programs_;
 
-    class Scope {
+    class ScopeGuard {
     public:
-        Scope(ankh::lang::Interpreter *interpreter, ankh::lang::EnvironmentPtr<ExprResult> enclosing);
-        ~Scope();
+        ScopeGuard(ankh::lang::Interpreter *interpreter, ankh::lang::EnvironmentPtr<ExprResult> enclosing);
+        ~ScopeGuard();
     private:
         ankh::lang::Interpreter *interpreter_;
         ankh::lang::EnvironmentPtr<ExprResult> prev_;
