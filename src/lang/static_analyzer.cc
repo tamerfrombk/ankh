@@ -1,6 +1,7 @@
 #include <ankh/def.h>
 #include <ankh/log.h>
 
+#include <ankh/lang/token.h>
 #include <ankh/lang/static_analyzer.h>
 #include <ankh/lang/exceptions.h>
 #include <ankh/lang/lambda.h>
@@ -45,14 +46,37 @@ ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(BinaryExpression *expr)
 
 ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(UnaryExpression *expr)
 {
-    analyze(expr->right);
+    ExprResultType type = analyze(expr->right);
+    
+    if (expr->op.type == TokenType::BANG && type != ExprResultType::RT_BOOL) {
+        panic<ParseException>("{}:{}, (!) operator expects a boolean expression"
+            , expr->op.line, expr->op.col);
+    }
 
-    return {};
+    if (expr->op.type == TokenType::MINUS && type != ExprResultType::RT_NUMBER) {
+        panic<ParseException>("{}:{}, unary (-) operator expects a number expression"
+            , expr->op.line, expr->op.col);
+    }
+
+    return type;
 }
 
 ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(LiteralExpression *expr)
 {
-    ANKH_UNUSED(expr);
+    switch (expr->literal.type) {
+    case TokenType::NUMBER:
+        return ExprResultType::RT_NUMBER;
+    case TokenType::STRING:
+        return ExprResultType::RT_STRING;
+    case TokenType::ANKH_TRUE:
+    case TokenType::ANKH_FALSE:
+        return ExprResultType::RT_BOOL;
+    case TokenType::NIL:
+        return ExprResultType::RT_NIL;
+    default:
+        panic<ParseException>("{}:{}, unknown literal expression type {}'"
+            , expr->literal.line, expr->literal.col, token_type_str(expr->literal.type));
+    }
 
     return {};
 }

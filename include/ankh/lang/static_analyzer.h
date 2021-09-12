@@ -6,8 +6,8 @@
 
 #include <ankh/def.h>
 
-#include <ankh/lang/expr_result_type.h>
 #include <ankh/lang/expr.h>
+#include <ankh/lang/expr_result.h>
 #include <ankh/lang/statement.h>
 #include <ankh/lang/hop_table.h>
 #include <ankh/lang/program.h>

@@ -103,20 +103,12 @@ static bool is_integer(ankh::lang::Number n) noexcept
 
 static ankh::lang::ExprResult negate(const ankh::lang::ExprResult& result)
 {
-    if (result.type == ankh::lang::ExprResultType::RT_NUMBER) {
-        return -1 * result.n;
-    }
-
-    panic(result, "unary (-) operator expects a number expression");
+    return -1 * result.n;
 }
 
 static ankh::lang::ExprResult invert(const ankh::lang::ExprResult& result)
 {
-    if (result.type == ankh::lang::ExprResultType::RT_BOOL) {
-        return !(result.b);
-    }
-
-    panic(result, "(!) operator expects a boolean expression");
+    return !(result.b);
 }
 
 static ankh::lang::ExprResult eqeq(const ankh::lang::ExprResult& left, const ankh::lang::ExprResult& right)
