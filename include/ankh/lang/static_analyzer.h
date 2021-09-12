@@ -4,6 +4,7 @@
 #include <string>
 #include <unordered_map>
 
+#include <ankh/lang/expr_result_type.h>
 #include <ankh/lang/expr.h>
 #include <ankh/lang/statement.h>
 #include <ankh/lang/hop_table.h>

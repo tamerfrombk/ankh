@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include <ankh/lang/expr_result_type.h>
 #include <ankh/lang/types/dictionary.h>
 #include <ankh/lang/types/array.h>
 
@@ -12,16 +13,6 @@ namespace ankh::lang {
 using Number = double;
 
 struct Callable;
-
-enum class ExprResultType {
-    RT_STRING,
-    RT_NUMBER,
-    RT_BOOL,
-    RT_CALLABLE,
-    RT_ARRAY,
-    RT_DICT,
-    RT_NIL
-};
 
 inline std::string expr_result_type_str(ankh::lang::ExprResultType type) noexcept
 {
