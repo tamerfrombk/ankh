@@ -1342,6 +1342,23 @@ TEST_CASE("declarations")
     }
 }
 
+TEST_CASE("strings are indexable", "interpreter")
+{
+    const std::string source = R"(
+        let x = "foo"
+        let a = x[0]
+    )";
+
+    INFO(source);
+
+    TracingInterpreter interpreter(std::make_unique<ankh::lang::Interpreter>());
+
+    auto [program, results] = interpret(interpreter, source);
+
+    REQUIRE(results.back().type == ankh::lang::ExprResultType::RT_STRING);
+    REQUIRE(results.back().str == "f");    
+}
+
 TEST_CASE("lambdas can be shadowed because they are scope bound", "[interpreter][!mayfail]")
 {
     const std::string source = R"(

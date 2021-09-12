@@ -400,8 +400,10 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(ArrayExpression *expr)
 ankh::lang::ExprResult ankh::lang::Interpreter::visit(ankh::lang::IndexExpression *expr)
 {
     const ExprResult indexee = evaluate(expr->indexee);
-    if (indexee.type != ExprResultType::RT_ARRAY && indexee.type != ExprResultType::RT_DICT) {
-        ::panic("lookup expects array or dict operand");
+    if (indexee.type != ExprResultType::RT_ARRAY 
+        && indexee.type != ExprResultType::RT_DICT 
+        && indexee.type != ExprResultType::RT_STRING) {
+        ::panic("lookup expects string, array, or dict operand");
     }
 
     const ExprResult index = evaluate(expr->index);
@@ -410,15 +412,23 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(ankh::lang::IndexExpressio
             ::panic("index must be an integral numeric expression");
         }
 
-        if (indexee.type != ExprResultType::RT_ARRAY) {
-            ::panic("operand must be an array for a numeric index");
+        if (indexee.type == ExprResultType::RT_ARRAY) {
+            if (index.n >= indexee.array.size()) {
+                ::panic("index {} must be less than array size {}", index.n, indexee.array.size());
+            }
+
+            return indexee.array[index.n];
         }
 
-        if (index.n >= indexee.array.size()) {
-            ::panic("index {} must be less than array size {}", index.n, indexee.array.size());
+        if (indexee.type == ExprResultType::RT_STRING) {
+            if (index.n >= indexee.str.size()) {
+                ::panic("index {} must be less than string length {}", index.n, indexee.str.size());
+            }
+            
+            return std::string{ indexee.str[index.n] };
         }
 
-        return indexee.array[index.n];
+        ::panic("operand must be an array or string for a numeric index");
     }
 
     if (index.type == ExprResultType::RT_STRING) {
