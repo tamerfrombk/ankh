@@ -195,15 +195,6 @@ static ankh::lang::ExprResult logical(const ankh::lang::ExprResult& left, const 
     panic(left, right, "unknown overload of logical operator");
 }
 
-static bool truthy(const ankh::lang::ExprResult& result) noexcept
-{
-    if (result.type == ankh::lang::ExprResultType::RT_BOOL) {
-        return result.b;
-    }
-
-    ankh::lang::panic<ankh::lang::InterpretationException>("'{}' is not a boolean expression", result.stringify());
-}
-
 static void print(const ankh::lang::ExprResult& result)
 {
     const std::string stringy = result.stringify();
@@ -567,7 +558,7 @@ void ankh::lang::Interpreter::execute_block(const BlockStatement *stmt, Environm
 void ankh::lang::Interpreter::visit(IfStatement *stmt)
 {
     const ExprResult result = evaluate(stmt->condition);
-    if (truthy(result)) {
+    if (result.b) {
         execute(stmt->then_block);
     } else if (stmt->else_block != nullptr) {
         execute(stmt->else_block);
@@ -576,7 +567,7 @@ void ankh::lang::Interpreter::visit(IfStatement *stmt)
 
 void ankh::lang::Interpreter::visit(WhileStatement *stmt)
 {
-    while (truthy(evaluate(stmt->condition))) {
+    while (evaluate(stmt->condition).b) {
         try {
             execute(stmt->body);
         } catch (const BreakException&) {
@@ -593,7 +584,7 @@ void ankh::lang::Interpreter::visit(ForStatement *stmt)
         execute(stmt->init);
     }
 
-    while (stmt->condition ? truthy(evaluate(stmt->condition)) : true) {
+    while (stmt->condition ? evaluate(stmt->condition).b : true) {
         try {
             execute(stmt->body);
         } catch (const BreakException&) {

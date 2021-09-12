@@ -1,3 +1,4 @@
+#include "ankh/lang/expr_result.h"
 #include <ankh/def.h>
 #include <ankh/log.h>
 
@@ -83,9 +84,7 @@ ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(LiteralExpression *expr
 
 ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(ParenExpression *expr)
 {
-    analyze(expr->expr);
-
-    return {};
+    return analyze(expr->expr);
 }
 
 ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(IdentifierExpression *expr)
@@ -229,8 +228,12 @@ void ankh::lang::StaticAnalyzer::visit(BlockStatement *stmt)
 
 void ankh::lang::StaticAnalyzer::visit(IfStatement *stmt)
 {
-    analyze(stmt->condition);
+    if (ExprResultType type = analyze(stmt->condition); type != ExprResultType::RT_BOOL) {
+        panic<ParseException>("while statement condition must be boolean");
+    }
+
     analyze(stmt->then_block);
+    
     if (stmt->else_block != nullptr) {
         analyze(stmt->else_block);
     }
@@ -239,8 +242,13 @@ void ankh::lang::StaticAnalyzer::visit(IfStatement *stmt)
 void ankh::lang::StaticAnalyzer::visit(WhileStatement *stmt)
 {
     begin_analysis(current_analysis().fn_type, LoopType::LOOP);
-    analyze(stmt->condition);
+    
+    if (ExprResultType type = analyze(stmt->condition); type != ExprResultType::RT_BOOL) {
+        panic<ParseException>("while statement condition must be boolean");
+    }
+    
     analyze(stmt->body);
+    
     end_analysis();
 }
 
@@ -250,9 +258,16 @@ void ankh::lang::StaticAnalyzer::visit(ForStatement *stmt)
     begin_scope();
 
     if (stmt->init)         { analyze(stmt->init);      }
-    if (stmt->condition)    { analyze(stmt->condition); }
+
+    if (stmt->condition) { 
+        ExprResultType type = analyze(stmt->condition);
+        if (type != ExprResultType::RT_BOOL) {
+            panic<ParseException>("for loop condition expression must be boolean");
+        } 
+    }
+
     if (stmt->mutator)      { analyze(stmt->mutator);   }
-    
+        
     analyze(stmt->body);
 
     end_scope();
@@ -294,7 +309,7 @@ void ankh::lang::StaticAnalyzer::visit(ReturnStatement *stmt)
         panic<ParseException>("a return statement can only be within function scope");
     }
 
-    analyze(stmt->expr);
+    ANKH_UNUSED(analyze(stmt->expr));
 }
 
 void ankh::lang::StaticAnalyzer::begin_scope()
