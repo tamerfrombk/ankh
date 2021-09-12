@@ -23,7 +23,6 @@ struct ArrayExpression;
 struct IndexExpression;
 struct DictionaryExpression;
 struct StringExpression;
-struct AccessExpression;
 
 
 template <class R>
@@ -42,10 +41,10 @@ struct ExpressionVisitor {
     virtual R visit(IndexExpression *expr) = 0;
     virtual R visit(DictionaryExpression *expr) = 0;
     virtual R visit(StringExpression *expr) = 0;
-    virtual R visit(AccessExpression *expr) = 0;
 };
 
 struct Expression;
+
 using ExpressionPtr = std::unique_ptr<Expression>;
 
 struct Expression {
@@ -304,26 +303,6 @@ struct DictionaryExpression
         result += "}\n";
 
         return result;
-    }
-};
-
-struct AccessExpression 
-    : public Expression
-{
-    ExpressionPtr accessible;
-    Token accessor;
-
-    AccessExpression(ExpressionPtr accessible, Token accessor)
-        : accessible(std::move(accessible)), accessor(std::move(accessor)) {}
-    
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
-    {
-        return visitor->visit(this);
-    }
-
-    virtual std::string stringify() const noexcept override
-    {
-        return accessible ->stringify() + "." + accessor.str;
     }
 };
 

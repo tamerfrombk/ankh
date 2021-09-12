@@ -1,7 +1,6 @@
 #include <ankh/lang/expr.h>
 #include <ankh/lang/token.h>
 #include <ankh/lang/callable.h>
-#include <ankh/lang/types/object.h>
 
 #include <ankh/log.h>
 #include <ankh/def.h>
@@ -40,13 +39,6 @@ static std::string stringify(const ankh::lang::Dictionary<ankh::lang::ExprResult
     return result;
 }
 
-static std::string stringify(const ankh::lang::ObjectPtr<ankh::lang::ExprResult> & obj) noexcept
-{
-    ANKH_UNUSED(obj);
-    
-    return "{ object }";
-}
-
 std::string ankh::lang::ExprResult::stringify() const noexcept
 {
     switch (type) {
@@ -64,8 +56,6 @@ std::string ankh::lang::ExprResult::stringify() const noexcept
         return ::stringify(dict);
     case ankh::lang::ExprResultType::RT_NIL:
         return "nil";
-    case ankh::lang::ExprResultType::RT_OBJECT:
-        return ::stringify(obj);
     default:
         ANKH_FATAL("stringify(): unknown expression result type '{}'!", expr_result_type_str(type));
     }

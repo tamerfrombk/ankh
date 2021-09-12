@@ -15,10 +15,7 @@ struct ExpressionStatement;
 struct VariableDeclaration;
 struct AssignmentStatement;
 struct CompoundAssignment;
-struct ModifyStatement;
-struct CompoundModify;
 struct IncOrDecIdentifierStatement;
-struct IncOrDecAccessStatement;
 struct BlockStatement;
 struct IfStatement;
 struct WhileStatement;
@@ -26,7 +23,7 @@ struct ForStatement;
 struct BreakStatement;
 struct FunctionDeclaration;
 struct ReturnStatement;
-struct DataDeclaration;
+
 
 template <class R>
 struct StatementVisitor {
@@ -37,10 +34,7 @@ struct StatementVisitor {
     virtual R visit(VariableDeclaration *stmt) = 0;
     virtual R visit(AssignmentStatement *stmt) = 0;
     virtual R visit(IncOrDecIdentifierStatement* stmt) = 0;
-    virtual R visit(IncOrDecAccessStatement *stmt) = 0;
     virtual R visit(CompoundAssignment* stmt) = 0;
-    virtual R visit(ModifyStatement* stmt) = 0;
-    virtual R visit(CompoundModify* stmt) = 0;
     virtual R visit(BlockStatement *stmt) = 0;
     virtual R visit(IfStatement *stmt) = 0;
     virtual R visit(WhileStatement *stmt) = 0;
@@ -48,10 +42,10 @@ struct StatementVisitor {
     virtual R visit(BreakStatement *stmt) = 0;
     virtual R visit(FunctionDeclaration *stmt) = 0;
     virtual R visit(ReturnStatement *stmt) = 0;
-    virtual R visit(DataDeclaration *stmt) = 0;
 };
 
 struct Statement;
+
 using StatementPtr = std::unique_ptr<Statement>;
 
 struct Statement
@@ -148,49 +142,6 @@ struct CompoundAssignment
     }
 };
 
-struct ModifyStatement
-    : public Statement
-{
-    ExpressionPtr object;
-    Token name;
-    ExpressionPtr value;
-
-    ModifyStatement(ExpressionPtr object, Token name, ExpressionPtr value)
-        : object(std::move(object)), name(std::move(name)), value(std::move(value)) {}
-
-    virtual void accept(StatementVisitor<void>* visitor) override
-    {
-        return visitor->visit(this);
-    }
-
-    virtual std::string stringify() const noexcept override
-    {
-        return object->stringify() + "." + name.str + " = " + value->stringify();
-    }
-};
-
-struct CompoundModify
-    : public Statement
-{
-    ExpressionPtr object;
-    Token name;
-    Token op;
-    ExpressionPtr value;
-
-    CompoundModify(ExpressionPtr object, Token name, Token op, ExpressionPtr value)
-        : object(std::move(object)), name(std::move(name)), op(std::move(op)), value(std::move(value)) {}
-
-    virtual void accept(StatementVisitor<void>* visitor) override
-    {
-        return visitor->visit(this);
-    }
-
-    virtual std::string stringify() const noexcept override
-    {
-        return object->stringify() + "." + name.str + " " + op.str + " " + value->stringify();
-    }
-};
-
 enum class StorageClass
 {
     LOCAL,
@@ -276,8 +227,11 @@ struct IncOrDecStatement
     }
 };
 
-struct IncOrDecIdentifierStatement : public IncOrDecStatement<IncOrDecIdentifierStatement> { using IncOrDecStatement::IncOrDecStatement; };
-struct IncOrDecAccessStatement     : public IncOrDecStatement<IncOrDecAccessStatement>     { using IncOrDecStatement::IncOrDecStatement; };
+struct IncOrDecIdentifierStatement 
+    : public IncOrDecStatement<IncOrDecIdentifierStatement> 
+{ 
+    using IncOrDecStatement::IncOrDecStatement; 
+};
 
 struct IfStatement
     : public Statement
@@ -417,34 +371,5 @@ struct ReturnStatement
         return "return " + expr->stringify();
     }
 };
-
-struct DataDeclaration
-    : public Statement
-{
-    Token name;
-    std::vector<Token> members;
-
-    DataDeclaration(Token name, std::vector<Token> members)
-        : name(std::move(name)), members(std::move(members)) {}
-
-    virtual void accept(StatementVisitor<void> *visitor) override
-    {
-        visitor->visit(this);
-    }
-
-    virtual std::string stringify() const noexcept override
-    {
-        std::string result = "data " + name.str + " {\n\t" + members[0].str;
-        for (std::size_t i = 1; i < members.size(); ++i) {
-            result += "\n\t";
-            result += members[i].str;
-        }
-        result += "\n}\n";
-
-        return result;
-    }
-};
-
-
 
 }

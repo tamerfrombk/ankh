@@ -3,8 +3,7 @@
 ```
 program               → declaration* EOF
 
-declaration           → statement | function_declaration | data_declaration
-data_declaration      → "data" identifier "{" identifier+ "}"
+declaration           → statement | function_declaration
 function_declaration  → "fn" identifier "(" params? ")" block
 params                → identifier ( "," identifier )*
 
@@ -39,10 +38,9 @@ comparison            → term ( ( ">" | ">=" | "<" | "<=" ) term )*
 term                  → factor ( ( "-" | "+" ) factor )*
 factor                → unary ( ( "/" | "*" ) unary )*
 unary                 → ( "!" | "-" ) unary | operable
-operable              → primary ( call | lookup | access )*
+operable              → primary ( call | lookup )*
 call                  → "(" args? ")"
 lookup                → "[" expression "]"
-access                → "." identifier
 args                  → expression ( "," expression )*
 primary               → literal
                         | "(" expression ")"

@@ -1,4 +1,3 @@
-#include "ankh/lang/statement.h"
 #include <cstddef>
 #include <cstdlib>
 #include <cstdio>
@@ -23,8 +22,6 @@
 
 #include <ankh/lang/types/array.h>
 #include <ankh/lang/types/dictionary.h>
-#include <ankh/lang/types/data.h>
-#include <ankh/lang/types/object.h>
 
 #include <unordered_map>
 #include <vector>
@@ -339,17 +336,6 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(CallExpression *expr)
 
     try {
         callable->invoke(expr->args);
-        
-        // TODO: I'm not totally happy with this but this is a solution for constructors
-        // Constructors do not return anything (yet)
-        // Every other function has a return statement.
-        // We take advantage of this here to implement object generation.
-        ANKH_VERIFY(data_declarations_[name]);
-        
-        auto data = static_cast<Data<ExprResult, Interpreter>*>(functions_[name].get());
-
-        return make_object<ExprResult>(make_env<ExprResult>(data->env()));
-
     } catch (const ReturnException& e) {
         return e.result;
     }
@@ -469,19 +455,6 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(ankh::lang::StringExpressi
     return substitute(expr);
 }
 
-ankh::lang::ExprResult ankh::lang::Interpreter::visit(ankh::lang::AccessExpression *expr)
-{
-    ExprResult result = evaluate(expr->accessible);
-    if (result.type == ExprResultType::RT_OBJECT) {
-        if (auto possible_value = result.obj->env->value(expr->accessor.str); possible_value) {
-            return possible_value.value();
-        }
-        ::panic("'{}' is not a member of '{}'", expr->accessor.str, expr->accessible->stringify());
-    }
-
-    ::panic("'{}' is not accessible", expr->accessible->stringify());
-}
-
 void ankh::lang::Interpreter::visit(PrintStatement *stmt)
 {
     const ExprResult result = evaluate(stmt->expr);
@@ -550,78 +523,6 @@ void ankh::lang::Interpreter::visit(CompoundAssignment* stmt)
 
     if (!current_env_->assign(stmt->target.str, value)) {
         ::panic("{}:{}, unable to assign the result of the compound assignment", stmt->target.line, stmt->target.col);
-    }
-}
-
-void ankh::lang::Interpreter::visit(ankh::lang::ModifyStatement* expr)
-{
-    ExprResult object = evaluate(expr->object);
-    if (object.type != ExprResultType::RT_OBJECT) {
-        ::panic("only objects have members");
-    }
-
-    ExprResult value = evaluate(expr->value);
-    if (!object.obj->set(expr->name.str, value)) {
-        ::panic("'{}' is not a member", expr->name.str);
-    }
-}
-
-void ankh::lang::Interpreter::visit(ankh::lang::CompoundModify* stmt)
-{
-    ExprResult object = evaluate(stmt->object);
-    if (object.type != ExprResultType::RT_OBJECT) {
-        ::panic("only objects have members");
-    }
-
-    auto possible_target = object.obj->env->value(stmt->name.str);
-    if (!possible_target) {
-        ::panic("'{}' is not a member", stmt->name.str);
-    }
-
-    ExprResult target = possible_target.value();
-    
-    ExprResult value;
-    if (stmt->op.str == "+=") {
-        value = plus(target, evaluate(stmt->value));
-    } else if (stmt->op.str == "-=") {
-        value = arithmetic(target, evaluate(stmt->value), std::minus<>{});
-    } else if (stmt->op.str == "*=") {
-        value = arithmetic(target, evaluate(stmt->value), std::multiplies<>{});
-    } else if (stmt->op.str == "/=") {
-        value = division(target, evaluate(stmt->value));
-    } else {
-        ::panic("{}:{}, '{}' is not a valid compound assignment operation", stmt->name.line, stmt->name.col, stmt->op.str);
-    }
-
-    if (!object.obj->set(stmt->name.str, value)) {
-        ::panic("{}:{}, unable to assign the result of the compound assignment", stmt->name.line, stmt->name.col);
-    }
-}
-
-void ankh::lang::Interpreter::visit(ankh::lang::IncOrDecAccessStatement *stmt)
-{
-    AccessExpression* access = static_cast<AccessExpression*>(stmt->expr.get());
-    
-    ExprResult obj = evaluate(access->accessible);
-    
-    auto possible_rhs = obj.obj->env->value(access->accessor.str);
-    if (!possible_rhs) {
-        ::panic("{}:{}, '{}' is not a member", access->accessor.line, access->accessor.col, access->accessor.str);
-    }
-
-    ExprResult value;
-    if (stmt->op.str == "++") {
-        value = plus(*possible_rhs, 1.0);
-    } else if (stmt->op.str == "--") {
-        value = arithmetic(*possible_rhs, 1.0, std::minus<>{});
-    } else {
-        // this shouldn't happen since the parser validates the token is one of the above
-        // but those are famous last words ;)
-        ANKH_FATAL("'{}' is not a valid increment or decrement operation", stmt->op.str);
-    }
-
-    if (!obj.obj->env->assign(access->accessor.str, value)) {
-        ANKH_FATAL("{}:{}, unable to assign '{}'", access->accessor.str);
     }
 }
 
@@ -744,34 +645,6 @@ void ankh::lang::Interpreter::visit(ReturnStatement *stmt)
     const ExprResult result = evaluate(stmt->expr);
 
     throw ReturnException(result);
-}
-
-void ankh::lang::Interpreter::visit(DataDeclaration *stmt)
-{
-    ANKH_DEBUG("evaluating data '{}' declaration", stmt->name.str);
-
-    if (data_declarations_[stmt->name.str]) {
-        ::panic("{}:{}, '{}' is already a data declaration", stmt->name.line, stmt->name.col, stmt->name.str);
-    }
-
-    EnvironmentPtr<ExprResult> env = make_env<ExprResult>(current_env_);
-    std::vector<std::string> members;
-    for (const auto& member : stmt->members) {
-        if (!env->declare(member.str, ExprResult{})) {
-            ANKH_FATAL("unable to declare data member '{}'", member.str);
-        }
-        members.push_back(member.str);
-    }
-
-    functions_[stmt->name.str] = make_callable<Data<ExprResult, Interpreter>>(this, stmt->name.str, env, members);
-
-    if (!current_env_->declare(stmt->name.str, functions_[stmt->name.str].get())) {
-        ANKH_FATAL("unable to declare constructor for data declaration '{}'", stmt->name.str);
-    }
-
-    data_declarations_[stmt->name.str] = true;
-
-    ANKH_DEBUG("data '{}' declared", stmt->name.str);
 }
 
 ankh::lang::ExprResult ankh::lang::Interpreter::evaluate(const ExpressionPtr& expr)

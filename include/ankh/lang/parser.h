@@ -22,10 +22,8 @@ public:
 private:
     StatementPtr  declaration();
     StatementPtr  assignment(ExpressionPtr target);
-    StatementPtr  modify(AccessExpression* expr);
     StatementPtr  parse_variable_declaration();
     StatementPtr  parse_function_declaration();
-    StatementPtr  parse_data_declaration();
     
     StatementPtr  statement();
     StatementPtr  parse_inc_dec();

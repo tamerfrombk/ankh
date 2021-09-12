@@ -152,13 +152,6 @@ ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(StringExpression *expr)
     return {};
 }
 
-ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(AccessExpression *expr)
-{
-    ANKH_UNUSED(expr);
-
-    return {};
-}
-
 void ankh::lang::StaticAnalyzer::visit(PrintStatement *stmt)
 {
     analyze(stmt->expr);
@@ -191,22 +184,7 @@ void ankh::lang::StaticAnalyzer::visit(CompoundAssignment* stmt)
     ANKH_UNUSED(stmt);
 }
 
-void ankh::lang::StaticAnalyzer::visit(ModifyStatement* stmt)
-{
-    ANKH_UNUSED(stmt);
-}
-
-void ankh::lang::StaticAnalyzer::visit(CompoundModify* stmt)
-{
-    ANKH_UNUSED(stmt);
-}
-
 void ankh::lang::StaticAnalyzer::visit(IncOrDecIdentifierStatement* stmt)
-{
-    analyze(stmt->expr);
-}
-
-void ankh::lang::StaticAnalyzer::visit(IncOrDecAccessStatement* stmt)
 {
     analyze(stmt->expr);
 }
@@ -292,11 +270,6 @@ void ankh::lang::StaticAnalyzer::visit(ReturnStatement *stmt)
     }
 
     analyze(stmt->expr);
-}
-
-void ankh::lang::StaticAnalyzer::visit(DataDeclaration *stmt)
-{
-    ANKH_UNUSED(stmt);
 }
 
 void ankh::lang::StaticAnalyzer::begin_scope()

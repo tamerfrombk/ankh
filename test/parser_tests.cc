@@ -178,64 +178,6 @@ TEST_CASE("parse language statements", "[parser]")
         }
     }
 
-    SECTION("parse modify statement")
-    {
-        const std::string source =
-        R"(
-            a.b.c = 3
-        )";
-
-        auto program = ankh::lang::parse(source);
-
-        REQUIRE(program.size() == 1);
-
-        auto modify = ankh::lang::instance<ankh::lang::ModifyStatement>(program[0]);
-        REQUIRE(modify != nullptr);
-        REQUIRE(modify->name.str == "c");
-
-        auto access = ankh::lang::instance<ankh::lang::AccessExpression>(modify->object);
-        REQUIRE(access != nullptr);
-        REQUIRE(access->accessor.str == "b");
-
-        auto literal = ankh::lang::instance<ankh::lang::LiteralExpression>(modify->value);;
-        REQUIRE(literal != nullptr);
-
-        REQUIRE(literal->literal.str == "3");
-    }
-
-    SECTION("parse modify statement, compound modify")
-    {
-        std::string ops[] = { "+=", "-=", "*=", "/=" };
-        std::string sources[] = {
-              "i.x += 3"
-            , "i.x -= 3"
-            , "i.x *= 3"
-            , "i.x /= 3"
-        };
-
-        int i = 0;
-        for (const auto& source : sources) {
-            INFO(source);
-
-            auto program = ankh::lang::parse(source);
-            REQUIRE(!program.has_errors());
-            REQUIRE(program.size() == 1);
-
-            auto modify = ankh::lang::instance<ankh::lang::CompoundModify>(program[0]);
-            REQUIRE(modify != nullptr);
-
-            REQUIRE(modify->op.str == ops[i++]);
-
-            auto target = ankh::lang::instance<ankh::lang::IdentifierExpression>(modify->object);
-            REQUIRE(target != nullptr);
-
-            auto literal = ankh::lang::instance<ankh::lang::LiteralExpression>(modify->value);
-            REQUIRE(literal != nullptr);
-
-            REQUIRE(literal->literal.str == "3");
-        }
-    }
-
     SECTION("parse increment statement, identifier")
     {
         const std::string source =
@@ -253,25 +195,6 @@ TEST_CASE("parse language statements", "[parser]")
 
         REQUIRE(modify->op.str == "++");
         REQUIRE(ankh::lang::instanceof<ankh::lang::IdentifierExpression>(modify->expr));
-    }
-
-    SECTION("parse increment statement, access")
-    {
-        const std::string source =
-        R"(
-            ++i.x
-        )";
-
-        auto program = ankh::lang::parse(source);
-
-        REQUIRE(program.size() == 1);
-        REQUIRE(!program.has_errors());
-
-        auto modify = ankh::lang::instance<ankh::lang::IncOrDecAccessStatement>(program[0]);
-        REQUIRE(modify != nullptr);
-
-        REQUIRE(modify->op.str == "++");
-        REQUIRE(ankh::lang::instanceof<ankh::lang::AccessExpression>(modify->expr));
     }
 
     SECTION("parse increment statement, invalid target")
@@ -302,25 +225,6 @@ TEST_CASE("parse language statements", "[parser]")
 
         REQUIRE(modify->op.str == "--");
         REQUIRE(ankh::lang::instanceof<ankh::lang::IdentifierExpression>(modify->expr));
-    }
-
-    SECTION("parse decrement statement, access")
-    {
-        const std::string source =
-            R"(
-            --i.x
-        )";
-
-        auto program = ankh::lang::parse(source);
-
-        REQUIRE(program.size() == 1);
-        REQUIRE(!program.has_errors());
-
-        auto modify = ankh::lang::instance<ankh::lang::IncOrDecAccessStatement>(program[0]);
-        REQUIRE(modify != nullptr);
-
-        REQUIRE(modify->op.str == "--");
-        REQUIRE(ankh::lang::instanceof<ankh::lang::AccessExpression>(modify->expr));
     }
 
     SECTION("parse decrement statement, invalid target")
@@ -550,48 +454,6 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(block != nullptr);
         REQUIRE(block->statements.size() == 1);
         REQUIRE(ankh::lang::instanceof<ankh::lang::ReturnStatement>(block->statements[0]));
-    }
-
-    SECTION("data declaration")
-    {
-        const std::string source =
-        R"(
-            data Point { x y }
-        )";
-
-        auto program = ankh::lang::parse(source);
-
-        REQUIRE(!program.has_errors());
-        REQUIRE(program.size() == 1);
-
-        auto data = ankh::lang::instance<ankh::lang::DataDeclaration>(program[0]);
-        REQUIRE(data != nullptr);
-        REQUIRE(data->name.str == "Point");
-        REQUIRE(data->members.size() == 2);
-        REQUIRE(data->members[0].str == "x");
-        REQUIRE(data->members[1].str == "y");
-    }
-
-    SECTION("data declaration, empty")
-    {
-        const std::string source =
-        R"(
-            data Point { }
-        )";
-
-        auto program = ankh::lang::parse(source);
-        REQUIRE(program.has_errors());
-    }
-
-    SECTION("data declaration, non-terminated")
-    {
-        const std::string source =
-        R"(
-            data Point { x
-        )";
-
-        auto program = ankh::lang::parse(source);
-        REQUIRE(program.has_errors());
     }
 }
 
@@ -1171,50 +1033,6 @@ TEST_CASE("parse language expressions", "[parser]")
 
         auto lookup = ankh::lang::instance<ankh::lang::IndexExpression>(stmt->expr);
         REQUIRE(lookup != nullptr);
-    }
-
-    SECTION("accessible, field")
-    {
-        const std::string source =
-        R"(
-            a.b
-        )";
-
-        auto program = ankh::lang::parse(source);
-
-        REQUIRE(!program.has_errors());
-        REQUIRE(program.size() == 1);
-
-        auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
-        REQUIRE(stmt != nullptr);
-        
-        auto access = ankh::lang::instance<ankh::lang::AccessExpression>(stmt->expr);
-        REQUIRE(access != nullptr);
-        REQUIRE(access->accessor.str == "b");
-    }
-
-    SECTION("accessible, method")
-    {
-        const std::string source =
-        R"(
-            a.b()
-        )";
-
-        auto program = ankh::lang::parse(source);
-
-        REQUIRE(!program.has_errors());
-        REQUIRE(program.size() == 1);
-
-        auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
-        REQUIRE(stmt != nullptr);
-        
-        auto call = ankh::lang::instance<ankh::lang::CallExpression>(stmt->expr);
-        REQUIRE(call != nullptr);
-        REQUIRE(call->args.size() == 0);
-
-        auto access = ankh::lang::instance<ankh::lang::AccessExpression>(call->callee);
-        REQUIRE(access != nullptr);
-        REQUIRE(access->accessor.str == "b");
     }
 }
 

@@ -11,7 +11,6 @@
 #include <ankh/lang/lambda.h>
 #include <ankh/lang/env.h>
 #include <ankh/lang/callable.h>
-#include <ankh/lang/types/data.h>
 
 namespace ankh::lang {
 
@@ -52,17 +51,13 @@ private:
     virtual ExprResult visit(IndexExpression *cmd) override;
     virtual ExprResult visit(DictionaryExpression *expr) override;
     virtual ExprResult visit(StringExpression *expr) override;
-    virtual ExprResult visit(AccessExpression *expr) override;
 
     virtual void visit(PrintStatement *stmt) override;
     virtual void visit(ExpressionStatement *stmt) override;
     virtual void visit(VariableDeclaration *stmt) override;
     virtual void visit(AssignmentStatement *stmt) override;
     virtual void visit(CompoundAssignment* stmt) override;
-    virtual void visit(ModifyStatement* stmt) override;
-    virtual void visit(CompoundModify* expr) override;
     virtual void visit(IncOrDecIdentifierStatement* stmt) override;
-    virtual void visit(IncOrDecAccessStatement* stmt) override;
     virtual void visit(BlockStatement *stmt) override;
     virtual void visit(IfStatement *stmt) override;
     virtual void visit(WhileStatement *stmt) override;
@@ -70,7 +65,6 @@ private:
     virtual void visit(BreakStatement *stmt) override;
     virtual void visit(FunctionDeclaration *stmt) override;
     virtual void visit(ReturnStatement *stmt) override;
-    virtual void visit(DataDeclaration *stmt) override;
 
     std::string substitute(const StringExpression *expr);
     ExprResult evaluate_single_expr(const std::string& str);

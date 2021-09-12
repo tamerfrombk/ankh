@@ -151,35 +151,8 @@ ankh::lang::StatementPtr ankh::lang::Parser::parse_function_declaration()
     return make_statement<FunctionDeclaration>(name, std::move(params), std::move(body));
 }
 
-ankh::lang::StatementPtr ankh::lang::Parser::parse_data_declaration()
-{
-    // no need for a message since we know we have this token in this context
-    consume(TokenType::DATA, "");
-
-    const Token name = consume(TokenType::IDENTIFIER, "<identifier> expected as data declaration name");
-
-    consume(TokenType::LBRACE, "'{' expected to begin data body definition");
-
-    std::vector<Token> members;
-    while (!is_eof() && !check(TokenType::RBRACE)) {
-        members.push_back(consume(TokenType::IDENTIFIER, "identifier expected as data member declaration"));
-    }
-
-    consume(TokenType::RBRACE, "'}' expected to end data body definition");
-
-    if (members.empty()) {
-        panic<ParseException>("{}:{}, data declarations cannot be empty", name.line, name.col);
-    }
-
-    return make_statement<DataDeclaration>(name, members);
-}
-
 ankh::lang::StatementPtr ankh::lang::Parser::assignment(ExpressionPtr target)
 {
-    if (AccessExpression* expr = instance<AccessExpression>(target); expr != nullptr) {
-        return modify(expr);
-    }
-
     IdentifierExpression *identifier = instance<IdentifierExpression>(target);
     if (identifier == nullptr) {
         panic<ParseException>("invalid assignment target");
@@ -198,24 +171,6 @@ ankh::lang::StatementPtr ankh::lang::Parser::assignment(ExpressionPtr target)
         return make_statement<AssignmentStatement>(identifier->name, std::move(rhs));   
     } else {
         return make_statement<CompoundAssignment>(identifier->name, op, std::move(rhs));
-    }
-}
-
-ankh::lang::StatementPtr ankh::lang::Parser::modify(AccessExpression* expr)
-{
-    // no need to check this since we already know that we have one of these
-    match({ TokenType::EQ, TokenType::PLUSEQ, TokenType::MINUSEQ, TokenType::STAREQ, TokenType::FSLASHEQ });
-    
-    const Token& op = prev();
-
-    ExpressionPtr initializer = expression();
-
-    semicolon();
-
-    if (op.type == TokenType::EQ) {
-        return make_statement<ModifyStatement>(std::move(expr->accessible), expr->accessor, std::move(initializer));
-    } else {
-        return make_statement<CompoundModify>(std::move(expr->accessible), expr->accessor, op, std::move(initializer));
     }
 }
 
@@ -245,8 +200,6 @@ ankh::lang::StatementPtr ankh::lang::Parser::statement()
         return parse_inc_dec();
     } else if (check({ TokenType::LET, TokenType::EXPORT })) {
         return parse_variable_declaration();
-    } else if (check(TokenType::DATA)) {
-        return parse_data_declaration();
     }
 
     ExpressionPtr expr = expression();
@@ -259,11 +212,11 @@ ankh::lang::StatementPtr ankh::lang::Parser::statement()
         })
     ) {
         return assignment(std::move(expr));
-    } else {
-        semicolon();
-
-        return make_statement<ExpressionStatement>(std::move(expr));
     }
+
+    semicolon();
+
+    return make_statement<ExpressionStatement>(std::move(expr));
 }
 
 ankh::lang::StatementPtr ankh::lang::Parser::parse_inc_dec()
@@ -278,11 +231,7 @@ ankh::lang::StatementPtr ankh::lang::Parser::parse_inc_dec()
         return make_statement<IncOrDecIdentifierStatement>(op, std::move(target));
     }
 
-    if (instanceof<AccessExpression>(target)) {
-        return make_statement<IncOrDecAccessStatement>(op, std::move(target));
-    }
-
-    panic<ParseException>("{},{}: only identifiers and access expressions are valid increment/decrement targets", op.line, op.col);
+    panic<ParseException>("{},{}: only identifiers are valid increment/decrement targets", op.line, op.col);
 }
 
 ankh::lang::StatementPtr ankh::lang::Parser::block()
@@ -470,7 +419,7 @@ ankh::lang::ExpressionPtr ankh::lang::Parser::unary()
 ankh::lang::ExpressionPtr ankh::lang::Parser::operable()
 {
     ExpressionPtr expr = primary();
-    while (check({ TokenType::LPAREN, TokenType::LBRACKET, TokenType::DOT, TokenType::SEMICOLON })) {
+    while (check({ TokenType::LPAREN, TokenType::LBRACKET, TokenType::SEMICOLON })) {
         if (check(TokenType::SEMICOLON)) {
             return expr;
         }
@@ -481,10 +430,6 @@ ankh::lang::ExpressionPtr ankh::lang::Parser::operable()
 
         if (check(TokenType::LBRACKET)) {
             expr = index(std::move(expr));
-        }
-
-        if (check(TokenType::DOT)) {
-            expr = access(std::move(expr));
         }
     }
 
@@ -518,16 +463,6 @@ ankh::lang::ExpressionPtr ankh::lang::Parser::index(ExpressionPtr indexee)
     consume(TokenType::RBRACKET, "']' expected to terminate index operation");
 
     return make_expression<IndexExpression>(std::move(indexee), std::move(idx));
-}
-
-ankh::lang::ExpressionPtr ankh::lang::Parser::access(ExpressionPtr accessible)
-{
-    // no message required here since we know we have a DOT
-    consume(TokenType::DOT, "");
-
-    Token identifier = consume(TokenType::IDENTIFIER, "identifier required after '.'");
-    
-    return make_expression<AccessExpression>(std::move(accessible), identifier);
 }
 
 ankh::lang::ExpressionPtr ankh::lang::Parser::primary()
