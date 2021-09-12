@@ -181,7 +181,8 @@ void ankh::lang::StaticAnalyzer::visit(AssignmentStatement *stmt)
 
 void ankh::lang::StaticAnalyzer::visit(CompoundAssignment* stmt)
 {
-    ANKH_UNUSED(stmt);
+    analyze(stmt->value);
+    resolve(stmt, stmt->target);
 }
 
 void ankh::lang::StaticAnalyzer::visit(IncOrDecIdentifierStatement* stmt)
