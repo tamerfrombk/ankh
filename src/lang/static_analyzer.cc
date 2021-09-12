@@ -346,9 +346,9 @@ bool ankh::lang::StaticAnalyzer::is_declared_but_not_defined(const Token& token)
     return top().variables.count(token.str) > 0 && top().variables.at(token.str) == false;
 }
 
-void ankh::lang::StaticAnalyzer::analyze(const ExpressionPtr& expr)
+ankh::lang::ExprResultType ankh::lang::StaticAnalyzer::analyze(const ExpressionPtr& expr)
 {
-    expr->accept(this);
+    return expr->accept(this).type;
 }
 
 void ankh::lang::StaticAnalyzer::analyze(const StatementPtr& stmt)

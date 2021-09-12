@@ -42,7 +42,8 @@ struct ExprResult {
     Dictionary<ExprResult> dict;
     ExprResultType type;
 
-    ExprResult()                            :                      type(ExprResultType::RT_NIL) {}
+    ExprResult(ExprResultType type)         : type(type) {}
+    ExprResult()                            : ExprResult(ExprResultType::RT_NIL) {}
     ExprResult(std::string str)             : str(std::move(str)), type(ExprResultType::RT_STRING) {}
     ExprResult(Number n)                    : n(n)               , type(ExprResultType::RT_NUMBER) {}
     ExprResult(bool b)                      : b(b)               , type(ExprResultType::RT_BOOL) {}

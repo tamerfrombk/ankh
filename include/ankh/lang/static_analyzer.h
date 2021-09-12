@@ -4,6 +4,8 @@
 #include <string>
 #include <unordered_map>
 
+#include <ankh/def.h>
+
 #include <ankh/lang/expr_result_type.h>
 #include <ankh/lang/expr.h>
 #include <ankh/lang/statement.h>
@@ -91,7 +93,7 @@ private:
 
     bool is_declared_but_not_defined(const Token& token) const noexcept;
 
-    void analyze(const ExpressionPtr& expr);
+    ANKH_NO_DISCARD ExprResultType analyze(const ExpressionPtr& expr);
     void analyze(const StatementPtr& stmt);
 
     void resolve(const void *entity, const Token& name);
