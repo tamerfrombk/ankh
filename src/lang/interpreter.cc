@@ -228,7 +228,7 @@ void ankh::lang::Interpreter::interpret(Program&& program)
 {
     programs_.push_back(std::forward<Program>(program));
 
-    const auto& statements = programs_.back().statements();
+    const auto& statements = programs_.back().statements;
     for (const auto& stmt : statements) {
 #ifndef NDEBUG
         ANKH_DEBUG("{}", stmt->stringify());
@@ -846,7 +846,7 @@ ankh::lang::ExprResult ankh::lang::Interpreter::evaluate_single_expr(const std::
         ::panic("expression '{}' is not valid", str);
     }
 
-    const auto& statements = program.statements();
+    const auto& statements = program.statements;
     if (statements.size() > 1) {
         ::panic("'{}' is a multi return expression");
     }

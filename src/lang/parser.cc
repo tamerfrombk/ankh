@@ -1,16 +1,16 @@
-#include "ankh/lang/expr.h"
-#include "ankh/lang/statement.h"
 #include <algorithm>
 #include <initializer_list>
 #include <random>
+
+#include <ankh/log.h>
 
 #include <ankh/lang/parser.h>
 #include <ankh/lang/lexer.h>
 #include <ankh/lang/token.h>
 #include <ankh/lang/exceptions.h>
 #include <ankh/lang/lambda.h>
+#include <ankh/lang/static_analyzer.h>
 
-#include <ankh/log.h>
 
 static char generate_random_alpha_char() noexcept
 {
@@ -52,7 +52,13 @@ ankh::lang::Program ankh::lang::parse(const std::string& source)
 
     ankh::lang::Parser parser(tokens);
 
-    return parser.parse();
+    ankh::lang::Program program = parser.parse();
+
+    ankh::lang::StaticAnalyzer analyzer;
+
+    program.hop_table = analyzer.resolve(program);
+
+    return program;
 }
 
 ankh::lang::Parser::Parser(const std::vector<Token>& tokens)
@@ -66,10 +72,10 @@ ankh::lang::Program ankh::lang::Parser::parse() noexcept
     Program program;
     while (!is_eof()) {
         try {
-            program.add_statement(declaration());    
+            program.statements.push_back(declaration());    
         } catch (const ankh::lang::ParseException& e) {
             ANKH_DEBUG("parse exception: {}", e.what());
-            program.add_error(e.what());
+            program.errors.push_back(e.what());
             synchronize_next_statement();
         }
     }
@@ -755,7 +761,7 @@ void ankh::lang::Parser::synchronize_next_statement() noexcept
         TokenType::LET,
         TokenType::EXPORT,
         TokenType::DATA,
-        TokenType::BREAK
+        TokenType::BREAK,
     };
 
     while (!is_eof() && !check(statement_initializer_tokens)) {
