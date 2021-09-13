@@ -172,7 +172,7 @@ ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(StringExpression *expr)
 {
     ANKH_UNUSED(expr);
 
-    return {};
+    return ExprResultType::RT_STRING;
 }
 
 void ankh::lang::StaticAnalyzer::visit(PrintStatement *stmt)
