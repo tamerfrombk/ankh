@@ -144,10 +144,10 @@ ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(CommandExpression *expr
 ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(ArrayExpression *expr)
 {
     for (const auto& elem : expr->elems) {
-        analyze(elem);
+        ANKH_UNUSED(analyze(elem));
     }
 
-    return {};
+    return ExprResultType::RT_ARRAY;
 }
 
 ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(IndexExpression *expr)
@@ -161,11 +161,14 @@ ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(IndexExpression *expr)
 ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(DictionaryExpression *expr)
 {
     for (const auto& [k, v] : expr->entries) {
-        analyze(k);
-        analyze(v);
+        if (ExprResultType key_type = analyze(k); key_type != ExprResultType::RT_STRING) {
+            panic<ParseException>("dictionary key {} is not a string", k->stringify());
+        }
+
+        ANKH_UNUSED(analyze(v));
     }
 
-    return {};
+    return ExprResultType::RT_DICT;
 }
 
 ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(StringExpression *expr)

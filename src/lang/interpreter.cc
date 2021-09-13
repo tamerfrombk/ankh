@@ -433,10 +433,7 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(ankh::lang::DictionaryExpr
 {
     Dictionary<ExprResult> dict;
     for (const auto& [key, value] : expr->entries) {
-        const ExprResult& key_result = evaluate(key);
-        if (key_result.type != ExprResultType::RT_STRING) {
-            ::panic("expression key does not evaluate to a string");
-        }
+        const ExprResult key_result = evaluate(key);
         dict.insert(key_result, evaluate(value));
     }
 
