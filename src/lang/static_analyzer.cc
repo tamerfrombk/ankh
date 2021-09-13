@@ -177,12 +177,12 @@ ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(StringExpression *expr)
 
 void ankh::lang::StaticAnalyzer::visit(PrintStatement *stmt)
 {
-    analyze(stmt->expr);
+    ANKH_UNUSED(analyze(stmt->expr));
 }
 
 void ankh::lang::StaticAnalyzer::visit(ExpressionStatement *stmt)
 {
-    analyze(stmt->expr);
+    ANKH_UNUSED(analyze(stmt->expr));
 }
 
 void ankh::lang::StaticAnalyzer::visit(VariableDeclaration *stmt)
@@ -210,7 +210,10 @@ void ankh::lang::StaticAnalyzer::visit(CompoundAssignment* stmt)
 
 void ankh::lang::StaticAnalyzer::visit(IncOrDecIdentifierStatement* stmt)
 {
-    analyze(stmt->expr);
+    ExprResultType type = analyze(stmt->expr);
+    if (type != ExprResultType::RT_NUMBER) {
+        panic<ParseException>("target of an increment or decrement statement must be numeric");
+    }
 }
 
 void ankh::lang::StaticAnalyzer::visit(BlockStatement *stmt)
