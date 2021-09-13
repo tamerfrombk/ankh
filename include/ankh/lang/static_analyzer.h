@@ -63,6 +63,7 @@ private:
 
     struct Scope {
         std::unordered_map<std::string, bool> variables;
+        std::unordered_map<std::string, ExprResultType> types;
     };
 
     struct Analysis {
@@ -89,14 +90,14 @@ private:
     const Scope& top() const noexcept;
 
     void declare(const Token& token);
-    void define(const Token& token);
+    void define(const Token& token, ExprResultType type);
 
     bool is_declared_but_not_defined(const Token& token) const noexcept;
 
     ANKH_NO_DISCARD ExprResultType analyze(const ExpressionPtr& expr);
     void analyze(const StatementPtr& stmt);
 
-    void resolve(const void *entity, const Token& name);
+    ANKH_NO_DISCARD ExprResultType resolve(const void *entity, const Token& name);
 
 private:
     std::vector<Scope> scopes_;

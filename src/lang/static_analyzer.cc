@@ -95,9 +95,7 @@ ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(IdentifierExpression *e
         panic<ParseException>("can't read local variable in its own initializer");
     }
 
-    resolve(expr, expr->name);
-
-    return {};
+    return resolve(expr, expr->name);
 }
 
 ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(CallExpression *expr)
@@ -193,22 +191,32 @@ void ankh::lang::StaticAnalyzer::visit(VariableDeclaration *stmt)
     ANKH_DEBUG("static analyzer: analyzing '{}'", stmt->stringify());
     
     declare(stmt->name);
-    analyze(stmt->initializer);
-    define(stmt->name);
+    ExprResultType type = analyze(stmt->initializer);
+    define(stmt->name, type);
 }
 
 void ankh::lang::StaticAnalyzer::visit(AssignmentStatement *stmt)
 {
     ANKH_DEBUG("static analyzer: analyzing '{}'", stmt->stringify());
 
-    analyze(stmt->initializer);
-    resolve(stmt, stmt->name);
+    ExprResultType init_type = analyze(stmt->initializer);
+    ExprResultType target_type = resolve(stmt, stmt->name);
+
+    if (init_type != target_type) {
+        panic<ParseException>("attempting to assign a {} to a {}", 
+            expr_result_type_str(init_type), expr_result_type_str(target_type));
+    }
 }
 
-void ankh::lang::StaticAnalyzer::visit(CompoundAssignment* stmt)
+void ankh::lang::StaticAnalyzer::visit(CompoundAssignment *stmt)
 {
-    analyze(stmt->value);
-    resolve(stmt, stmt->target);
+    ExprResultType value_type = analyze(stmt->value);
+    ExprResultType target_type = resolve(stmt, stmt->target);
+
+    if (value_type != target_type) {
+        panic<ParseException>("attempting to assign a {} to a {}",
+            expr_result_type_str(value_type), expr_result_type_str(target_type));
+    }
 }
 
 void ankh::lang::StaticAnalyzer::visit(IncOrDecIdentifierStatement* stmt)
@@ -373,17 +381,19 @@ void ankh::lang::StaticAnalyzer::declare(const ankh::lang::Token& token)
     ANKH_VERIFY(top().variables.count(token.str) == 0);
     
     top().variables.insert({token.str, false});
+    top().types.insert({token.str, ExprResultType::RT_NIL});
     
     ANKH_DEBUG("'{}' declared at scope {}", token.str, scopes_.size() - 1);
 }
 
-void ankh::lang::StaticAnalyzer::define(const ankh::lang::Token& token)
+void ankh::lang::StaticAnalyzer::define(const ankh::lang::Token& token, ExprResultType type)
 {
     ANKH_VERIFY(top().variables.count(token.str) > 0);
 
     top().variables[token.str] = true;
+    top().types[token.str] = type;
 
-    ANKH_DEBUG("'{}' defined at scope {}", token.str, scopes_.size() - 1);
+    ANKH_DEBUG("'{}' defined at scope {} as type {}", token.str, scopes_.size() - 1, expr_result_type_str(type));
 }
 
 bool ankh::lang::StaticAnalyzer::is_declared_but_not_defined(const Token& token) const noexcept
@@ -401,7 +411,7 @@ void ankh::lang::StaticAnalyzer::analyze(const StatementPtr& stmt)
     stmt->accept(this);
 }
 
-void ankh::lang::StaticAnalyzer::resolve(const void *entity, const Token& name)
+ankh::lang::ExprResultType ankh::lang::StaticAnalyzer::resolve(const void *entity, const Token& name)
 {
     for (auto it = scopes_.crbegin(); it != scopes_.crend(); ++it) {
         if (it->variables.count(name.str) > 0) {
@@ -409,7 +419,7 @@ void ankh::lang::StaticAnalyzer::resolve(const void *entity, const Token& name)
             ANKH_DEBUG("'{}' is {} hops away from current scope {}", name.str, hops, scopes_.size() - 1);
             ANKH_VERIFY(hop_table_.count(entity) == 0);
             hop_table_[entity] = hops;
-            return;
+            return it->types.at(name.str);
         }
     }
 }
