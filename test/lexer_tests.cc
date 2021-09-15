@@ -133,7 +133,6 @@ TEST_CASE("scan keyword tokens", "[lexer]")
         return
         let
         export
-        data
         break
     )";
 
@@ -151,8 +150,7 @@ TEST_CASE("scan keyword tokens", "[lexer]")
     REQUIRE(tokens[9] == ankh::lang::Token{ "return", ankh::lang::TokenType::ANKH_RETURN, 11, 9 });
     REQUIRE(tokens[10] == ankh::lang::Token{ "let", ankh::lang::TokenType::LET, 12, 9 });
     REQUIRE(tokens[11] == ankh::lang::Token{ "export", ankh::lang::TokenType::EXPORT, 13, 9 });
-    REQUIRE(tokens[12] == ankh::lang::Token{ "data", ankh::lang::TokenType::DATA, 14, 9 });
-    REQUIRE(tokens[13] == ankh::lang::Token{ "break", ankh::lang::TokenType::BREAK, 15, 9 });
+    REQUIRE(tokens[12] == ankh::lang::Token{ "break", ankh::lang::TokenType::BREAK, 14, 9 });
 
     for (const ankh::lang::Token& token : tokens) {
         if (token.type != ankh::lang::TokenType::ANKH_EOF){

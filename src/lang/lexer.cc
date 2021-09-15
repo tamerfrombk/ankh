@@ -20,7 +20,6 @@ static const std::unordered_map<std::string, ankh::lang::TokenType> KEYWORDS = {
     , { "let", ankh::lang::TokenType::LET }
     , { "export", ankh::lang::TokenType::EXPORT }
     , { "return", ankh::lang::TokenType::ANKH_RETURN }
-    , { "data", ankh::lang::TokenType::DATA }
 };
 
 ankh::lang::Lexer::Lexer(std::string text)
@@ -91,13 +90,13 @@ ankh::lang::Token ankh::lang::Lexer::next()
             advance(); // eat the '&'
             return tokenize("&&", TokenType::AND);
         }
-        panic<ScanException>("'&' is not a valid token; did you mean '&&' ?");
+        panic<ScanException>(tokenize(curr(), TokenType::UNKNOWN), "'&' is not a valid token; did you mean '&&' ?");
     } else if (c == '|') {
         if (curr() == '|') {
             advance(); // eat the '|'
             return tokenize("||", TokenType::OR);
         }
-        panic<ScanException>("'|' is not a valid token; did you mean '||' ?");
+        panic<ScanException>(tokenize(curr(), TokenType::UNKNOWN), "'|' is not a valid token; did you mean '||' ?");
     } else if (c == ';') {
         return tokenize(";", TokenType::SEMICOLON);
     } else if (c == ',') {
@@ -109,7 +108,7 @@ ankh::lang::Token ankh::lang::Lexer::next()
     } else if (c == '.') {
         return tokenize(c, TokenType::DOT);
     } else {
-        panic<ScanException>("{}:{} unknown token or token initializer: '{}'", line_, col_, c);
+        panic<ScanException>(tokenize(curr(), TokenType::UNKNOWN), "unknown token or token initializer: '{}'", c);
     }
 }
 
@@ -175,7 +174,7 @@ ankh::lang::Token ankh::lang::Lexer::scan_string()
     while (!is_eof()) {
         const char c = advance();
         if (is_eof()) {
-            panic<ScanException>("terminal \" not found");
+            panic<ScanException>(tokenize(c, TokenType::UNKNOWN), "terminal \" not found");
         } else if (c == '\\') {
             const char n = advance();
             if (n == '"') {
@@ -209,7 +208,7 @@ ankh::lang::Token ankh::lang::Lexer::scan_number()
             advance();
         } else if (c == '.') {
             if (decimal_found) {
-                panic<ScanException>("'.' lexeme not expected");
+                panic<ScanException>(tokenize(c, TokenType::UNKNOWN), "'.' lexeme not expected");
             }
             num += c;
             decimal_found = true;
@@ -236,7 +235,7 @@ ankh::lang::Token ankh::lang::Lexer::scan_compound_operator(char expected, Token
 ankh::lang::Token ankh::lang::Lexer::scan_command()
 { 
     if (curr() != '(') {
-        panic<ScanException>("'(' token is expected after '$' for command");
+        panic<ScanException>(tokenize(curr(), TokenType::UNKNOWN), "'(' token is expected after '$' for command");
     }
 
     advance(); // eat the '('
@@ -247,7 +246,7 @@ ankh::lang::Token ankh::lang::Lexer::scan_command()
         if (c == ')') {
             break;
         } else if (is_eof()) {
-            panic<ScanException>("terminal ')' not found");
+            panic<ScanException>(tokenize(c, TokenType::UNKNOWN), "terminal ')' not found");
         } else {
             value += c;
         }

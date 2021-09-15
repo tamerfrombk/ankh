@@ -7,6 +7,8 @@
 
 #include <ankh/def.h>
 
+#include <ankh/lang/token.h>
+
 namespace ankh::lang {
 
 struct ScanException
@@ -31,9 +33,10 @@ struct ParseException
 };
 
 template <class E, class... Args>
-ANKH_NO_RETURN void panic(const char *fmt, Args&&... args)
+ANKH_NO_RETURN void panic(const Token& marker, const char *fmt, Args&&... args)
 {
-    const std::string str = fmt::format(fmt, std::forward<Args>(args)...);
+    const std::string fmt_str = "{}:{}, " + std::string{fmt};
+    const std::string str = fmt::format(fmt_str, marker.line, marker.col, std::forward<Args>(args)...);
 
     throw E(str);
 }

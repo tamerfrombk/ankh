@@ -6,6 +6,7 @@
 #include <functional>
 #include <cerrno>
 #include <cstring>
+#include <numeric>
 #include <stdexcept>
 
 #include <fmt/format.h>
@@ -42,38 +43,6 @@ struct BreakException
         : std::runtime_error("") {}
 };
 
-template <class... Args>
-ANKH_NO_RETURN static void panic(const char *fmt, Args&&... args)
-{
-    const std::string msg = fmt::format(fmt, std::forward<Args>(args)...);
-    ankh::lang::panic<ankh::lang::InterpretationException>("runtime error: {}", msg);
-}
-
-template <class... Args>
-ANKH_NO_RETURN static void panic(const ankh::lang::ExprResult& result, const char *fmt, Args&&... args)
-{
-    const std::string typestr = ankh::lang::expr_result_type_str(result.type);
-
-    const std::string msg = fmt::format(fmt, std::forward<Args>(args)...);
-
-    ankh::lang::panic<ankh::lang::InterpretationException>("runtime error: {} instead of '{}'", msg, typestr);
-}
-
-template <class... Args>
-ANKH_NO_RETURN static void panic(
-    const ankh::lang::ExprResult& left
-    , const ankh::lang::ExprResult& right
-    , const char *fmt
-    , Args&&... args
-)
-{
-    const std::string ltypestr = ankh::lang::expr_result_type_str(left.type);
-    const std::string rtypestr = ankh::lang::expr_result_type_str(right.type);
-    const std::string msg = fmt::format(fmt, std::forward<Args>(args)...);
-
-    ankh::lang::panic<ankh::lang::InterpretationException>("runtime error: {} with LHS '{}', RHS '{}'", msg, ltypestr, rtypestr);
-}
-
 static bool operands_are(ankh::lang::ExprResultType type, std::initializer_list<ankh::lang::ExprResult> elems) noexcept
 {
     return std::all_of(elems.begin(), elems.end(), [=](const ankh::lang::ExprResult& result) {
@@ -81,18 +50,18 @@ static bool operands_are(ankh::lang::ExprResultType type, std::initializer_list<
     });
 }
 
-static ankh::lang::Number to_num(const std::string& s)
+static ankh::lang::Number to_num(const ankh::lang::LiteralExpression *expr)
 {
     char *end;
 
-    ankh::lang::Number n = std::strtod(s.c_str(), &end);
+    ankh::lang::Number n = std::strtod(expr->literal.str.c_str(), &end);
     if (*end == '\0') {
         return n;
     }
 
     const std::string errno_msg(std::strerror(errno));
 
-    panic("'{}' could not be turned into a number due to {}", s, errno_msg);
+    ankh::lang::panic<ankh::lang::InterpretationException>(expr->literal, "runtime error: '{}' could not be turned into a number because '{}'", expr->stringify(), errno_msg);
 }
 
 static bool is_integer(ankh::lang::Number n) noexcept
@@ -101,25 +70,25 @@ static bool is_integer(ankh::lang::Number n) noexcept
     return modf(n, &intpart) == 0.0;
 }
 
-static ankh::lang::ExprResult negate(const ankh::lang::ExprResult& result)
+static ankh::lang::ExprResult negate(const ankh::lang::Token& marker, const ankh::lang::ExprResult& result)
 {
     if (result.type == ankh::lang::ExprResultType::RT_NUMBER) {
         return -1 * result.n;
     }
 
-    panic(result, "unary (-) operator expects a number expression");
+    ankh::lang::panic<ankh::lang::InterpretationException>(marker, "runtime error: unary operator(-) expects a number, not a {}", ankh::lang::expr_result_type_str(result.type));
 }
 
-static ankh::lang::ExprResult invert(const ankh::lang::ExprResult& result)
+static ankh::lang::ExprResult invert(const ankh::lang::Token& marker, const ankh::lang::ExprResult& result)
 {
     if (result.type == ankh::lang::ExprResultType::RT_BOOL) {
         return !(result.b);
     }
 
-    panic(result, "(!) operator expects a boolean expression");
+    ankh::lang::panic<ankh::lang::InterpretationException>(marker, "runtime error: operator(!) expects a boolean expression, not a {}", ankh::lang::expr_result_type_str(result.type));
 }
 
-static ankh::lang::ExprResult eqeq(const ankh::lang::ExprResult& left, const ankh::lang::ExprResult& right)
+static ankh::lang::ExprResult eqeq(const ankh::lang::Token& marker, const ankh::lang::ExprResult& left, const ankh::lang::ExprResult& right)
 {
     if (operands_are(ankh::lang::ExprResultType::RT_NUMBER, {left, right})) {
         return left.n == right.n;
@@ -137,36 +106,36 @@ static ankh::lang::ExprResult eqeq(const ankh::lang::ExprResult& left, const ank
         return true;
     }
 
-    panic(left, right, "unknown overload of (==) operator");
+    ankh::lang::panic<ankh::lang::InterpretationException>(marker, "runtime error: unknown overload of operator(==) with LHS as {} and RHS as {}", ankh::lang::expr_result_type_str(left.type), ankh::lang::expr_result_type_str(right.type));
 }
 
 template <class BinaryOperation>
 static ankh::lang::ExprResult 
-arithmetic(const ankh::lang::ExprResult& left, const ankh::lang::ExprResult& right, BinaryOperation op)
+arithmetic(const ankh::lang::Token& marker, const ankh::lang::ExprResult& left, const ankh::lang::ExprResult& right, BinaryOperation op)
 {
     if (operands_are(ankh::lang::ExprResultType::RT_NUMBER, {left, right})) {
         return op(left.n, right.n);
     }
 
-    panic(left, right, "unknown overload of arithmetic operator");
+    ankh::lang::panic<ankh::lang::InterpretationException>(marker, "runtime error: unknown overload of operator({}) with LHS as {} and RHS as {}", marker.str, ankh::lang::expr_result_type_str(left.type), ankh::lang::expr_result_type_str(right.type));
 }
 
-static ankh::lang::ExprResult division(const ankh::lang::ExprResult& left, const ankh::lang::ExprResult& right)
+static ankh::lang::ExprResult division(const ankh::lang::Token& marker, const ankh::lang::ExprResult& left, const ankh::lang::ExprResult& right)
 {
     if (operands_are(ankh::lang::ExprResultType::RT_NUMBER, {left, right})) {
         if (right.n == 0) {
-            panic("division by zero");
+            ankh::lang::panic<ankh::lang::InterpretationException>(marker, "runtime error: division by zero");
         }
         return left.n / right.n;
     }
 
-    panic(left, right, "unknown overload of arithmetic operator");
+    ankh::lang::panic<ankh::lang::InterpretationException>(marker, "runtime error: unknown overload of operator({}) with LHS as {} and RHS as {}", marker.str, ankh::lang::expr_result_type_str(left.type), ankh::lang::expr_result_type_str(right.type));
 }
 
 // We handle + separately as it has two overloads for numbers and strings
 // The generic arithmetic() function overloads all of the general arithmetic operations
 // on only numbers
-static ankh::lang::ExprResult plus(const ankh::lang::ExprResult& left, const ankh::lang::ExprResult& right)
+static ankh::lang::ExprResult plus(const ankh::lang::Token& marker, const ankh::lang::ExprResult& left, const ankh::lang::ExprResult& right)
 {
     if (operands_are(ankh::lang::ExprResultType::RT_NUMBER, {left, right})) {
         return left.n + right.n;
@@ -176,11 +145,11 @@ static ankh::lang::ExprResult plus(const ankh::lang::ExprResult& left, const ank
         return left.str + right.str;
     }
 
-    panic(left, right, "unknown overload of (+) operator");
+    ankh::lang::panic<ankh::lang::InterpretationException>(marker, "runtime error: unknown overload of operator(+) with LHS as {} and RHS as {}", ankh::lang::expr_result_type_str(left.type), ankh::lang::expr_result_type_str(right.type));
 }
 
 template <class Compare>
-static ankh::lang::ExprResult compare(const ankh::lang::ExprResult& left, const ankh::lang::ExprResult& right, Compare cmp)
+static ankh::lang::ExprResult compare(const ankh::lang::Token& marker, const ankh::lang::ExprResult& left, const ankh::lang::ExprResult& right, Compare cmp)
 {
     if (operands_are(ankh::lang::ExprResultType::RT_NUMBER, {left, right})) {
         return cmp(left.n, right.n);
@@ -190,26 +159,26 @@ static ankh::lang::ExprResult compare(const ankh::lang::ExprResult& left, const 
         return cmp(left.str, right.str);
     }
 
-    panic(left, right, "unknown overload of comparison operator");
+    ankh::lang::panic<ankh::lang::InterpretationException>(marker, "runtime error: unknown overload of operator({}) with LHS as {} and RHS as {}", marker.str, ankh::lang::expr_result_type_str(left.type), ankh::lang::expr_result_type_str(right.type));
 }
 
 template <class Compare>
-static ankh::lang::ExprResult logical(const ankh::lang::ExprResult& left, const ankh::lang::ExprResult& right, Compare cmp)
+static ankh::lang::ExprResult logical(const ankh::lang::Token& marker, const ankh::lang::ExprResult& left, const ankh::lang::ExprResult& right, Compare cmp)
 {
     if (operands_are(ankh::lang::ExprResultType::RT_BOOL, {left, right})) {
         return cmp(left.b, right.b);
     }
 
-    panic(left, right, "unknown overload of logical operator");
+    ankh::lang::panic<ankh::lang::InterpretationException>(marker, "runtime error: unknown overload of operator({}) with LHS as {} and RHS as {}", marker.str, ankh::lang::expr_result_type_str(left.type), ankh::lang::expr_result_type_str(right.type));
 }
 
-static bool truthy(const ankh::lang::ExprResult& result) noexcept
+static bool truthy(const ankh::lang::Token& marker, const ankh::lang::ExprResult& result) noexcept
 {
     if (result.type == ankh::lang::ExprResultType::RT_BOOL) {
         return result.b;
     }
 
-    ankh::lang::panic<ankh::lang::InterpretationException>("'{}' is not a boolean expression", result.stringify());
+    ankh::lang::panic<ankh::lang::InterpretationException>(marker, "runtime error: '{}' is not a boolean expression", result.stringify());
 }
 
 static void print(const ankh::lang::ExprResult& result)
@@ -241,31 +210,31 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(BinaryExpression *expr)
 
     switch (expr->op.type) {
     case TokenType::EQEQ:
-        return eqeq(left, right);
+        return eqeq(expr->op, left, right);
     case TokenType::NEQ:
-        return invert(eqeq(left, right));
+        return invert(expr->op, eqeq(expr->op, left, right));
     case TokenType::GT:
-        return compare(left, right, std::greater<>{});
+        return compare(expr->op, left, right, std::greater<>{});
     case TokenType::GTE:
-        return compare(left, right, std::greater_equal<>{});
+        return compare(expr->op, left, right, std::greater_equal<>{});
     case TokenType::LT:
-        return compare(left, right, std::less<>{});
+        return compare(expr->op, left, right, std::less<>{});
     case TokenType::LTE:
-        return compare(left, right, std::less_equal<>{});
+        return compare(expr->op, left, right, std::less_equal<>{});
     case TokenType::MINUS:
-        return arithmetic(left, right, std::minus<>{});
+        return arithmetic(expr->op, left, right, std::minus<>{});
     case TokenType::PLUS:
-        return plus(left, right);
+        return plus(expr->op, left, right);
     case TokenType::STAR:
-        return arithmetic(left, right, std::multiplies<>{});
+        return arithmetic(expr->op, left, right, std::multiplies<>{});
     case TokenType::AND:
-        return logical(left, right, std::logical_and<>{});
+        return logical(expr->op, left, right, std::logical_and<>{});
     case TokenType::OR:
-        return logical(left, right, std::logical_or<>{});
+        return logical(expr->op, left, right, std::logical_or<>{});
     case TokenType::FSLASH:
-        return division(left, right);
+        return division(expr->op, left, right);
     default:
-        ::panic(left, right, "unknown binary operator '{}'", expr->op.str);
+        panic<InterpretationException>(expr->op, "runtime error: unknown binary operator '{}'", expr->op.str);
     }
 }
 
@@ -274,11 +243,11 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(UnaryExpression *expr)
     const ExprResult result = evaluate(expr->right);
     switch (expr->op.type) {
     case TokenType::MINUS:
-        return negate(result);
+        return negate(expr->op, result);
     case TokenType::BANG:
-        return invert(result);
+        return invert(expr->op, result);
     default:
-        ::panic(result, "unknown unary operator '{}'", expr->op.str);
+        panic<InterpretationException>(expr->op, "runtime error: unknown unary operator '{}'", expr->op.str);
     }
 }
 
@@ -286,7 +255,7 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(LiteralExpression *expr)
 {
     switch (expr->literal.type) {
     case TokenType::NUMBER:
-        return to_num(expr->literal.str);
+        return to_num(expr);
     case TokenType::STRING:
         return expr->literal.str;
     case TokenType::ANKH_TRUE:
@@ -296,7 +265,7 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(LiteralExpression *expr)
     case TokenType::NIL:
         return {};
     default:
-        ::panic("unknown literal expression '{}''", expr->literal.str);
+        panic<InterpretationException>(expr->literal, "runtime error: unknown literal expression '{}''", expr->literal.str);
     }
 }
 
@@ -314,7 +283,7 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(IdentifierExpression *expr
         return possible_value.value();
     }
 
-    ::panic("identifier '{}' not defined", expr->name.str);
+    panic<InterpretationException>(expr->name, "runtime error: identifier '{}' not defined", expr->name.str);
 }
 
 ankh::lang::ExprResult ankh::lang::Interpreter::visit(CallExpression *expr)
@@ -323,13 +292,13 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(CallExpression *expr)
 
     const ExprResult callee = evaluate(expr->callee);
     if (callee.type != ExprResultType::RT_CALLABLE) {
-        ::panic("only functions and classes are callable");
+        panic<InterpretationException>(expr->marker, "runtime error: only functions and classes are callable");
     }
 
     Callable *callable = callee.callable;
     const std::string name = callable->name();
     if (expr->args.size() != callable->arity()) {
-        ::panic("expected {} arguments to function '{}' instead of {}", callable->arity(), name, expr->args.size());
+        panic<InterpretationException>(expr->marker, "runtime error: expected {} arguments to function '{}' instead of {}", callable->arity(), name, expr->args.size());
     }
 
     ANKH_DEBUG("function '{}' with matching arity '{}' found", name, expr->args.size());
@@ -357,7 +326,7 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(LambdaExpression *expr)
     functions_[name] = std::move(callable);
     
     if (!current_env_->declare(name, result)) {
-        ::panic("'{}' is already defined", name);
+        panic<InterpretationException>(expr->marker, "runtime error: '{}' is already defined", name);
     }
 
     ANKH_DEBUG("function '{}' added to scope {}", name, current_env_->scope());
@@ -403,18 +372,18 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(ankh::lang::IndexExpressio
     if (indexee.type != ExprResultType::RT_ARRAY 
         && indexee.type != ExprResultType::RT_DICT 
         && indexee.type != ExprResultType::RT_STRING) {
-        ::panic("lookup expects string, array, or dict operand");
+        panic<InterpretationException>(expr->marker, "runtime error: lookup expects string, array, or dict operand");
     }
 
     const ExprResult index = evaluate(expr->index);
     if (index.type == ExprResultType::RT_NUMBER) {
         if (!is_integer(index.n)) {
-            ::panic("index must be an integral numeric expression");
+            panic<InterpretationException>(expr->marker, "runtime error: index must be an integral numeric expression");
         }
 
         if (indexee.type == ExprResultType::RT_ARRAY) {
             if (index.n >= indexee.array.size()) {
-                ::panic("index {} must be less than array size {}", index.n, indexee.array.size());
+                panic<InterpretationException>(expr->marker, "runtime error: index {} must be less than array size {}", index.n, indexee.array.size());
             }
 
             return indexee.array[index.n];
@@ -422,18 +391,18 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(ankh::lang::IndexExpressio
 
         if (indexee.type == ExprResultType::RT_STRING) {
             if (index.n >= indexee.str.size()) {
-                ::panic("index {} must be less than string length {}", index.n, indexee.str.size());
+                panic<InterpretationException>(expr->marker, "runtime error: index {} must be less than string length {}", index.n, indexee.str.size());
             }
             
             return std::string{ indexee.str[index.n] };
         }
 
-        ::panic("operand must be an array or string for a numeric index");
+        panic<InterpretationException>(expr->marker, "runtime error: operand must be an array or string for a numeric index");
     }
 
     if (index.type == ExprResultType::RT_STRING) {
         if (indexee.type != ExprResultType::RT_DICT) {
-            ::panic("operand must be a dict for a string index");
+            panic<InterpretationException>(expr->marker, "runtime error: operand must be a dict for a string index");
         }
 
         if (auto possible_value = indexee.dict.value(index.str); possible_value.has_value()) {
@@ -443,7 +412,7 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(ankh::lang::IndexExpressio
         return {};
     }
 
-    ::panic("'{}' is not a valid lookup expression", index.stringify());
+    panic<InterpretationException>(expr->marker, "runtime error: '{}' is not a valid lookup expression", index.stringify());
 }
 
 ankh::lang::ExprResult ankh::lang::Interpreter::visit(ankh::lang::DictionaryExpression *expr)
@@ -452,7 +421,7 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(ankh::lang::DictionaryExpr
     for (const auto& [key, value] : expr->entries) {
         const ExprResult& key_result = evaluate(key);
         if (key_result.type != ExprResultType::RT_STRING) {
-            ::panic("expression key does not evaluate to a string");
+            panic<InterpretationException>(expr->marker, "runtime error: expression key '{}' does not evaluate to a string", key->stringify());
         }
         dict.insert(key_result, evaluate(value));
     }
@@ -481,7 +450,7 @@ void ankh::lang::Interpreter::visit(ExpressionStatement *stmt)
 void ankh::lang::Interpreter::visit(VariableDeclaration *stmt)
 {
     if (current_env_->contains(stmt->name.str)) {
-        ::panic("'{}' is already declared in this scope", stmt->name.str);
+        panic<InterpretationException>(stmt->name, "runtime error: '{}' is already declared in this scope", stmt->name.str);
     }
 
     const ExprResult result = evaluate(stmt->initializer);
@@ -489,14 +458,14 @@ void ankh::lang::Interpreter::visit(VariableDeclaration *stmt)
     ANKH_DEBUG("DECLARATION '{}' = '{}'", stmt->name.str, result.stringify());
 
     if (!current_env_->declare(stmt->name.str, result)) {
-        ::panic("'{}' is already defined", stmt->name.str);
+        panic<InterpretationException>(stmt->name, "runtime error: '{}' is already defined", stmt->name.str);
     }
 
     if (stmt->storage_class == StorageClass::EXPORT) {
         const std::string result_str = result.stringify();
         if (setenv(stmt->name.str.c_str(), result_str.c_str(), 1) == -1) {
             const std::string errno_msg(std::strerror(errno));
-            ::panic("'{}' could not be exported due to {}", stmt->name.str, errno_msg);
+            panic<InterpretationException>(stmt->name, "runtime error: '{}' could not be exported due to {}", stmt->name.str, errno_msg);
         }
     }
 }
@@ -505,7 +474,7 @@ void ankh::lang::Interpreter::visit(AssignmentStatement *stmt)
 {
     const ExprResult result = evaluate(stmt->initializer);
     if (!current_env_->assign(stmt->name.str, result)) {
-        ::panic("'{}' is not defined", stmt->name.str);
+        panic<InterpretationException>(stmt->name, "runtime error: '{}' is not defined", stmt->name.str);
     }
 }
 
@@ -513,26 +482,26 @@ void ankh::lang::Interpreter::visit(CompoundAssignment* stmt)
 {
     auto possible_target = current_env_->value(stmt->target.str);
     if (!possible_target) {
-        ::panic("'{}' is not defined", stmt->target.str);
+        panic<InterpretationException>(stmt->target, "runtime error: '{}' is not defined", stmt->target.str);
     }
 
     ExprResult target = possible_target.value();
 
     ExprResult value;
     if (stmt->op.str == "+=") {
-        value = plus(target, evaluate(stmt->value));
+        value = plus(stmt->op, target, evaluate(stmt->value));
     } else if (stmt->op.str == "-=") {
-        value = arithmetic(target, evaluate(stmt->value), std::minus<>{});
+        value = arithmetic(stmt->op, target, evaluate(stmt->value), std::minus<>{});
     } else if (stmt->op.str == "*=") {
-        value = arithmetic(target, evaluate(stmt->value), std::multiplies<>{});
+        value = arithmetic(stmt->op, target, evaluate(stmt->value), std::multiplies<>{});
     } else if (stmt->op.str == "/=") {
-        value = division(target, evaluate(stmt->value));
+        value = division(stmt->op, target, evaluate(stmt->value));
     } else {
-        ::panic("{}:{}, '{}' is not a valid compound assignment operation", stmt->target.line, stmt->target.col, stmt->op.str);
+        panic<InterpretationException>(stmt->op, "runtime error: '{}' is not a valid compound assignment operation", stmt->op.str);
     }
 
     if (!current_env_->assign(stmt->target.str, value)) {
-        ::panic("{}:{}, unable to assign the result of the compound assignment", stmt->target.line, stmt->target.col);
+        panic<InterpretationException>(stmt->target, "runtime error: unable to assign the result of the compound assignment");
     }
 }
 
@@ -542,10 +511,10 @@ void ankh::lang::Interpreter::visit(ankh::lang::IncOrDecIdentifierStatement* stm
     
     ExprResult value;
     if (stmt->op.str == "++") {
-        value = plus(rhs, 1.0);
+        value = plus(stmt->op, rhs, 1.0);
     }
     else if (stmt->op.str == "--") {
-        value = arithmetic(rhs, 1.0, std::minus<>{});
+        value = arithmetic(stmt->op, rhs, 1.0, std::minus<>{});
     }
     else {
         // this shouldn't happen since the parser validates the token is one of the above
@@ -575,7 +544,7 @@ void ankh::lang::Interpreter::execute_block(const BlockStatement *stmt, Environm
 void ankh::lang::Interpreter::visit(IfStatement *stmt)
 {
     const ExprResult result = evaluate(stmt->condition);
-    if (truthy(result)) {
+    if (truthy(stmt->marker, result)) {
         execute(stmt->then_block);
     } else if (stmt->else_block != nullptr) {
         execute(stmt->else_block);
@@ -584,7 +553,7 @@ void ankh::lang::Interpreter::visit(IfStatement *stmt)
 
 void ankh::lang::Interpreter::visit(WhileStatement *stmt)
 {
-    while (truthy(evaluate(stmt->condition))) {
+    while (truthy(stmt->marker, evaluate(stmt->condition))) {
         try {
             execute(stmt->body);
         } catch (const BreakException&) {
@@ -601,7 +570,7 @@ void ankh::lang::Interpreter::visit(ForStatement *stmt)
         execute(stmt->init);
     }
 
-    while (stmt->condition ? truthy(evaluate(stmt->condition)) : true) {
+    while (stmt->condition ? truthy(stmt->marker, evaluate(stmt->condition)) : true) {
         try {
             execute(stmt->body);
         } catch (const BreakException&) {
@@ -632,7 +601,7 @@ void ankh::lang::Interpreter::declare_function(FunctionDeclaration *decl, Enviro
 
     const std::string& name = decl->name.str;
     if (functions_.count(name) > 0) {
-        ::panic("function '{}' is already declared", name);
+        panic<InterpretationException>(decl->name, "runtime error: function '{}' is already declared", name);
     }
 
     CallablePtr callable = make_callable<Function<ExprResult, Interpreter>>(this, decl, env);
@@ -642,7 +611,7 @@ void ankh::lang::Interpreter::declare_function(FunctionDeclaration *decl, Enviro
     functions_[name] = std::move(callable);
     
     if (!current_env_->declare(name, result)) {
-        ::panic("'{}' is already defined", name);
+        panic<InterpretationException>(decl->name, "'{}' is already defined", name);
     }
 
     ANKH_DEBUG("function '{}' added to scope {}", name, current_env_->scope());
@@ -679,17 +648,18 @@ std::string ankh::lang::Interpreter::substitute(const StringExpression *expr)
                     continue;
                 }
             }
-            ::panic("unterminated \\");
+            // TODO: this should be checked in the parser
+            panic<InterpretationException>(expr->str, "runtime error: unterminated \\");
         } else if (c == '{') {
             if (is_outer) {
                 opening_brace_indexes.push_back(i);
                 is_outer = false;   
             } else {
-                ::panic("{}:{}, nested brace substitution expressions are not allowed", expr->str.line, expr->str.col + i);
+                panic<InterpretationException>(expr->str, "runtime error: nested brace substitution expressions are not allowed");
             }
         } else if (c == '}') {
             if (opening_brace_indexes.empty()) {
-                ::panic("{}:{}, mismatched '}'", expr->str.line, expr->str.col);
+                panic<InterpretationException>(expr->str, "runtime error: mismatched '}'");
             }
 
             const size_t start_idx = opening_brace_indexes.back();
@@ -697,13 +667,13 @@ std::string ankh::lang::Interpreter::substitute(const StringExpression *expr)
 
             const size_t expr_length = i - start_idx - 1;
             if (expr_length == 0) {
-                ::panic("{}:{}, empty expression evaluation", expr->str.line, expr->str.col);
+                panic<InterpretationException>(expr->str, "runtime error: empty expression evaluation");
             }
 
             const std::string expr_str = expr->str.str.substr(start_idx + 1, expr_length);
             ANKH_DEBUG("{}:{}, parsed expression string '{}' starting @ {}", expr->str.line, expr->str.col, expr_str, start_idx);
 
-            const ExprResult expr_result = evaluate_single_expr(expr_str);
+            const ExprResult expr_result = evaluate_single_expr(expr->str, expr_str);
             ANKH_DEBUG("'{}' => '{}'", expr_str, expr_result.stringify());
 
             result += expr_result.stringify();
@@ -715,27 +685,34 @@ std::string ankh::lang::Interpreter::substitute(const StringExpression *expr)
     }
 
     if (!opening_brace_indexes.empty()) {
-        ::panic("{}:{}, mismatched '{'", expr->str.line, expr->str.col);
+        panic<InterpretationException>(expr->str, "runtime error: mismatched '{'");
     }
 
     return result;
 }
 
-ankh::lang::ExprResult ankh::lang::Interpreter::evaluate_single_expr(const std::string& str)
+ankh::lang::ExprResult ankh::lang::Interpreter::evaluate_single_expr(const Token& marker, const std::string& str)
 {
     auto program = ankh::lang::parse(str);
     if (program.has_errors()) {
-        // TODO: print out why
-        ::panic("expression '{}' is not valid", str);
+        const std::string errors = std::accumulate(program.errors.begin(), program.errors.end(), std::string{""}
+        , [](auto& accum, const auto& v) {
+            accum += '\n';
+            accum += v;
+
+            return accum;
+        });
+
+        panic<InterpretationException>(marker, "runtime error: expression '{}' is not valid because:\n{}", str, errors);
     }
 
     const auto& statements = program.statements;
     if (statements.size() > 1) {
-        ::panic("'{}' is a multi return expression");
+        panic<InterpretationException>(marker, "runtime error: '{}' is a multi return expression", program[0]->stringify());
     }
 
     if (ExpressionStatement *stmt = instance<ExpressionStatement>(program[0]); stmt == nullptr) {
-        ::panic("'{}' is not an expression", str);
+        panic<InterpretationException>(marker, "runtime error: '{}' is not an expression", program[0]->stringify());
     } else {
         return evaluate(stmt->expr);
     }

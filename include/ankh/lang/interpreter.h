@@ -67,7 +67,7 @@ private:
     virtual void visit(ReturnStatement *stmt) override;
 
     std::string substitute(const StringExpression *expr);
-    ExprResult evaluate_single_expr(const std::string& str);
+    ExprResult evaluate_single_expr(const Token& marker, const std::string& str);
     void declare_function(FunctionDeclaration *decl, EnvironmentPtr<ExprResult> env);
 private:
     EnvironmentPtr<ExprResult> current_env_;

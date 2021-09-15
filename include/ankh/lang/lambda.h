@@ -12,12 +12,13 @@ namespace ankh::lang {
 struct LambdaExpression 
     : public Expression 
 {
+    Token marker;
     std::string generated_name;
     std::vector<Token> params;
     StatementPtr body;
 
-    LambdaExpression(std::string generated_name, std::vector<Token> params, StatementPtr body)
-        : generated_name(std::move(generated_name)), params(std::move(params)), body(std::move(body)) {}
+    LambdaExpression(Token marker, std::string generated_name, std::vector<Token> params, StatementPtr body)
+        : marker(std::move(marker)), generated_name(std::move(generated_name)), params(std::move(params)), body(std::move(body)) {}
 
     virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
     {

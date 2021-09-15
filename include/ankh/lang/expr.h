@@ -195,11 +195,12 @@ struct IdentifierExpression
 struct CallExpression 
     : public Expression 
 {
+    Token marker;
     ExpressionPtr callee;
     std::vector<ExpressionPtr> args;
 
-    CallExpression(ExpressionPtr callee, std::vector<ExpressionPtr> args)
-        : callee(std::move(callee)), args(std::move(args)) {}
+    CallExpression(Token marker, ExpressionPtr callee, std::vector<ExpressionPtr> args)
+        : marker(std::move(marker)), callee(std::move(callee)), args(std::move(args)) {}
 
     virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
     {
@@ -258,11 +259,12 @@ struct ArrayExpression
 struct IndexExpression 
     : public Expression 
 {
+    Token marker;
     ExpressionPtr indexee;
     ExpressionPtr index;
 
-    IndexExpression(ExpressionPtr indexee, ExpressionPtr index)
-        : indexee(std::move(indexee)), index(std::move(index)) {}
+    IndexExpression(Token marker, ExpressionPtr indexee, ExpressionPtr index)
+        : marker(std::move(marker)), indexee(std::move(indexee)), index(std::move(index)) {}
 
     virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
     {
@@ -278,10 +280,11 @@ struct IndexExpression
 struct DictionaryExpression 
     : public Expression
 {
+    Token marker;
     std::vector<Entry<ExpressionPtr>> entries;
 
-    DictionaryExpression(std::vector<Entry<ExpressionPtr>> entries)
-        : entries(std::move(entries)) {}
+    DictionaryExpression(Token marker, std::vector<Entry<ExpressionPtr>> entries)
+        : marker(std::move(marker)), entries(std::move(entries)) {}
     
     virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
     {

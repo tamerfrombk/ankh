@@ -101,14 +101,18 @@ ankh::lang::StatementPtr ankh::lang::Parser::parse_variable_declaration()
         storage_class = StorageClass::EXPORT;
     } else {
         const Token& token = curr();
-        panic<ParseException>("{}:{}, '{}' is not a valid storage class specifier.", token.line, token.col, token.str);
+        panic<ParseException>(token, "syntax error: '{}' is not a valid storage class specifier.", token.str);
     }
+
+    // we get the token here before looking for an expression so we can accurately report line/col
+    // positions below
+    const Token& current_token = curr();
 
     ExpressionPtr target = expression();
 
     IdentifierExpression *identifier = instance<IdentifierExpression>(target);
     if (identifier == nullptr) {
-        panic<ParseException>("invalid variable declaration target");
+        panic<ParseException>(current_token, "syntax error: invalid variable declaration target");
     }
 
     consume(TokenType::EQ, "'=' expected in variable declaration");
@@ -129,7 +133,7 @@ ankh::lang::StatementPtr ankh::lang::Parser::parse_function_declaration()
     std::vector<Token> params;
     if (!check(TokenType::RPAREN)) {
         do {
-            Token param = consume(TokenType::IDENTIFIER, "<identifier> expected in function parameters");
+            Token param = consume(TokenType::IDENTIFIER, "<identifier> expected in function parameter declaration");
             params.push_back(std::move(param));        
         } while (match(TokenType::COMMA));
     }
@@ -145,7 +149,7 @@ ankh::lang::StatementPtr ankh::lang::Parser::parse_function_declaration()
         // TODO: figure out the line and column positions
         // Insert a "return nil" as the last statement in the block
         auto nil = make_expression<LiteralExpression>(Token{"nil", TokenType::NIL, 0, 0});
-        block->statements.push_back(make_statement<ReturnStatement>(std::move(nil)));
+        block->statements.push_back(make_statement<ReturnStatement>(Token{"return", TokenType::ANKH_RETURN, 0, 0}, std::move(nil)));
     }
 
     return make_statement<FunctionDeclaration>(name, std::move(params), std::move(body));
@@ -155,7 +159,7 @@ ankh::lang::StatementPtr ankh::lang::Parser::assignment(ExpressionPtr target)
 {
     IdentifierExpression *identifier = instance<IdentifierExpression>(target);
     if (identifier == nullptr) {
-        panic<ParseException>("invalid assignment target");
+        panic<ParseException>(curr(), "syntax error: invalid assignment target '{}'", target->stringify());
     }
 
     // no need to check this since we already know that we have one of these
@@ -231,7 +235,7 @@ ankh::lang::StatementPtr ankh::lang::Parser::parse_inc_dec()
         return make_statement<IncOrDecIdentifierStatement>(op, std::move(target));
     }
 
-    panic<ParseException>("{},{}: only identifiers are valid increment/decrement targets", op.line, op.col);
+    panic<ParseException>(op, "syntax error: only identifiers are valid increment/decrement targets");
 }
 
 ankh::lang::StatementPtr ankh::lang::Parser::block()
@@ -251,6 +255,8 @@ ankh::lang::StatementPtr ankh::lang::Parser::block()
 
 ankh::lang::StatementPtr ankh::lang::Parser::parse_if()
 {
+    const Token& if_token = prev();
+
     ExpressionPtr condition = expression();
     
     StatementPtr then_block = block();
@@ -264,31 +270,35 @@ ankh::lang::StatementPtr ankh::lang::Parser::parse_if()
         }
     }
 
-    return make_statement<IfStatement>(std::move(condition), std::move(then_block), std::move(else_block));
+    return make_statement<IfStatement>(if_token, std::move(condition), std::move(then_block), std::move(else_block));
 }
 
 ankh::lang::StatementPtr ankh::lang::Parser::parse_while()
 {
+    const Token& while_token = prev();
+
     ExpressionPtr condition = expression();
     StatementPtr body = block();
 
-    return make_statement<WhileStatement>(std::move(condition), std::move(body));
+    return make_statement<WhileStatement>(while_token, std::move(condition), std::move(body));
 }
 
 ankh::lang::StatementPtr ankh::lang::Parser::parse_for()
 {
+    const Token& for_token = prev();
+
     // If we hit a brace, we know it is an infinite loop
     if (check(TokenType::LBRACE)) {
         StatementPtr body = block();
 
-        return make_statement<ForStatement>(nullptr, nullptr, nullptr, std::move(body));
+        return make_statement<ForStatement>(for_token, nullptr, nullptr, nullptr, std::move(body));
     }
 
     StatementPtr init = nullptr;
     if (check(TokenType::LET)) {
         init = parse_variable_declaration();
     } else {
-        consume(TokenType::SEMICOLON, "';' expected");
+        consume(TokenType::SEMICOLON, "';' expected after for-loop init statement");
     }
 
     ExpressionPtr condition = nullptr;
@@ -303,11 +313,14 @@ ankh::lang::StatementPtr ankh::lang::Parser::parse_for()
 
     StatementPtr body = block();
 
-    return make_statement<ForStatement>(std::move(init), std::move(condition), std::move(mutator), std::move(body));
+    return make_statement<ForStatement>(for_token, std::move(init), std::move(condition), std::move(mutator), std::move(body));
 }
 
 ankh::lang::StatementPtr ankh::lang::Parser::parse_return()
 {
+    // get the "return" token for error handling purposes
+    const Token& return_token = prev();
+    
     // if there is no expression, we return nil
     ExpressionPtr expr;
     if (check(TokenType::SEMICOLON)) {
@@ -319,7 +332,7 @@ ankh::lang::StatementPtr ankh::lang::Parser::parse_return()
 
     semicolon();
 
-    return make_statement<ReturnStatement>(std::move(expr));
+    return make_statement<ReturnStatement>(return_token, std::move(expr));
 }
 
 ankh::lang::ExpressionPtr ankh::lang::Parser::expression()
@@ -439,7 +452,7 @@ ankh::lang::ExpressionPtr ankh::lang::Parser::operable()
 ankh::lang::ExpressionPtr ankh::lang::Parser::call(ExpressionPtr callee)
 {
     // no message requires since we know we have this token
-    consume(TokenType::LPAREN, "");
+    const Token& lparen = consume(TokenType::LPAREN, "");
 
     std::vector<ExpressionPtr> args;
     if (!check(TokenType::RPAREN)) {
@@ -450,19 +463,19 @@ ankh::lang::ExpressionPtr ankh::lang::Parser::call(ExpressionPtr callee)
 
     consume(TokenType::RPAREN, "')' expected to terminate callable arguments");
 
-    return make_expression<CallExpression>(std::move(callee), std::move(args));
+    return make_expression<CallExpression>(lparen, std::move(callee), std::move(args));
 }
 
 ankh::lang::ExpressionPtr ankh::lang::Parser::index(ExpressionPtr indexee)
 {
     // no message required since we know we have this token
-    consume(TokenType::LBRACKET, "");
+    const Token& lbracket = consume(TokenType::LBRACKET, "");
 
     ExpressionPtr idx = expression();
 
     consume(TokenType::RBRACKET, "']' expected to terminate index operation");
 
-    return make_expression<IndexExpression>(std::move(indexee), std::move(idx));
+    return make_expression<IndexExpression>(lbracket, std::move(indexee), std::move(idx));
 }
 
 ankh::lang::ExpressionPtr ankh::lang::Parser::primary()
@@ -488,7 +501,7 @@ ankh::lang::ExpressionPtr ankh::lang::Parser::primary()
     if (match(TokenType::LPAREN)) {
         ExpressionPtr expr = expression();
         
-        consume(TokenType::RPAREN, "terminating ')' in parenthetic expression expected");
+        consume(TokenType::RPAREN, "')' expected to terminate parenthetic expression");
 
         return make_expression<ParenExpression>(std::move(expr));
     }
@@ -500,7 +513,7 @@ ankh::lang::ExpressionPtr ankh::lang::Parser::primary()
     if (match(TokenType::COMMAND)) {
         const Token& cmd = prev();
         if (cmd.str.empty()) {
-            panic<ParseException>("{}:{} command is empty", cmd.line, cmd.col);
+            panic<ParseException>(cmd, "syntax error: command cannot be empty", cmd.line, cmd.col);
         }
 
         return make_expression<CommandExpression>(cmd);
@@ -514,12 +527,14 @@ ankh::lang::ExpressionPtr ankh::lang::Parser::primary()
         return dict();
     }
 
-    panic<ParseException>("primary expression expected");
+    panic<ParseException>(curr(), "syntax error: primary expression expected, found '{}' instead", curr().str);
 }
 
 ankh::lang::ExpressionPtr ankh::lang::Parser::lambda()
 {
-    consume(TokenType::LPAREN, "starting '(' expected in lambda expression");
+    const Token& fn_token = prev();
+
+    consume(TokenType::LPAREN, "'(' expected to start lambda expression");
 
     std::vector<Token> params;
     if (!check(TokenType::RPAREN)) {
@@ -529,7 +544,7 @@ ankh::lang::ExpressionPtr ankh::lang::Parser::lambda()
         } while (match(TokenType::COMMA));
     }
 
-    consume(TokenType::RPAREN, "terminating ')' expected in lambda expression");
+    consume(TokenType::RPAREN, "')' expected to terminate lambda expression");
 
     StatementPtr body = block();
     
@@ -541,15 +556,15 @@ ankh::lang::ExpressionPtr ankh::lang::Parser::lambda()
         // TODO: figure out the line and column positions
         // Insert a "return nil" as the last statement in the block
         auto nil = make_expression<LiteralExpression>(Token{"nil", TokenType::NIL, 0, 0});
-        block->statements.push_back(make_statement<ReturnStatement>(std::move(nil)));
+        block->statements.push_back(make_statement<ReturnStatement>(Token{"return", TokenType::ANKH_RETURN, 0, 0}, std::move(nil)));
     }
 
-    return make_expression<LambdaExpression>(name, std::move(params), std::move(body));
+    return make_expression<LambdaExpression>(fn_token, name, std::move(params), std::move(body));
 }
 
 ankh::lang::ExpressionPtr ankh::lang::Parser::parse_array()
 {
-    consume(TokenType::LBRACKET, "starting '[' expected in array expression");
+    consume(TokenType::LBRACKET, "'[' expected to begin array expression");
 
     std::vector<ExpressionPtr> elems;
     if (!check(TokenType::RBRACKET)) {
@@ -558,14 +573,14 @@ ankh::lang::ExpressionPtr ankh::lang::Parser::parse_array()
         } while (match(TokenType::COMMA));
     }
 
-    consume(TokenType::RBRACKET, "terminating ']' expected in array expression");
+    consume(TokenType::RBRACKET, "']' expected to terminate array expression");
 
     return make_expression<ArrayExpression>(std::move(elems));
 }
 
 ankh::lang::ExpressionPtr ankh::lang::Parser::dict()
 {
-    consume(TokenType::LBRACE, "'{' expected to begin dictionary expression");
+    const Token& lbrace = consume(TokenType::LBRACE, "'{' expected to begin dictionary expression");
 
     std::vector<Entry<ExpressionPtr>> entries;
     if (!check(TokenType::RBRACE)) {
@@ -577,7 +592,7 @@ ankh::lang::ExpressionPtr ankh::lang::Parser::dict()
 
     consume(TokenType::RBRACE, "'}' expected to terminate dictionary expression");
 
-    return make_expression<DictionaryExpression>(std::move(entries));
+    return make_expression<DictionaryExpression>(lbrace, std::move(entries));
 }
 
 ankh::lang::Entry<ankh::lang::ExpressionPtr> ankh::lang::Parser::entry()
@@ -669,7 +684,7 @@ ankh::lang::Token ankh::lang::Parser::consume(TokenType type, const std::string&
 {
     if (!match(type)) {
         const Token& current = curr();
-        panic<ParseException>("syntax error: '{}' instead of '{}'", msg, current.str);
+        panic<ParseException>(current, "syntax error: {}, found '{}' instead", msg, current.str);
     }
 
     return prev();

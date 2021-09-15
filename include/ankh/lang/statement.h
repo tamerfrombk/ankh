@@ -236,13 +236,18 @@ struct IncOrDecIdentifierStatement
 struct IfStatement
     : public Statement
 {
+    Token marker;
     ExpressionPtr condition;
     StatementPtr then_block;
     // TODO: this may be nullptr Consider implementing a Null Statement just to prevent checking for null
     StatementPtr else_block;
 
-    IfStatement(ExpressionPtr condition, StatementPtr then_block, StatementPtr else_block)
-        : condition(std::move(condition)), then_block(std::move(then_block)), else_block(std::move(else_block)) {}
+    IfStatement(Token marker, ExpressionPtr condition, StatementPtr then_block, StatementPtr else_block)
+        : marker(std::move(marker))
+        , condition(std::move(condition))
+        , then_block(std::move(then_block))
+        , else_block(std::move(else_block)) 
+    {}
 
     virtual void accept(StatementVisitor<void> *visitor) override
     {
@@ -258,11 +263,12 @@ struct IfStatement
 struct WhileStatement
     : public Statement
 {
+    Token marker;
     ExpressionPtr condition;
     StatementPtr body;
 
-    WhileStatement(ExpressionPtr condition, StatementPtr body)
-        : condition(std::move(condition)), body(std::move(body)) {}
+    WhileStatement(Token marker, ExpressionPtr condition, StatementPtr body)
+        : marker(std::move(marker)), condition(std::move(condition)), body(std::move(body)) {}
 
     virtual void accept(StatementVisitor<void> *visitor) override
     {
@@ -278,13 +284,19 @@ struct WhileStatement
 struct ForStatement
     : public Statement
 {
+    Token marker;
     StatementPtr init;
     ExpressionPtr condition;
     StatementPtr mutator;
     StatementPtr body;
 
-    ForStatement(StatementPtr init, ExpressionPtr condition, StatementPtr mutator, StatementPtr body)
-        : init(std::move(init)), condition(std::move(condition)), mutator(std::move(mutator)), body(std::move(body)) {}
+    ForStatement(Token marker, StatementPtr init, ExpressionPtr condition, StatementPtr mutator, StatementPtr body)
+        : marker(std::move(marker))
+        , init(std::move(init))
+        , condition(std::move(condition))
+        , mutator(std::move(mutator))
+        , body(std::move(body))
+    {}
 
     virtual void accept(StatementVisitor<void> *visitor) override
     {
@@ -356,10 +368,11 @@ struct FunctionDeclaration
 struct ReturnStatement
     : public Statement
 {
+    Token tok;
     ExpressionPtr expr;
 
-    ReturnStatement(ExpressionPtr expr)
-        : expr(std::move(expr)) {}
+    ReturnStatement(Token tok, ExpressionPtr expr)
+        : tok(std::move(tok)), expr(std::move(expr)) {}
 
     virtual void accept(StatementVisitor<void> *visitor) override
     {

@@ -292,6 +292,7 @@ TEST_CASE("parse language statements", "[parser]")
 
         auto if_stmt = ankh::lang::instance<ankh::lang::IfStatement>(program[0]);
         REQUIRE(if_stmt != nullptr);
+        REQUIRE(if_stmt->marker.str == "if");
 
         auto then_block = ankh::lang::instance<ankh::lang::BlockStatement>(if_stmt->then_block);
         REQUIRE(then_block != nullptr);
@@ -364,6 +365,7 @@ TEST_CASE("parse language statements", "[parser]")
 
         auto while_stmt = ankh::lang::instance<ankh::lang::WhileStatement>(program[1]);
         REQUIRE(while_stmt != nullptr);
+        REQUIRE(while_stmt->marker.str == "while");
 
         auto body = ankh::lang::instance<ankh::lang::BlockStatement>(while_stmt->body);
         REQUIRE(body != nullptr);
@@ -397,6 +399,7 @@ TEST_CASE("parse language statements", "[parser]")
         auto return_stmt = ankh::lang::instance<ankh::lang::ReturnStatement>(body->statements[0]);
         REQUIRE(return_stmt != nullptr);
         REQUIRE(return_stmt->expr != nullptr);
+        REQUIRE(return_stmt->tok.str == "return");
     }
 
     SECTION("return statement injected into return-less function")
@@ -475,6 +478,7 @@ TEST_CASE("for statements", "[parser]")
         REQUIRE(for_stmt->condition != nullptr);
         REQUIRE(for_stmt->mutator != nullptr);
         REQUIRE(for_stmt->body != nullptr);
+        REQUIRE(for_stmt->marker.str == "for");
     }
 
     SECTION("for loop, no init")
@@ -623,6 +627,7 @@ TEST_CASE("parse language expressions", "[parser]")
         auto call = ankh::lang::instance<ankh::lang::CallExpression>(stmt->expr);
         REQUIRE(call != nullptr);
         REQUIRE(call->args.size() == 0);
+        REQUIRE(call->marker.type == ankh::lang::TokenType::LPAREN);
 
         auto identifier = ankh::lang::instance<ankh::lang::IdentifierExpression>(call->callee);
         REQUIRE(identifier != nullptr);
@@ -646,6 +651,7 @@ TEST_CASE("parse language expressions", "[parser]")
         auto call = ankh::lang::instance<ankh::lang::CallExpression>(stmt->expr);
         REQUIRE(call != nullptr);
         REQUIRE(call->args.size() == 2);
+        REQUIRE(call->marker.type == ankh::lang::TokenType::LPAREN);
 
         auto identifier = ankh::lang::instance<ankh::lang::IdentifierExpression>(call->callee);
         REQUIRE(identifier != nullptr);
@@ -700,6 +706,7 @@ TEST_CASE("parse language expressions", "[parser]")
         REQUIRE(lambda->params.size() == 2);
         REQUIRE(lambda->body != nullptr);
         REQUIRE(!lambda->generated_name.empty());
+        REQUIRE(lambda->marker.str == "fn");
     }
 
     SECTION("parse unary !")
@@ -824,6 +831,7 @@ TEST_CASE("parse language expressions", "[parser]")
         
         auto idx = ankh::lang::instance<ankh::lang::IndexExpression>(stmt->expr);
         REQUIRE(idx != nullptr);
+        REQUIRE(idx->marker.type == ankh::lang::TokenType::LBRACKET);
     }
 
     SECTION("interleave index and call expressions")
@@ -876,6 +884,7 @@ TEST_CASE("parse language expressions", "[parser]")
         auto dict = ankh::lang::instance<ankh::lang::DictionaryExpression>(decl->initializer);
         REQUIRE(dict != nullptr);
         REQUIRE(dict->entries.size() == 1);
+        REQUIRE(dict->marker.str == "{");
         
         auto key = ankh::lang::instance<ankh::lang::StringExpression>(dict->entries[0].key);
         REQUIRE(key != nullptr);

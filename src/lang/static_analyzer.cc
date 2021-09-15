@@ -69,7 +69,7 @@ ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(IdentifierExpression *e
     ANKH_DEBUG("static analyzer: analyzing '{}'", expr->stringify());
 
     if (is_declared_but_not_defined(expr->name)) {
-        panic<ParseException>("can't read local variable in its own initializer");
+        panic<ParseException>(expr->name, "can't read local variable in its own initializer");
     }
 
     resolve(expr, expr->name);
@@ -240,7 +240,7 @@ void ankh::lang::StaticAnalyzer::visit(BreakStatement *stmt)
     ANKH_UNUSED(stmt);
 
     if (!in_loop_scope()) {
-        panic<ParseException>("a break statement can only be within loop scope");
+        panic<ParseException>(stmt->tok, "a break statement can only be within loop scope");
     }
 }
 
@@ -267,7 +267,7 @@ void ankh::lang::StaticAnalyzer::visit(FunctionDeclaration *stmt)
 void ankh::lang::StaticAnalyzer::visit(ReturnStatement *stmt)
 {
     if (!in_function_scope()) {
-        panic<ParseException>("a return statement can only be within function scope");
+        panic<ParseException>(stmt->tok, "a return statement can only be within function scope");
     }
 
     analyze(stmt->expr);
