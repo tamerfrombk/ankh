@@ -4,7 +4,7 @@ fn makeCounter() {
   let i = 0
   fn count() {
     ++i
-    print i
+    print(i)
   }
 
   return count

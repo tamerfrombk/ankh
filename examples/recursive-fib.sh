@@ -11,5 +11,5 @@ fn fib(n) {
 
 # this will calculate the first 10 fibonacci numbers
 for let i = 0; i < 10; ++i {
-    print fib(i)
+    print(fib(i))
 }

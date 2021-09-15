@@ -6,10 +6,10 @@ fn join(a, b, c, joiner) {
 
 let joiner = fn (a, b) { return a + b }
 
-print join("this ", "rellly ", "works!", joiner)
+print(join("this ", "really ", "works!", joiner))
 
 # OR
 
-print join("this ", "also ", "works!", fn (a, b) {
+print(join("this ", "also ", "works!", fn (a, b) {
     return a + b
-})
+}))

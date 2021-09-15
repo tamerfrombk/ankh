@@ -50,13 +50,18 @@ static std::optional<std::string> read_file(const std::string& path) noexcept
         return std::nullopt;
     }
 
-    // TODO: instead of reading one character at a time, read a whole bunch to increase performance
     std::string result;
-    char c;
-    while ((c = std::fgetc(fp)) != EOF) {
-        result += c;
+    {
+        char buffer[1024 * 64] = {0};
+        size_t n = 0;
+        do {
+            n = fread(buffer, sizeof(buffer[0]), sizeof(buffer), fp);
+            if (n != 0) {
+                result += buffer;
+            }
+        } while (n == sizeof(buffer));
     }
-    
+
     std::fclose(fp);
 
     return { result };
