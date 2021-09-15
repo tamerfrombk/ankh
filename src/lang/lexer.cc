@@ -10,7 +10,6 @@ static const std::unordered_map<std::string, ankh::lang::TokenType> KEYWORDS = {
       { "true", ankh::lang::TokenType::ANKH_TRUE }
     , { "false", ankh::lang::TokenType::ANKH_FALSE }
     , { "nil", ankh::lang::TokenType::NIL }
-    , { "print", ankh::lang::TokenType::PRINT }
     , { "if", ankh::lang::TokenType::IF }
     , { "else", ankh::lang::TokenType::ELSE }
     , { "while", ankh::lang::TokenType::WHILE }

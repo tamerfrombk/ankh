@@ -78,10 +78,8 @@ TEST_CASE("primary expressions", "[interpreter]")
 
         for (const auto& [source, expected_result] : src_to_expected_result) {
             auto [program, results] = interpret(interpreter, source);
-
-            REQUIRE(!program.has_errors());
-            REQUIRE(interpreter.functions().size() == 0);
-
+            INFO(source);
+            
             ankh::lang::ExprResult actual_result = results.back();
 
             REQUIRE(actual_result.type == expected_result.type);
@@ -193,8 +191,7 @@ TEST_CASE("primary expressions", "[interpreter]")
         
         auto [program, results] = interpret(interpreter, source);
 
-        REQUIRE(!program.has_errors());
-        REQUIRE(interpreter.functions().size() == 1);
+        INFO(source);
 
         ankh::lang::ExprResult identifier = results[0];
         REQUIRE(identifier.type == ankh::lang::ExprResultType::RT_CALLABLE);
@@ -655,9 +652,7 @@ TEST_CASE("boolean", "[interpreter]")
             }
 
             if update() > 0 && update() < 0 {
-                print "yay"
             } else {
-                print "nay"
             }
         )";
 
@@ -713,9 +708,7 @@ TEST_CASE("boolean", "[interpreter]")
             }
 
             if update() > 0 || update() < 0 {
-                print "yay"
             } else {
-                print "nay"
             }
         )";
 
@@ -1359,24 +1352,23 @@ TEST_CASE("strings are indexable", "interpreter")
     REQUIRE(results.back().str == "f");    
 }
 
-TEST_CASE("lambdas can be shadowed because they are scope bound", "[interpreter][!mayfail]")
+TEST_CASE("interpreter has predefined functions", "[interpreter]")
 {
-    const std::string source = R"(
-        let f = fn (a, b) { return a + b }
-
-        fn addAll(a, b, c) {
-            let f = fn (x) { return f(a, b) + x }
-            
-            return f(f(a, b), c)
-        }
-    )";
-
-    INFO(source);
+    const std::string source = R"()";
 
     TracingInterpreter interpreter(std::make_unique<ankh::lang::Interpreter>());
 
     auto [program, results] = interpret(interpreter, source);
-    REQUIRE(!program.has_errors());
 
-    REQUIRE(interpreter.functions().size() == 1);
+    auto has = [&](const char *name, size_t arity) -> bool {
+        auto it = interpreter.functions().find(name);
+        if (it == interpreter.functions().end()) {
+            return false;
+        }
+        return it->second->arity() == arity;
+    };
+
+    REQUIRE(has("print", 1));
+    REQUIRE(has("exit", 1));
+    REQUIRE(has("length", 1));
 }

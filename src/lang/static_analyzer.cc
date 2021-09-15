@@ -152,11 +152,6 @@ ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(StringExpression *expr)
     return {};
 }
 
-void ankh::lang::StaticAnalyzer::visit(PrintStatement *stmt)
-{
-    analyze(stmt->expr);
-}
-
 void ankh::lang::StaticAnalyzer::visit(ExpressionStatement *stmt)
 {
     analyze(stmt->expr);

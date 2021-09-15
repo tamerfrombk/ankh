@@ -32,7 +32,6 @@ private:
     virtual ExprResult visit(DictionaryExpression *expr) override;
     virtual ExprResult visit(StringExpression *expr) override;
 
-    virtual void visit(PrintStatement *stmt) override;
     virtual void visit(ExpressionStatement *stmt) override;
     virtual void visit(VariableDeclaration *stmt) override;
     virtual void visit(AssignmentStatement *stmt) override;

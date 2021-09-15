@@ -56,8 +56,6 @@ std::string ankh::lang::token_type_str(ankh::lang::TokenType type) noexcept
         return "BFALSE";
     case ankh::lang::TokenType::NIL:
         return "NIL";
-    case ankh::lang::TokenType::PRINT:
-        return "PRINT";
     case ankh::lang::TokenType::IF:
         return "IF";
     case ankh::lang::TokenType::ELSE:

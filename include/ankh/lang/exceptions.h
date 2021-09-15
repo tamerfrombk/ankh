@@ -41,4 +41,13 @@ ANKH_NO_RETURN void panic(const Token& marker, const char *fmt, Args&&... args)
     throw E(str);
 }
 
+template <class E, class... Args>
+ANKH_NO_RETURN void builtin_panic(const char *name, const char *fmt, Args&&... args)
+{
+    const std::string fmt_str = "{}:{}, " + std::string{fmt};
+    const std::string str = fmt::format(fmt_str, "BUILTIN", name, std::forward<Args>(args)...);
+
+    throw E(str);
+}
+
 }

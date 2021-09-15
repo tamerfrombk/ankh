@@ -238,32 +238,13 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(program.has_errors());
     }
 
-    SECTION("parse print statement")
-    {
-        const std::string source =
-        R"(
-            print "hello"
-        )";
-
-        auto program = ankh::lang::parse(source);
-
-        REQUIRE(program.size() == 1);
-
-        auto print = ankh::lang::instance<ankh::lang::PrintStatement>(program[0]);
-        REQUIRE(print != nullptr);
-
-        auto literal = ankh::lang::instance<ankh::lang::StringExpression>(print->expr);
-        REQUIRE(literal != nullptr);
-        REQUIRE(literal->str.type == ankh::lang::TokenType::STRING);
-    }
-
     SECTION("parse block statement")
     {
         const std::string source =
         R"(
             {
-                print "hello"
-                print "world"
+                a
+                b
             }
         )";
 
@@ -282,7 +263,6 @@ TEST_CASE("parse language statements", "[parser]")
         const std::string source =
         R"(
             if 1 == 1 {
-                print "yes"
             }
         )";
 
@@ -304,9 +284,7 @@ TEST_CASE("parse language statements", "[parser]")
         const std::string source =
         R"(
             if 1 == 1 {
-                print "yes"
             } else {
-                print "no"
             }
         )";
 
@@ -329,9 +307,7 @@ TEST_CASE("parse language statements", "[parser]")
         const std::string source =
         R"(
             if 1 == 2 {
-                print "what?"
             } else if 2 == 2 {
-                print "yay"
             }
         )";
 
@@ -355,7 +331,6 @@ TEST_CASE("parse language statements", "[parser]")
         R"(
             let i = 1
             while i < 2 {
-                print "I am less than 2"
             }
         )";
 
@@ -407,7 +382,6 @@ TEST_CASE("parse language statements", "[parser]")
         const std::string source =
             R"(
                 fn foo(a, b) {
-                    print a + b
                 }
             )";
 
@@ -418,11 +392,9 @@ TEST_CASE("parse language statements", "[parser]")
         auto fn = ankh::lang::instance<ankh::lang::FunctionDeclaration>(program[0]);
 
         auto body = ankh::lang::instance<ankh::lang::BlockStatement>(fn->body);
-        REQUIRE(body->statements.size() == 2);
+        REQUIRE(body->statements.size() == 1);
 
-        REQUIRE(ankh::lang::instanceof<ankh::lang::PrintStatement>(body->statements[0]));
-
-        auto return_stmt = ankh::lang::instance<ankh::lang::ReturnStatement>(body->statements[1]);
+        auto return_stmt = ankh::lang::instance<ankh::lang::ReturnStatement>(body->statements[0]);
         REQUIRE(return_stmt != nullptr);
         
         auto nil = ankh::lang::instance<ankh::lang::LiteralExpression>(return_stmt->expr);
@@ -466,7 +438,6 @@ TEST_CASE("for statements", "[parser]")
     {
         const std::string source = R"(
             for let i = 0; i < 3; ++i {
-                print i
             }
         )";
 
@@ -485,7 +456,6 @@ TEST_CASE("for statements", "[parser]")
     {
         const std::string source = R"(
             for ; i < 3; ++i {
-                print i
             }
         )";
 
@@ -503,7 +473,6 @@ TEST_CASE("for statements", "[parser]")
     {
         const std::string source = R"(
             for let i = 0; ; ++i {
-                print i
             }
         )";
 
@@ -521,7 +490,6 @@ TEST_CASE("for statements", "[parser]")
     {
         const std::string source = R"(
             for let i = 0; i < 3; {
-                print i
             }
         )";
 
@@ -539,7 +507,6 @@ TEST_CASE("for statements", "[parser]")
     {
         const std::string source = R"(
             for {
-                print i
             }
         )";
 

@@ -180,13 +180,7 @@ ankh::lang::StatementPtr ankh::lang::Parser::assignment(ExpressionPtr target)
 
 ankh::lang::StatementPtr ankh::lang::Parser::statement()
 {
-    if (match(ankh::lang::TokenType::PRINT)) {
-        ExpressionPtr expr = expression();
-
-        semicolon();
-
-        return make_statement<PrintStatement>(std::move(expr));
-    } else if (check(ankh::lang::TokenType::LBRACE)) {
+    if (check(ankh::lang::TokenType::LBRACE)) {
         // NOTE: we check instead of matching here so we can consume the left brace __in__ block()
         // This allows us to simply call block() whenever we need to parse a block e.g. in while statements
         return block();
@@ -699,7 +693,6 @@ void ankh::lang::Parser::semicolon()
 void ankh::lang::Parser::synchronize_next_statement() noexcept
 {
     const auto statement_initializer_tokens = {
-        TokenType::PRINT,
         TokenType::LBRACE,
         TokenType::IF,
         TokenType::WHILE,

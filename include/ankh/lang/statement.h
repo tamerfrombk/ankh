@@ -10,7 +10,6 @@
 namespace ankh::lang {
 
 // forward declare statement types for visitor
-struct PrintStatement;
 struct ExpressionStatement;
 struct VariableDeclaration;
 struct AssignmentStatement;
@@ -28,8 +27,7 @@ struct ReturnStatement;
 template <class R>
 struct StatementVisitor {
     virtual ~StatementVisitor() = default;
-
-    virtual R visit(PrintStatement *stmt) = 0;
+    
     virtual R visit(ExpressionStatement *stmt) = 0;
     virtual R visit(VariableDeclaration *stmt) = 0;
     virtual R visit(AssignmentStatement *stmt) = 0;
@@ -62,25 +60,6 @@ StatementPtr make_statement(Args&&... args)
 {
     return std::make_unique<T>(std::forward<Args>(args)...);
 }
-
-struct PrintStatement
-    : public Statement
-{
-    ExpressionPtr expr;
-
-    PrintStatement(ExpressionPtr expr)
-        : expr(std::move(expr)) {}
-
-    virtual void accept(StatementVisitor<void> *visitor) override
-    {
-        visitor->visit(this);
-    }
-
-    virtual std::string stringify() const noexcept override
-    {
-        return expr->stringify();
-    }
-};
 
 struct ExpressionStatement
     : public Statement

@@ -35,7 +35,6 @@ enum class TokenType {
     ANKH_TRUE,           // "true"
     ANKH_FALSE,          // "false"
     NIL,               // "nil"
-    PRINT,             // "print"
     IF,                // "if"
     ELSE,              // "else"
     AND,               // &&

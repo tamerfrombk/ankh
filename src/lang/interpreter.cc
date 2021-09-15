@@ -1,3 +1,4 @@
+#include "ankh/lang/expr_result.h"
 #include <cstddef>
 #include <cstdlib>
 #include <cstdio>
@@ -8,6 +9,8 @@
 #include <cstring>
 #include <numeric>
 #include <stdexcept>
+#include <unordered_map>
+#include <vector>
 
 #include <fmt/format.h>
 
@@ -23,9 +26,12 @@
 
 #include <ankh/lang/types/array.h>
 #include <ankh/lang/types/dictionary.h>
+#include <ankh/lang/builtins.h>
 
-#include <unordered_map>
-#include <vector>
+#define ANKH_DEFINE_BUILTIN(name, arity, type) do {\
+    functions_[(name)] = make_callable<type<ExprResult, Interpreter>>(this, global_, (name), (arity));\
+    ANKH_VERIFY(global_->declare((name), functions_[(name)].get()));\
+} while(0)
 
 struct ReturnException
     : public std::runtime_error
@@ -181,14 +187,15 @@ static bool truthy(const ankh::lang::Token& marker, const ankh::lang::ExprResult
     ankh::lang::panic<ankh::lang::InterpretationException>(marker, "runtime error: '{}' is not a boolean expression", result.stringify());
 }
 
-static void print(const ankh::lang::ExprResult& result)
-{
-    const std::string stringy = result.stringify();
-    std::puts(stringy.c_str());
-}
 
 ankh::lang::Interpreter::Interpreter()
-    : current_env_(make_env<ExprResult>()) {}
+    : current_env_(make_env<ExprResult>())
+    , global_(current_env_) 
+{
+    ANKH_DEFINE_BUILTIN("print", 1, PrintFn);
+    ANKH_DEFINE_BUILTIN("exit", 1, ExitFn);
+    ANKH_DEFINE_BUILTIN("length", 1, LengthFn);
+}
 
 void ankh::lang::Interpreter::interpret(Program&& program)
 {
@@ -201,6 +208,43 @@ void ankh::lang::Interpreter::interpret(Program&& program)
 #endif
         execute(stmt);
     }
+}
+
+void ankh::lang::Interpreter::print(const std::vector<ExprResult>& args) const
+{
+    const std::string stringy = args[0].stringify();
+    std::puts(stringy.c_str());
+}
+
+void ankh::lang::Interpreter::exit(const std::vector<ExprResult>& args) const
+{
+    const ExprResult& result = args[0];
+
+    if (result.type != ExprResultType::RT_NUMBER) {
+        builtin_panic<InterpretationException>("exit", "{} is not a viable argument type", expr_result_type_str(result.type));
+    }
+
+    if (!is_integer(result.n)) {
+        builtin_panic<InterpretationException>("exit", "'{}' is not an integer", result.n);
+    }
+    
+    std::exit(result.n);
+}
+
+void ankh::lang::Interpreter::length(const std::vector<ExprResult>& args) const
+{
+    const ExprResult& result = args[0];
+    if (result.type == ExprResultType::RT_ARRAY) {
+        throw ReturnException(static_cast<Number>(result.array.size()));
+    }
+    if (result.type == ExprResultType::RT_DICT) {
+        throw ReturnException(static_cast<Number>(result.dict.size()));
+    }
+    if (result.type == ExprResultType::RT_STRING) {
+        throw ReturnException(static_cast<Number>(result.str.size()));
+    }
+
+    builtin_panic<InterpretationException>("length", "{} is not a viable argument type", expr_result_type_str(result.type));
 }
 
 ankh::lang::ExprResult ankh::lang::Interpreter::visit(BinaryExpression *expr)
@@ -297,6 +341,7 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(CallExpression *expr)
 
     Callable *callable = callee.callable;
     const std::string name = callable->name();
+    
     if (expr->args.size() != callable->arity()) {
         panic<InterpretationException>(expr->marker, "runtime error: expected {} arguments to function '{}' instead of {}", callable->arity(), name, expr->args.size());
     }
@@ -305,6 +350,9 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(CallExpression *expr)
 
     try {
         callable->invoke(expr->args);
+        // TODO: this implements no-return much easier than injecting returns!!
+        // FIX THIS
+        return {};
     } catch (const ReturnException& e) {
         return e.result;
     }
@@ -434,17 +482,11 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(ankh::lang::StringExpressi
     return substitute(expr);
 }
 
-void ankh::lang::Interpreter::visit(PrintStatement *stmt)
-{
-    const ExprResult result = evaluate(stmt->expr);
-    print(result);
-}
-
 void ankh::lang::Interpreter::visit(ExpressionStatement *stmt)
 {
     ANKH_DEBUG("executing expression statement");
     const ExprResult result = evaluate(stmt->expr);
-    print(result);
+    print({ result });
 }
 
 void ankh::lang::Interpreter::visit(VariableDeclaration *stmt)
@@ -610,11 +652,11 @@ void ankh::lang::Interpreter::declare_function(FunctionDeclaration *decl, Enviro
     
     functions_[name] = std::move(callable);
     
-    if (!current_env_->declare(name, result)) {
+    if (!global_->declare(name, result)) {
         panic<InterpretationException>(decl->name, "'{}' is already defined", name);
     }
 
-    ANKH_DEBUG("function '{}' added to scope {}", name, current_env_->scope());
+    ANKH_DEBUG("function '{}' added to scope {}", name, global_->scope());
 }
 
 void ankh::lang::Interpreter::visit(ReturnStatement *stmt)

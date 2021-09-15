@@ -124,7 +124,6 @@ TEST_CASE("scan keyword tokens", "[lexer]")
         true
         false
         nil
-        print
         if
         else
         while
@@ -141,16 +140,15 @@ TEST_CASE("scan keyword tokens", "[lexer]")
     REQUIRE(tokens[0] == ankh::lang::Token{ "true", ankh::lang::TokenType::ANKH_TRUE, 2, 9 });
     REQUIRE(tokens[1] == ankh::lang::Token{ "false", ankh::lang::TokenType::ANKH_FALSE, 3, 9 });
     REQUIRE(tokens[2] == ankh::lang::Token{ "nil", ankh::lang::TokenType::NIL, 4, 9 });
-    REQUIRE(tokens[3] == ankh::lang::Token{ "print", ankh::lang::TokenType::PRINT, 5, 9 });
-    REQUIRE(tokens[4] == ankh::lang::Token{ "if", ankh::lang::TokenType::IF, 6, 9 });
-    REQUIRE(tokens[5] == ankh::lang::Token{ "else", ankh::lang::TokenType::ELSE, 7, 9 });
-    REQUIRE(tokens[6] == ankh::lang::Token{ "while", ankh::lang::TokenType::WHILE, 8, 9 });
-    REQUIRE(tokens[7] == ankh::lang::Token{ "for", ankh::lang::TokenType::FOR, 9, 9 });
-    REQUIRE(tokens[8] == ankh::lang::Token{ "fn", ankh::lang::TokenType::FN, 10, 9 });
-    REQUIRE(tokens[9] == ankh::lang::Token{ "return", ankh::lang::TokenType::ANKH_RETURN, 11, 9 });
-    REQUIRE(tokens[10] == ankh::lang::Token{ "let", ankh::lang::TokenType::LET, 12, 9 });
-    REQUIRE(tokens[11] == ankh::lang::Token{ "export", ankh::lang::TokenType::EXPORT, 13, 9 });
-    REQUIRE(tokens[12] == ankh::lang::Token{ "break", ankh::lang::TokenType::BREAK, 14, 9 });
+    REQUIRE(tokens[3] == ankh::lang::Token{ "if", ankh::lang::TokenType::IF, 5, 9 });
+    REQUIRE(tokens[4] == ankh::lang::Token{ "else", ankh::lang::TokenType::ELSE, 6, 9 });
+    REQUIRE(tokens[5] == ankh::lang::Token{ "while", ankh::lang::TokenType::WHILE, 7, 9 });
+    REQUIRE(tokens[6] == ankh::lang::Token{ "for", ankh::lang::TokenType::FOR, 8, 9 });
+    REQUIRE(tokens[7] == ankh::lang::Token{ "fn", ankh::lang::TokenType::FN, 9, 9 });
+    REQUIRE(tokens[8] == ankh::lang::Token{ "return", ankh::lang::TokenType::ANKH_RETURN, 10, 9 });
+    REQUIRE(tokens[9] == ankh::lang::Token{ "let", ankh::lang::TokenType::LET, 11, 9 });
+    REQUIRE(tokens[10] == ankh::lang::Token{ "export", ankh::lang::TokenType::EXPORT, 12, 9 });
+    REQUIRE(tokens[11] == ankh::lang::Token{ "break", ankh::lang::TokenType::BREAK, 13, 9 });
 
     for (const ankh::lang::Token& token : tokens) {
         if (token.type != ankh::lang::TokenType::ANKH_EOF){

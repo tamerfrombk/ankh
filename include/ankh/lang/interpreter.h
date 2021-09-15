@@ -28,6 +28,10 @@ public:
 
     void execute_block(const BlockStatement *stmt, EnvironmentPtr<ExprResult> environment);
 
+    void print(const std::vector<ExprResult>& args) const;
+    void exit(const std::vector<ExprResult>& args) const;
+    void length(const std::vector<ExprResult>& args) const;
+
     inline const Environment<ExprResult>& environment() const noexcept
     {
         return *current_env_;
@@ -52,7 +56,6 @@ private:
     virtual ExprResult visit(DictionaryExpression *expr) override;
     virtual ExprResult visit(StringExpression *expr) override;
 
-    virtual void visit(PrintStatement *stmt) override;
     virtual void visit(ExpressionStatement *stmt) override;
     virtual void visit(VariableDeclaration *stmt) override;
     virtual void visit(AssignmentStatement *stmt) override;
@@ -71,6 +74,7 @@ private:
     void declare_function(FunctionDeclaration *decl, EnvironmentPtr<ExprResult> env);
 private:
     EnvironmentPtr<ExprResult> current_env_;
+    EnvironmentPtr<ExprResult> global_;
     std::vector<Program> programs_;
 
     class ScopeGuard {
@@ -85,9 +89,6 @@ private:
     // TODO: this assumes all functions are in global namespace
     // That's OK for now but needs to be revisited when implementing modules
     std::unordered_map<std::string, CallablePtr> functions_;
-
-    std::unordered_map<std::string, bool> data_declarations_;
-
 };
 
 }
