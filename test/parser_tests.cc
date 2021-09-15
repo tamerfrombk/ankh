@@ -376,60 +376,6 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(return_stmt->expr != nullptr);
         REQUIRE(return_stmt->tok.str == "return");
     }
-
-    SECTION("return statement injected into return-less function")
-    {
-        const std::string source =
-            R"(
-                fn foo(a, b) {
-                }
-            )";
-
-        auto program = ankh::lang::parse(source);
-
-        REQUIRE(program.size() == 1);
-
-        auto fn = ankh::lang::instance<ankh::lang::FunctionDeclaration>(program[0]);
-
-        auto body = ankh::lang::instance<ankh::lang::BlockStatement>(fn->body);
-        REQUIRE(body->statements.size() == 1);
-
-        auto return_stmt = ankh::lang::instance<ankh::lang::ReturnStatement>(body->statements[0]);
-        REQUIRE(return_stmt != nullptr);
-        
-        auto nil = ankh::lang::instance<ankh::lang::LiteralExpression>(return_stmt->expr);
-        REQUIRE(nil != nullptr);
-        REQUIRE(nil->literal.str == "nil");
-    }
-
-    SECTION("return statement NOT injected into function with return")
-    {
-        const std::string source =
-            R"(
-                fn foo(a, b) {
-                    let s = a + b
-                    {
-                        return s
-                    }
-                }
-            )";
-
-        auto program = ankh::lang::parse(source);
-
-        REQUIRE(program.size() == 1);
-
-        auto fn = ankh::lang::instance<ankh::lang::FunctionDeclaration>(program[0]);
-
-        auto body = ankh::lang::instance<ankh::lang::BlockStatement>(fn->body);
-        REQUIRE(body->statements.size() == 2);
-
-        REQUIRE(ankh::lang::instanceof<ankh::lang::VariableDeclaration>(body->statements[0]));
-
-        auto block = ankh::lang::instance<ankh::lang::BlockStatement>(body->statements[1]);
-        REQUIRE(block != nullptr);
-        REQUIRE(block->statements.size() == 1);
-        REQUIRE(ankh::lang::instanceof<ankh::lang::ReturnStatement>(block->statements[0]));
-    }
 }
 
 TEST_CASE("for statements", "[parser]")
@@ -1037,16 +983,17 @@ TEST_CASE("parse two arrays as two separate statements rather than an index oper
     }
 }
 
-TEST_CASE("top level return not allowed", "[parser][!mayfail]")
+TEST_CASE("top level return not allowed", "[parser]")
 {
     const std::string source =
     R"(
-        {
-            return
-        }
+        return;
     )";
 
-    REQUIRE_THROWS_WITH(ankh::lang::parse(source), Catch::Matchers::EndsWith("a return statement can only be within function scope"));
+    auto program = ankh::lang::parse(source);
+    REQUIRE(program.has_errors());
+
+    REQUIRE(program.errors[0] == "2:9, a return statement can only be within function scope");
 }
 
 TEST_CASE("top level break not allowed", "[parser]")
@@ -1056,7 +1003,10 @@ TEST_CASE("top level break not allowed", "[parser]")
         break
     )";
 
-    REQUIRE_THROWS_WITH(ankh::lang::parse(source), Catch::Matchers::EndsWith("a break statement can only be within loop scope"));
+    auto program = ankh::lang::parse(source);
+    REQUIRE(program.has_errors());
+
+    REQUIRE(program.errors[0] == "2:9, a break statement can only be within loop scope");
 }
 
 TEST_CASE("local variable declaration cannot be read in its own declaration", "[parser]")
@@ -1069,5 +1019,8 @@ TEST_CASE("local variable declaration cannot be read in its own declaration", "[
         }
     )";
 
-    REQUIRE_THROWS_WITH(ankh::lang::parse(source), Catch::Matchers::EndsWith("can't read local variable in its own initializer"));
+    auto program = ankh::lang::parse(source);
+    REQUIRE(program.has_errors());
+
+    REQUIRE(program.errors[0] == "4:21, can't read local variable in its own initializer");
 }

@@ -265,7 +265,9 @@ void ankh::lang::StaticAnalyzer::visit(ReturnStatement *stmt)
         panic<ParseException>(stmt->tok, "a return statement can only be within function scope");
     }
 
-    analyze(stmt->expr);
+    if (stmt->expr) {
+        analyze(stmt->expr);
+    }
 }
 
 void ankh::lang::StaticAnalyzer::begin_scope()

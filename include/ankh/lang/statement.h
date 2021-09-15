@@ -360,7 +360,7 @@ struct ReturnStatement
 
     virtual std::string stringify() const noexcept override
     {
-        return "return " + expr->stringify();
+        return "return " + (expr ? expr->stringify() : "");
     }
 };
 

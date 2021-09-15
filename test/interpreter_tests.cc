@@ -827,19 +827,6 @@ TEST_CASE("while statement interpretation", "[interpreter]")
     }
 }
 
-TEST_CASE("top level break statement disallowed", "[interpreter]")
-{
-    TracingInterpreter interpreter(std::make_unique<ankh::lang::Interpreter>());
-
-    const std::string source = R"(
-        break
-    )";
-
-    INFO(source);
-    
-    REQUIRE_THROWS(interpret(interpreter, source));
-}
-
 TEST_CASE("increment/decrement statements", "[interpreter]")
 {
     TracingInterpreter interpreter(std::make_unique<ankh::lang::Interpreter>());
@@ -1354,11 +1341,9 @@ TEST_CASE("strings are indexable", "interpreter")
 
 TEST_CASE("interpreter has predefined functions", "[interpreter]")
 {
-    const std::string source = R"()";
-
     TracingInterpreter interpreter(std::make_unique<ankh::lang::Interpreter>());
 
-    auto [program, results] = interpret(interpreter, source);
+    auto [program, results] = interpret(interpreter, "");
 
     auto has = [&](const char *name, size_t arity) -> bool {
         auto it = interpreter.functions().find(name);
@@ -1371,4 +1356,23 @@ TEST_CASE("interpreter has predefined functions", "[interpreter]")
     REQUIRE(has("print", 1));
     REQUIRE(has("exit", 1));
     REQUIRE(has("length", 1));
+}
+
+TEST_CASE("return-less function returns nil", "[interpreter]")
+{
+    const std::string source = R"(
+        fn foo() {
+            let a = 1
+        }
+
+        let result = foo()
+    )";
+
+    INFO(source);
+
+    TracingInterpreter interpreter(std::make_unique<ankh::lang::Interpreter>());
+
+    auto [program, results] = interpret(interpreter, source);
+
+    REQUIRE(results.back().type == ankh::lang::ExprResultType::RT_NIL);
 }

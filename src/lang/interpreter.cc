@@ -350,8 +350,6 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(CallExpression *expr)
 
     try {
         callable->invoke(expr->args);
-        // TODO: this implements no-return much easier than injecting returns!!
-        // FIX THIS
         return {};
     } catch (const ReturnException& e) {
         return e.result;
@@ -663,7 +661,7 @@ void ankh::lang::Interpreter::visit(ReturnStatement *stmt)
 {
     ANKH_DEBUG("evaluating return statement");
 
-    const ExprResult result = evaluate(stmt->expr);
+    const ExprResult result = stmt->expr ? evaluate(stmt->expr) : ExprResult{};
 
     throw ReturnException(result);
 }

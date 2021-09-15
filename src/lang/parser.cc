@@ -1,3 +1,4 @@
+#include "ankh/lang/statement.h"
 #include <algorithm>
 #include <initializer_list>
 #include <random>
@@ -31,21 +32,6 @@ static std::string generate_lambda_name() noexcept
     return name;
 }
 
-static bool block_has_return_statement(const ankh::lang::BlockStatement *stmt)
-{
-    for (const auto& st : stmt->statements) {
-        if (auto block = ankh::lang::instance<ankh::lang::BlockStatement>(st); block != nullptr) {
-            return block_has_return_statement(block);
-        }
-
-        if (ankh::lang::instanceof<ankh::lang::ReturnStatement>(st)) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 ankh::lang::Program ankh::lang::parse(const std::string& source)
 {
     const std::vector<ankh::lang::Token> tokens = ankh::lang::scan(source);
@@ -56,7 +42,11 @@ ankh::lang::Program ankh::lang::parse(const std::string& source)
 
     ankh::lang::StaticAnalyzer analyzer;
 
-    program.hop_table = analyzer.resolve(program);
+    try {
+        program.hop_table = analyzer.resolve(program);
+    } catch (const ParseException& e) {
+        program.errors.push_back(e.what());
+    }
 
     return program;
 }
@@ -141,16 +131,6 @@ ankh::lang::StatementPtr ankh::lang::Parser::parse_function_declaration()
     consume(TokenType::RPAREN, "')' expected to terminate function declaration parameters");
 
     StatementPtr body = block();
-    
-    // check to see we have a return statement inside the block
-    if (BlockStatement* block = static_cast<BlockStatement*>(body.get()); !block_has_return_statement(block)) {
-        ANKH_DEBUG("function '{}' definition doesn't have a return statement so 'return nil' will be injected", name.str);
-        
-        // TODO: figure out the line and column positions
-        // Insert a "return nil" as the last statement in the block
-        auto nil = make_expression<LiteralExpression>(Token{"nil", TokenType::NIL, 0, 0});
-        block->statements.push_back(make_statement<ReturnStatement>(Token{"return", TokenType::ANKH_RETURN, 0, 0}, std::move(nil)));
-    }
 
     return make_statement<FunctionDeclaration>(name, std::move(params), std::move(body));
 }
@@ -315,14 +295,11 @@ ankh::lang::StatementPtr ankh::lang::Parser::parse_return()
     // get the "return" token for error handling purposes
     const Token& return_token = prev();
     
-    // if there is no expression, we return nil
-    ExpressionPtr expr;
-    if (check(TokenType::SEMICOLON)) {
-        const Token& current_token = prev();
-        expr = make_expression<LiteralExpression>(Token{"nil", TokenType::NIL, current_token.line, current_token.col});
-    } else {
-        expr = expression();
+    if (check(TokenType::RBRACE) || match(TokenType::SEMICOLON)) {
+        return make_statement<ReturnStatement>(return_token, nullptr);
     }
+    
+    ExpressionPtr expr = expression();
 
     semicolon();
 
@@ -543,15 +520,6 @@ ankh::lang::ExpressionPtr ankh::lang::Parser::lambda()
     StatementPtr body = block();
     
     const std::string name = generate_lambda_name();
-    
-    if (BlockStatement* block = static_cast<BlockStatement*>(body.get()); !block_has_return_statement(block)) {
-        ANKH_DEBUG("lambda '{}' definition doesn't have a return statement so 'return nil' will be injected", name);
-        
-        // TODO: figure out the line and column positions
-        // Insert a "return nil" as the last statement in the block
-        auto nil = make_expression<LiteralExpression>(Token{"nil", TokenType::NIL, 0, 0});
-        block->statements.push_back(make_statement<ReturnStatement>(Token{"return", TokenType::ANKH_RETURN, 0, 0}, std::move(nil)));
-    }
 
     return make_expression<LambdaExpression>(fn_token, name, std::move(params), std::move(body));
 }
