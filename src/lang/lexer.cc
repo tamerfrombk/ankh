@@ -305,9 +305,11 @@ std::vector<ankh::lang::Token> ankh::lang::scan(const std::string& source)
         tokens.push_back(lexer.next());
     }
 
+#ifndef NDEBUG
     for (const auto& tok : tokens) {
         ANKH_DEBUG("{}", tok);
     }
+#endif
 
     return tokens;
 }
