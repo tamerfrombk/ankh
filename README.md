@@ -2,6 +2,10 @@
 
 `ankh` is a scripting language and REPL shell with an emphasis on simplicity and readability.
 
+### Language Reference
+
+See [the wiki](https://github.com/tamerfrombk/ankh/wiki/Ankh).
+
 ### Running
 
 `ankhsh` will execute a shell while `ankhsh <script>` will run the provided script.
@@ -25,15 +29,14 @@ This will build the `ankhsh` binary in the `build` directory.
 
 ### Installing/Uninstalling
 
-TODO
+First, build the project using the steps above. To install, move `ankhsh` to a location on your `PATH`. To uninstall, delete `ankhsh`.
 
 ### Design Goals
 
 1. No third party dependencies
 2. Single binary deployment
-3. Only one obvious way of doing something
-4. No feature creep
+3. Internal consistency in language rules.
 
 ### Limitations
 
-TODO
+This project is considered to be in pre-alpha stage.
