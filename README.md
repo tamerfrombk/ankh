@@ -27,6 +27,10 @@ cmake --build .
 
 This will build the `ankhsh` binary in the `build` directory.
 
+### Testing
+
+After building, navigate into the build directory and execute the test executable: `ankhtests`.
+
 ### Installing/Uninstalling
 
 First, build the project using the steps above. To install, move `ankhsh` to a location on your `PATH`. To uninstall, delete `ankhsh`.
