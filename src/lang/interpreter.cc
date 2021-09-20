@@ -1,5 +1,6 @@
 #include "ankh/lang/expr_result.h"
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <cstdio>
 #include <algorithm>
@@ -9,6 +10,7 @@
 #include <cstring>
 #include <numeric>
 #include <stdexcept>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -194,7 +196,11 @@ ankh::lang::Interpreter::Interpreter()
 {
     ANKH_DEFINE_BUILTIN("print", 1, PrintFn);
     ANKH_DEFINE_BUILTIN("exit", 1, ExitFn);
-    ANKH_DEFINE_BUILTIN("length", 1, LengthFn);
+    ANKH_DEFINE_BUILTIN("len", 1, LengthFn);
+    ANKH_DEFINE_BUILTIN("int", 1, IntFn);
+    ANKH_DEFINE_BUILTIN("append", 2, AppendFn);
+    ANKH_DEFINE_BUILTIN("str", 1, StrFn);
+    ANKH_DEFINE_BUILTIN("keys", 1, KeysFn);
 }
 
 void ankh::lang::Interpreter::interpret(Program&& program)
@@ -209,6 +215,10 @@ void ankh::lang::Interpreter::interpret(Program&& program)
         execute(stmt);
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/////////////////////////////// BUILTINS //////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 void ankh::lang::Interpreter::print(const std::vector<ExprResult>& args) const
 {
@@ -246,6 +256,69 @@ void ankh::lang::Interpreter::length(const std::vector<ExprResult>& args) const
 
     builtin_panic<InterpretationException>("length", "{} is not a viable argument type", expr_result_type_str(result.type));
 }
+
+void ankh::lang::Interpreter::cast_int(const std::vector<ExprResult>& args) const
+{
+    const ExprResult& result = args[0];
+    if (result.type == ExprResultType::RT_NUMBER) {
+        Number e = static_cast<std::int64_t>(result.n);
+        ANKH_DEBUG("cast_int(), from {} to {}", result.n, e);
+        throw ReturnException(e);
+    }
+
+    if (result.type == ExprResultType::RT_BOOL) {
+        Number e = result.b ? 1 : 0;
+        throw ReturnException(e);
+    }
+
+    builtin_panic<InterpretationException>("int", "{} is not a viable argument type", expr_result_type_str(result.type));
+}
+
+void ankh::lang::Interpreter::str(const std::vector<ExprResult>& args) const
+{
+    throw ReturnException(args[0].stringify());
+}
+
+void ankh::lang::Interpreter::append(const std::vector<ExprResult>& args) const
+{
+    ExprResult container = args[0];
+    const ExprResult& value = args[1];
+
+    if (container.type == ExprResultType::RT_STRING) {
+        try {
+            str({ value });
+        } catch (const ReturnException& e) {
+            container.str += e.result.str;
+        }
+
+        throw ReturnException(container);
+    }
+
+    if (container.type == ExprResultType::RT_ARRAY) {
+        container.array.append(value);
+        throw ReturnException(container);
+    }
+
+    builtin_panic<InterpretationException>("append", "{} is not a viable argument type", expr_result_type_str(container.type));
+}
+
+void ankh::lang::Interpreter::keys(const std::vector<ExprResult>& args) const
+{
+    ExprResult container = args[0];
+    if (container.type == ExprResultType::RT_DICT) {
+        Array<ExprResult> arr;
+        for (const auto& x : container.dict) {
+            arr.append(x.key);
+        }
+        throw ReturnException(arr);
+    }
+
+    builtin_panic<InterpretationException>("keys", "{} is not a viable argument type", expr_result_type_str(container.type));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/////////////////////////////// END BUILTINS //////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 ankh::lang::ExprResult ankh::lang::Interpreter::visit(BinaryExpression *expr)
 {

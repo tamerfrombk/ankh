@@ -1355,7 +1355,11 @@ TEST_CASE("interpreter has predefined functions", "[interpreter]")
 
     REQUIRE(has("print", 1));
     REQUIRE(has("exit", 1));
-    REQUIRE(has("length", 1));
+    REQUIRE(has("len", 1));
+    REQUIRE(has("int", 1));
+    REQUIRE(has("append", 2));
+    REQUIRE(has("str", 1));
+    REQUIRE(has("keys", 1));
 }
 
 TEST_CASE("return-less function returns nil", "[interpreter]")

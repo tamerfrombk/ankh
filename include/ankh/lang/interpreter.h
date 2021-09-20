@@ -28,9 +28,15 @@ public:
 
     void execute_block(const BlockStatement *stmt, EnvironmentPtr<ExprResult> environment);
 
+    // Builtins
+
     void print(const std::vector<ExprResult>& args) const;
     void exit(const std::vector<ExprResult>& args) const;
     void length(const std::vector<ExprResult>& args) const;
+    void cast_int(const std::vector<ExprResult>& args) const;
+    void append(const std::vector<ExprResult>& args) const;
+    void str(const std::vector<ExprResult>& args) const;
+    void keys(const std::vector<ExprResult>& args) const;
 
     inline const Environment<ExprResult>& environment() const noexcept
     {

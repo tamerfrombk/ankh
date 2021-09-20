@@ -75,5 +75,15 @@ ANKH_DECLARE_BUILTIN_TYPE(PrintFn, print);
 ANKH_DECLARE_BUILTIN_TYPE(ExitFn, exit);
 ANKH_DECLARE_BUILTIN_TYPE(LengthFn, length);
 
+// Number Builtins
+ANKH_DECLARE_BUILTIN_TYPE(IntFn, cast_int);
 
+// Array Builtins
+ANKH_DECLARE_BUILTIN_TYPE(AppendFn, append);
+
+// String Builtins
+ANKH_DECLARE_BUILTIN_TYPE(StrFn, str);
+
+// Dictionary Builtins
+ANKH_DECLARE_BUILTIN_TYPE(KeysFn, keys);
 }
