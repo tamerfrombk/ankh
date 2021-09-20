@@ -1,6 +1,8 @@
 #include <catch/catch.hpp>
 
+#include <initializer_list>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <ankh/lang/token.h>
@@ -692,42 +694,6 @@ TEST_CASE("parse language expressions", "[parser]")
         REQUIRE(program.has_errors());
     }
 
-    SECTION("parse array")
-    {
-        const std::string source =
-        R"(
-            [1, 2]
-        )";
-
-        auto program = ankh::lang::parse(source);
-        REQUIRE(program.size() == 1);
-
-        auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
-        REQUIRE(stmt != nullptr);
-
-        auto arr = ankh::lang::instance<ankh::lang::ArrayExpression>(stmt->expr);
-        REQUIRE(arr != nullptr);
-        REQUIRE(arr->elems.size() == 2);
-    }
-
-    SECTION("parse empty array")
-    {
-        const std::string source =
-        R"(
-            []
-        )";
-
-        auto program = ankh::lang::parse(source);
-        REQUIRE(program.size() == 1);
-        
-        auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
-        REQUIRE(stmt != nullptr);
-
-        auto arr = ankh::lang::instance<ankh::lang::ArrayExpression>(stmt->expr);
-        REQUIRE(arr != nullptr);
-        REQUIRE(arr->elems.size() == 0);
-    }
-
     SECTION("interleave call and index expressions")
     {
         const std::string source =
@@ -956,6 +922,65 @@ TEST_CASE("parse language expressions", "[parser]")
         auto lookup = ankh::lang::instance<ankh::lang::IndexExpression>(stmt->expr);
         REQUIRE(lookup != nullptr);
     }
+}
+
+TEST_CASE("parse arrays", "[parser]")
+{
+    std::unordered_map<std::string, size_t> sourcesToExpectedElementCount = {
+        { "[1, 2]", 2 }
+        , { "[1]", 1 }
+        , { "[]",  0 }
+    };
+
+    for (const auto& [source, expected_count] : sourcesToExpectedElementCount) {
+        INFO(source);
+
+        auto program = ankh::lang::parse(source);
+        REQUIRE(program.size() == 1);
+        REQUIRE(!program.has_errors());
+
+        auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
+        REQUIRE(stmt != nullptr);
+
+        auto arr = ankh::lang::instance<ankh::lang::ArrayExpression>(stmt->expr);
+        REQUIRE(arr != nullptr);
+        REQUIRE(arr->elems.size() == expected_count);
+    } 
+}
+
+TEST_CASE("parse slices", "[parser]")
+{
+    struct TestCase {
+        std::string source;
+        bool has_begin, has_end;
+    };
+
+    std::initializer_list<TestCase> testCases = {
+        { "[][:]", false, false}
+        , { "[][1:]", true, false }
+        , { "[][:4]",  false, true }
+        , { "[][1:3]", true, true }
+    };
+
+    for (const auto& [source, has_begin, has_end] : testCases) {
+        INFO(source);
+
+        auto program = ankh::lang::parse(source);
+        REQUIRE(program.size() == 1);
+        REQUIRE(!program.has_errors());
+
+        auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
+        REQUIRE(stmt != nullptr);
+
+        auto slice = ankh::lang::instance<ankh::lang::SliceExpression>(stmt->expr);
+        REQUIRE(slice != nullptr);
+        if (has_begin) {
+            REQUIRE(slice->begin != nullptr);
+        }
+        if (has_end) {
+            REQUIRE(slice->end != nullptr);
+        }
+    } 
 }
 
 TEST_CASE("test parse statement without a empty line at the end does not infinite loop", "[parser]")

@@ -1,3 +1,4 @@
+#include "ankh/lang/expr.h"
 #include "ankh/lang/statement.h"
 #include <algorithm>
 #include <initializer_list>
@@ -442,11 +443,29 @@ ankh::lang::ExpressionPtr ankh::lang::Parser::index(ExpressionPtr indexee)
     // no message required since we know we have this token
     const Token& lbracket = consume(TokenType::LBRACKET, "");
 
-    ExpressionPtr idx = expression();
+    ExpressionPtr begin = nullptr;
+    if (match(TokenType::COLON)) {
+        ExpressionPtr end = nullptr;
+        if (!match(TokenType::RBRACKET)) {
+            end = expression();
+            consume(TokenType::RBRACKET, "']' expected to terminate slice operation");
+        }
+        return make_expression<SliceExpression>(lbracket, std::move(indexee), std::move(begin), std::move(end));
+    }
+
+    begin = expression();
+    if (match(TokenType::COLON)) {
+        ExpressionPtr end = nullptr;
+        if (!match(TokenType::RBRACKET)) {
+            end = expression();
+            consume(TokenType::RBRACKET, "']' expected to terminate slice operation");
+        }
+        return make_expression<SliceExpression>(lbracket, std::move(indexee), std::move(begin), std::move(end));
+    }
 
     consume(TokenType::RBRACKET, "']' expected to terminate index operation");
 
-    return make_expression<IndexExpression>(lbracket, std::move(indexee), std::move(idx));
+    return make_expression<IndexExpression>(lbracket, std::move(indexee), std::move(begin));
 }
 
 ankh::lang::ExpressionPtr ankh::lang::Parser::primary()

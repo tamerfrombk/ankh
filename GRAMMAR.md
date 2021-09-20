@@ -40,7 +40,8 @@ factor                → unary ( ( "/" | "*" ) unary )*
 unary                 → ( "!" | "-" ) unary | operable
 operable              → primary ( call | lookup )*
 call                  → "(" args? ")"
-lookup                → "[" expression "]"
+lookup                → "[" expression | slice "]"
+slice                 → number? ":" number?
 args                  → expression ( "," expression )*
 primary               → literal
                         | "(" expression ")"

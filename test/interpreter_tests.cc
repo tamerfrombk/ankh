@@ -1380,3 +1380,40 @@ TEST_CASE("return-less function returns nil", "[interpreter]")
 
     REQUIRE(results.back().type == ankh::lang::ExprResultType::RT_NIL);
 }
+
+TEST_CASE("test slices", "[interpreter]")
+{
+    std::unordered_map<std::string, size_t> source_to_expected_elem_count = {
+        { "let b = [1,2,3][1:]", 2 }
+        , { "let b = [1,2,3][:]", 3 }
+        , { "let b = [1,2,3][1:3]", 2 }
+        , { "let b = [1,2,3][:1]", 1 }
+    };
+
+    for (const auto& [source, expected_count] : source_to_expected_elem_count) {
+        INFO(source);
+        TracingInterpreter interpreter(std::make_unique<ankh::lang::Interpreter>());
+
+        auto [program, results] = interpret(interpreter, source);
+
+        auto b = interpreter.environment().value("b");
+        REQUIRE(b.has_value());
+
+        REQUIRE(b->type == ankh::lang::ExprResultType::RT_ARRAY);
+        REQUIRE(b->array.size() == expected_count);
+    }
+}
+
+TEST_CASE("test slices, incorrect type, begin", "[interpreter]")
+{ 
+    TracingInterpreter interpreter(std::make_unique<ankh::lang::Interpreter>());
+
+    REQUIRE_THROWS(interpret(interpreter, R"([1,2,3]["42":])"));
+}
+
+TEST_CASE("test slices, incorrect type, end", "[interpreter]")
+{ 
+    TracingInterpreter interpreter(std::make_unique<ankh::lang::Interpreter>());
+
+    REQUIRE_THROWS(interpret(interpreter, R"([1,2,3][:"42"])"));
+}

@@ -27,8 +27,9 @@ private:
     virtual ExprResult visit(CallExpression *expr) override;
     virtual ExprResult visit(LambdaExpression *expr) override;
     virtual ExprResult visit(CommandExpression *cmd) override;
-    virtual ExprResult visit(ArrayExpression *cmd) override;
-    virtual ExprResult visit(IndexExpression *cmd) override;
+    virtual ExprResult visit(ArrayExpression *expr) override;
+    virtual ExprResult visit(IndexExpression *expr) override;
+    virtual ExprResult visit(SliceExpression *expr) override;
     virtual ExprResult visit(DictionaryExpression *expr) override;
     virtual ExprResult visit(StringExpression *expr) override;
 

@@ -1,3 +1,4 @@
+#include "ankh/lang/expr.h"
 #include <ankh/def.h>
 #include <ankh/log.h>
 
@@ -131,6 +132,15 @@ ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(IndexExpression *expr)
 {
     analyze(expr->indexee);
     analyze(expr->index);
+
+    return {};
+}
+
+ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(SliceExpression *expr)
+{
+    analyze(expr->indexee);
+    if (expr->begin) { analyze(expr->begin); }
+    if (expr->end)   { analyze(expr->end);   }
 
     return {};
 }

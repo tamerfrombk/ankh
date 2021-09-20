@@ -534,6 +534,36 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(ankh::lang::IndexExpressio
     panic<InterpretationException>(expr->marker, "runtime error: '{}' is not a valid lookup expression", index.stringify());
 }
 
+ankh::lang::ExprResult ankh::lang::Interpreter::visit(SliceExpression *expr)
+{
+    ExprResult indexee = evaluate(expr->indexee);
+    if (indexee.type != ExprResultType::RT_ARRAY) {
+        panic<InterpretationException>(expr->marker, "runtime error: slices are only available on arrays, not {}", expr_result_type_str(indexee.type));
+    }
+
+    auto assert_is_positive_integer = [&](const ExpressionPtr& e) -> ExprResult {
+        ExprResult result = evaluate(e);
+        if (result.type != ExprResultType::RT_NUMBER || !is_integer(result.n)) {
+            panic<InterpretationException>(expr->marker, "runtime error: slice indexes can only be integers, not {}", expr_result_type_str(result.type));
+        }
+        if (result.n < 0) {
+            panic<InterpretationException>(expr->marker, "runtime error: slice indexes can only be positive, not {}", expr_result_type_str(result.type));
+        }
+
+        return result;
+    };
+
+    const size_t begin_index = expr->begin ? assert_is_positive_integer(expr->begin).n : 0;
+    const size_t end_index   = expr->end   ? assert_is_positive_integer(expr->end).n   : indexee.array.size();
+
+    Array<ExprResult> result;
+    for (size_t i = begin_index; i < end_index; ++i) {
+        result.append(indexee.array[i]);
+    }
+
+    return result;
+}
+
 ankh::lang::ExprResult ankh::lang::Interpreter::visit(ankh::lang::DictionaryExpression *expr)
 {
     Dictionary<ExprResult> dict;

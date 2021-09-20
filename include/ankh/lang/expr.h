@@ -21,6 +21,7 @@ struct LambdaExpression;
 struct CommandExpression;
 struct ArrayExpression;
 struct IndexExpression;
+struct SliceExpression;
 struct DictionaryExpression;
 struct StringExpression;
 
@@ -39,6 +40,7 @@ struct ExpressionVisitor {
     virtual R visit(CommandExpression *expr) = 0;
     virtual R visit(ArrayExpression *expr) = 0;
     virtual R visit(IndexExpression *expr) = 0;
+    virtual R visit(SliceExpression *expr) = 0;
     virtual R visit(DictionaryExpression *expr) = 0;
     virtual R visit(StringExpression *expr) = 0;
 };
@@ -132,6 +134,11 @@ struct LiteralExpression
     virtual std::string stringify() const noexcept override
     {
         return literal.str;
+    }
+
+    bool is_number() const noexcept
+    {
+        return literal.type == TokenType::NUMBER;
     }
 };
 
@@ -274,6 +281,29 @@ struct IndexExpression
     virtual std::string stringify() const noexcept override
     {
         return indexee->stringify() + "[" + index->stringify() + "]";
+    }
+};
+
+struct SliceExpression 
+    : public Expression 
+{
+    Token marker;
+    ExpressionPtr indexee;
+    ExpressionPtr begin, end;
+
+    SliceExpression(Token marker, ExpressionPtr indexee, ExpressionPtr begin, ExpressionPtr end)
+        : marker(std::move(marker)), indexee(std::move(indexee)), begin(std::move(begin)), end(std::move(end)) {}
+
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
+    {
+        return visitor->visit(this);
+    }
+
+    virtual std::string stringify() const noexcept override
+    {
+        std::string begin_str = begin ? begin->stringify() : "";
+        std::string end_str = end ? end->stringify() : "";
+        return indexee->stringify() + "[" + begin_str + ":" + end_str + "]";
     }
 };
 
