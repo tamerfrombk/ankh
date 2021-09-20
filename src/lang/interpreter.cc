@@ -555,6 +555,9 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(SliceExpression *expr)
 
     const size_t begin_index = expr->begin ? assert_is_positive_integer(expr->begin).n : 0;
     const size_t end_index   = expr->end   ? assert_is_positive_integer(expr->end).n   : indexee.array.size();
+    if (end_index > indexee.array.size()) {
+        panic<InterpretationException>(expr->marker, "runtime error: slice index {} out of range", end_index);
+    }
 
     Array<ExprResult> result;
     for (size_t i = begin_index; i < end_index; ++i) {

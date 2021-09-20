@@ -1417,3 +1417,17 @@ TEST_CASE("test slices, incorrect type, end", "[interpreter]")
 
     REQUIRE_THROWS(interpret(interpreter, R"([1,2,3][:"42"])"));
 }
+
+TEST_CASE("test slices, negative number", "[interpreter]")
+{ 
+    TracingInterpreter interpreter(std::make_unique<ankh::lang::Interpreter>());
+
+    REQUIRE_THROWS(interpret(interpreter, R"([1,2,3][:-1])"));
+}
+
+TEST_CASE("test slices, out of bounds", "[interpreter]")
+{ 
+    TracingInterpreter interpreter(std::make_unique<ankh::lang::Interpreter>());
+
+    REQUIRE_THROWS(interpret(interpreter, R"([1,2,3][:99])"));
+}
