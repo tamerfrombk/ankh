@@ -20,7 +20,8 @@ enum class ExprResultType {
     RT_CALLABLE,
     RT_ARRAY,
     RT_DICT,
-    RT_NIL
+    RT_NIL,
+    RT_UNKNOWN
 };
 
 inline std::string expr_result_type_str(ankh::lang::ExprResultType type) noexcept
@@ -33,6 +34,7 @@ inline std::string expr_result_type_str(ankh::lang::ExprResultType type) noexcep
     case ankh::lang::ExprResultType::RT_ARRAY:     return "RT_ARRAY";
     case ankh::lang::ExprResultType::RT_DICT:      return "RT_DICT";
     case ankh::lang::ExprResultType::RT_NIL:       return "NIL";
+    case ankh::lang::ExprResultType::RT_UNKNOWN:   return "UNKNOWN";
     default:                                       
         ANKH_FATAL("expr_result_type_str(): unknown expression result type!");
     }
