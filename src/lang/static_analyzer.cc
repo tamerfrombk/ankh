@@ -47,9 +47,7 @@ ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(BinaryExpression *expr)
 
 ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(UnaryExpression *expr)
 {
-    analyze(expr->right);
-
-    return {};
+    return analyze(expr->right);
 }
 
 ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(LiteralExpression *expr)
@@ -119,16 +117,16 @@ ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(CommandExpression *expr
     // right since we have interpolated expressions
     ANKH_UNUSED(expr);
 
-    return {};
+    return ExprResultType::RT_STRING;
 }
 
 ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(ArrayExpression *expr)
 {
     for (const auto& elem : expr->elems) {
-        analyze(elem);
+        ANKH_UNUSED(analyze(elem));
     }
 
-    return {};
+    return ExprResultType::RT_ARRAY;
 }
 
 ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(IndexExpression *expr)
@@ -162,12 +160,12 @@ ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(StringExpression *expr)
 {
     ANKH_UNUSED(expr);
 
-    return {};
+    return ExprResultType::RT_STRING;
 }
 
 void ankh::lang::StaticAnalyzer::visit(ExpressionStatement *stmt)
 {
-    analyze(stmt->expr);
+    ANKH_UNUSED(analyze(stmt->expr));
 }
 
 void ankh::lang::StaticAnalyzer::visit(VariableDeclaration *stmt)
@@ -213,7 +211,11 @@ void ankh::lang::StaticAnalyzer::visit(BlockStatement *stmt)
 
 void ankh::lang::StaticAnalyzer::visit(IfStatement *stmt)
 {
-    analyze(stmt->condition);
+    const ExprResult condition = analyze(stmt->condition);
+    if (condition.type != ExprResultType::RT_BOOL) {
+        panic<ParseException>(stmt->marker, "if condition must evaluate to a boolean expression, not {}", expr_result_type_str(condition.type));
+    }
+
     analyze(stmt->then_block);
     if (stmt->else_block != nullptr) {
         analyze(stmt->else_block);
@@ -223,7 +225,12 @@ void ankh::lang::StaticAnalyzer::visit(IfStatement *stmt)
 void ankh::lang::StaticAnalyzer::visit(WhileStatement *stmt)
 {
     begin_analysis(current_analysis().fn_type, LoopType::LOOP);
-    analyze(stmt->condition);
+    
+    const ExprResult condition = analyze(stmt->condition);
+    if (condition.type != ExprResultType::RT_BOOL) {
+        panic<ParseException>(stmt->marker, "while condition must evaluate to a boolean expression, not {}", expr_result_type_str(condition.type));
+    }
+
     analyze(stmt->body);
     end_analysis();
 }
@@ -234,7 +241,14 @@ void ankh::lang::StaticAnalyzer::visit(ForStatement *stmt)
     begin_scope();
 
     if (stmt->init)         { analyze(stmt->init);      }
-    if (stmt->condition)    { analyze(stmt->condition); }
+    
+    if (stmt->condition)    { 
+        ExprResult condition = analyze(stmt->condition);
+        if (condition.type != ExprResultType::RT_BOOL) {
+            panic<ParseException>(stmt->marker, "for condition must evaluate to a boolean expression, not {}", expr_result_type_str(condition.type));
+        }
+    }
+    
     if (stmt->mutator)      { analyze(stmt->mutator);   }
     
     analyze(stmt->body);
