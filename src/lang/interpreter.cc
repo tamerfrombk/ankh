@@ -537,8 +537,8 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(ankh::lang::IndexExpressio
 ankh::lang::ExprResult ankh::lang::Interpreter::visit(SliceExpression *expr)
 {
     ExprResult indexee = evaluate(expr->indexee);
-    if (indexee.type != ExprResultType::RT_ARRAY) {
-        panic<InterpretationException>(expr->marker, "runtime error: slices are only available on arrays, not {}", expr_result_type_str(indexee.type));
+    if (indexee.type != ExprResultType::RT_ARRAY && indexee.type != ExprResultType::RT_STRING) {
+        panic<InterpretationException>(expr->marker, "runtime error: slices are only available on arrays and arrays, not {}", expr_result_type_str(indexee.type));
     }
 
     auto assert_is_positive_integer = [&](const ExpressionPtr& e) -> ExprResult {
@@ -553,15 +553,34 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(SliceExpression *expr)
         return result;
     };
 
-    const size_t begin_index = expr->begin ? assert_is_positive_integer(expr->begin).n : 0;
-    const size_t end_index   = expr->end   ? assert_is_positive_integer(expr->end).n   : indexee.array.size();
-    if (end_index > indexee.array.size()) {
+    const size_t begin_index = expr->begin 
+        ? assert_is_positive_integer(expr->begin).n 
+        : 0;
+
+    const size_t sentinel = indexee.type == ExprResultType::RT_ARRAY 
+        ? indexee.array.size() 
+        : indexee.str.size();
+
+    const size_t end_index = expr->end 
+        ? assert_is_positive_integer(expr->end).n   
+        : sentinel; 
+
+    if (end_index > sentinel) {
         panic<InterpretationException>(expr->marker, "runtime error: slice index {} out of range", end_index);
     }
 
-    Array<ExprResult> result;
+    if (indexee.type == ExprResultType::RT_ARRAY) {
+        Array<ExprResult> result;
+        for (size_t i = begin_index; i < end_index; ++i) {
+            result.append(indexee.array[i]);
+        }
+
+        return result;
+    }
+        
+    std::string result;
     for (size_t i = begin_index; i < end_index; ++i) {
-        result.append(indexee.array[i]);
+        result += indexee.str[i];
     }
 
     return result;
