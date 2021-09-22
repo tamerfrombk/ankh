@@ -1,3 +1,5 @@
+#include "ankh/lang/expr_result.h"
+#include "ankh/lang/token.h"
 #include <ankh/def.h>
 #include <ankh/log.h>
 
@@ -52,16 +54,18 @@ ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(UnaryExpression *expr)
 
 ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(LiteralExpression *expr)
 {
-    ANKH_UNUSED(expr);
-
-    return {};
+    switch (expr->literal.type){
+    case TokenType::NUMBER:     return ExprResultType::RT_NUMBER;
+    case TokenType::ANKH_TRUE:  // fall through is intentional
+    case TokenType::ANKH_FALSE: return ExprResultType::RT_BOOL;
+    case TokenType::NIL:        return ExprResultType::RT_NIL;
+    default: ANKH_FATAL("static analyzer: unknown literal expression type {}", token_type_str(expr->literal.type));    
+    }
 }
 
 ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(ParenExpression *expr)
 {
-    analyze(expr->expr);
-
-    return {};
+    return analyze(expr->expr);
 }
 
 ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(IdentifierExpression *expr)
