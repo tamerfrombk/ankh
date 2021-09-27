@@ -141,7 +141,9 @@ TEST_CASE("parse language statements", "[parser]")
         auto assignment = ankh::lang::instance<ankh::lang::AssignmentStatement>(program[1]);
         REQUIRE(assignment != nullptr);
 
-        REQUIRE(assignment->name.str == "i");
+        auto identifier = ankh::lang::instance<ankh::lang::IdentifierExpression>(assignment->target);
+        REQUIRE(identifier != nullptr);
+        REQUIRE(identifier->name.str == "i");
 
         auto literal = ankh::lang::instance<ankh::lang::LiteralExpression>(assignment->initializer);
         REQUIRE(literal != nullptr);
@@ -170,7 +172,10 @@ TEST_CASE("parse language statements", "[parser]")
             auto assignment = ankh::lang::instance<ankh::lang::CompoundAssignment>(program[0]);
             REQUIRE(assignment != nullptr);
 
-            REQUIRE(assignment->target.str == "i");
+            auto identifier = ankh::lang::instance<ankh::lang::IdentifierExpression>(assignment->target);
+            REQUIRE(identifier != nullptr);
+            REQUIRE(identifier->name.str == "i");
+            
             REQUIRE(assignment->op.str == ops[i++]);
 
             auto literal = ankh::lang::instance<ankh::lang::LiteralExpression>(assignment->value);
