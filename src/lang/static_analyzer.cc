@@ -181,13 +181,13 @@ void ankh::lang::StaticAnalyzer::visit(AssignmentStatement *stmt)
     ANKH_DEBUG("static analyzer: analyzing '{}'", stmt->stringify());
 
     analyze(stmt->initializer);
-    resolve(stmt, stmt->name);
+    analyze(stmt->target);
 }
 
 void ankh::lang::StaticAnalyzer::visit(CompoundAssignment* stmt)
 {
     analyze(stmt->value);
-    resolve(stmt, stmt->target);
+    analyze(stmt->target);
 }
 
 void ankh::lang::StaticAnalyzer::visit(IncOrDecIdentifierStatement* stmt)

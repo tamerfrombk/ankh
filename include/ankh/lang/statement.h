@@ -83,11 +83,12 @@ struct ExpressionStatement
 struct AssignmentStatement
     : public Statement
 {
-    Token name;
+    Token marker;
+    ExpressionPtr target;
     ExpressionPtr initializer;
 
-    AssignmentStatement(Token name, ExpressionPtr initializer)
-        : name(std::move(name)), initializer(std::move(initializer)) {}
+    AssignmentStatement(Token marker, ExpressionPtr target, ExpressionPtr initializer)
+        : marker(std::move(marker)), target(std::move(target)), initializer(std::move(initializer)) {}
 
     virtual void accept(StatementVisitor<void> *visitor) override
     {
@@ -96,18 +97,18 @@ struct AssignmentStatement
 
     virtual std::string stringify() const noexcept override
     {
-        return name.str + " = " + initializer->stringify();
+        return target->stringify() + " = " + initializer->stringify();
     }
 };
 
 struct CompoundAssignment
     : public Statement
 {
-    Token target;
+    ExpressionPtr target;
     Token op;
     ExpressionPtr value;
 
-    CompoundAssignment(Token target, Token op, ExpressionPtr value)
+    CompoundAssignment(ExpressionPtr target, Token op, ExpressionPtr value)
         : target(std::move(target)), op(std::move(op)), value(std::move(value)) {}
 
     virtual void accept(StatementVisitor<void>* visitor) override
@@ -117,7 +118,7 @@ struct CompoundAssignment
 
     virtual std::string stringify() const noexcept override
     {
-        return target.str + " " + op.str + " " + value->stringify();
+        return target->stringify() + " " + op.str + " " + value->stringify();
     }
 };
 

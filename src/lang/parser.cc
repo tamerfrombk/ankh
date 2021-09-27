@@ -138,8 +138,7 @@ ankh::lang::StatementPtr ankh::lang::Parser::parse_function_declaration()
 
 ankh::lang::StatementPtr ankh::lang::Parser::assignment(ExpressionPtr target)
 {
-    IdentifierExpression *identifier = instance<IdentifierExpression>(target);
-    if (identifier == nullptr) {
+    if (!instanceof<IndexExpression>(target) && !instanceof<IdentifierExpression>(target)) {
         panic<ParseException>(curr(), "syntax error: invalid assignment target '{}'", target->stringify());
     }
 
@@ -153,9 +152,9 @@ ankh::lang::StatementPtr ankh::lang::Parser::assignment(ExpressionPtr target)
     semicolon();
 
     if (op.type == TokenType::EQ) {
-        return make_statement<AssignmentStatement>(identifier->name, std::move(rhs));   
+        return make_statement<AssignmentStatement>(op, std::move(target), std::move(rhs));   
     } else {
-        return make_statement<CompoundAssignment>(identifier->name, op, std::move(rhs));
+        return make_statement<CompoundAssignment>(std::move(target), op, std::move(rhs));
     }
 }
 

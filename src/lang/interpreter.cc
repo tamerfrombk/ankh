@@ -638,36 +638,39 @@ void ankh::lang::Interpreter::visit(VariableDeclaration *stmt)
 void ankh::lang::Interpreter::visit(AssignmentStatement *stmt)
 {
     const ExprResult result = evaluate(stmt->initializer);
-    if (!current_env_->assign(stmt->name.str, result)) {
-        panic<InterpretationException>(stmt->name, "runtime error: '{}' is not defined", stmt->name.str);
-    }
+    // if (!current_env_->assign(stmt->name.str, result)) {
+    //     panic<InterpretationException>(stmt->name, "runtime error: '{}' is not defined", stmt->name.str);
+    // }
+    ANKH_FATAL("unimplemented: Assignment");
 }
 
 void ankh::lang::Interpreter::visit(CompoundAssignment* stmt)
 {
-    auto possible_target = current_env_->value(stmt->target.str);
-    if (!possible_target) {
-        panic<InterpretationException>(stmt->target, "runtime error: '{}' is not defined", stmt->target.str);
-    }
+    ANKH_UNUSED(stmt);
+    ANKH_FATAL("unimplemented: Assignment");
+    // auto possible_target = current_env_->value(stmt->target.str);
+    // if (!possible_target) {
+    //     panic<InterpretationException>(stmt->target, "runtime error: '{}' is not defined", stmt->target.str);
+    // }
 
-    ExprResult target = possible_target.value();
+    // ExprResult target = possible_target.value();
 
-    ExprResult value;
-    if (stmt->op.str == "+=") {
-        value = plus(stmt->op, target, evaluate(stmt->value));
-    } else if (stmt->op.str == "-=") {
-        value = arithmetic(stmt->op, target, evaluate(stmt->value), std::minus<>{});
-    } else if (stmt->op.str == "*=") {
-        value = arithmetic(stmt->op, target, evaluate(stmt->value), std::multiplies<>{});
-    } else if (stmt->op.str == "/=") {
-        value = division(stmt->op, target, evaluate(stmt->value));
-    } else {
-        panic<InterpretationException>(stmt->op, "runtime error: '{}' is not a valid compound assignment operation", stmt->op.str);
-    }
+    // ExprResult value;
+    // if (stmt->op.str == "+=") {
+    //     value = plus(stmt->op, target, evaluate(stmt->value));
+    // } else if (stmt->op.str == "-=") {
+    //     value = arithmetic(stmt->op, target, evaluate(stmt->value), std::minus<>{});
+    // } else if (stmt->op.str == "*=") {
+    //     value = arithmetic(stmt->op, target, evaluate(stmt->value), std::multiplies<>{});
+    // } else if (stmt->op.str == "/=") {
+    //     value = division(stmt->op, target, evaluate(stmt->value));
+    // } else {
+    //     panic<InterpretationException>(stmt->op, "runtime error: '{}' is not a valid compound assignment operation", stmt->op.str);
+    // }
 
-    if (!current_env_->assign(stmt->target.str, value)) {
-        panic<InterpretationException>(stmt->target, "runtime error: unable to assign the result of the compound assignment");
-    }
+    // if (!current_env_->assign(stmt->target.str, value)) {
+    //     panic<InterpretationException>(stmt->op, "runtime error: unable to assign the result of the compound assignment");
+    // }
 }
 
 void ankh::lang::Interpreter::visit(ankh::lang::IncOrDecIdentifierStatement* stmt)
