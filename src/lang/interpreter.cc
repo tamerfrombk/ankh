@@ -150,7 +150,7 @@ static ankh::lang::ExprResult plus(const ankh::lang::Token& marker, const ankh::
     }
 
     if (operands_are(ankh::lang::ExprResultType::RT_STRING, {left, right})) {
-        return left.str + right.str;
+        return *left.str + *right.str;
     }
 
     ankh::lang::panic<ankh::lang::InterpretationException>(marker, "runtime error: unknown overload of operator(+) with LHS as {} and RHS as {}", ankh::lang::expr_result_type_str(left.type), ankh::lang::expr_result_type_str(right.type));
@@ -164,7 +164,7 @@ static ankh::lang::ExprResult compare(const ankh::lang::Token& marker, const ank
     }
 
     if (operands_are(ankh::lang::ExprResultType::RT_STRING, {left, right})) {
-        return cmp(left.str, right.str);
+        return cmp(*left.str, *right.str);
     }
 
     ankh::lang::panic<ankh::lang::InterpretationException>(marker, "runtime error: unknown overload of operator({}) with LHS as {} and RHS as {}", marker.str, ankh::lang::expr_result_type_str(left.type), ankh::lang::expr_result_type_str(right.type));
@@ -251,7 +251,7 @@ void ankh::lang::Interpreter::length(const std::vector<ExprResult>& args) const
         throw ReturnException(static_cast<Number>(result.dict.size()));
     }
     if (result.type == ExprResultType::RT_STRING) {
-        throw ReturnException(static_cast<Number>(result.str.size()));
+        throw ReturnException(static_cast<Number>(result.str->size()));
     }
 
     builtin_panic<InterpretationException>("length", "{} is not a viable argument type", expr_result_type_str(result.type));
@@ -288,7 +288,7 @@ void ankh::lang::Interpreter::append(const std::vector<ExprResult>& args) const
         try {
             str({ value });
         } catch (const ReturnException& e) {
-            container.str += e.result.str;
+            *container.str += *e.result.str;
         }
 
         throw ReturnException(container);
@@ -509,11 +509,11 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(ankh::lang::IndexExpressio
         }
 
         if (indexee.type == ExprResultType::RT_STRING) {
-            if (index.n >= indexee.str.size()) {
-                panic<InterpretationException>(expr->marker, "runtime error: index {} must be less than string length {}", index.n, indexee.str.size());
+            if (index.n >= indexee.str->size()) {
+                panic<InterpretationException>(expr->marker, "runtime error: index {} must be less than string length {}", index.n, indexee.str->size());
             }
             
-            return std::string{ indexee.str[index.n] };
+            return std::string{ indexee.str->at(index.n) };
         }
 
         panic<InterpretationException>(expr->marker, "runtime error: operand must be an array or string for a numeric index");
@@ -524,7 +524,7 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(ankh::lang::IndexExpressio
             panic<InterpretationException>(expr->marker, "runtime error: operand must be a dict for a string index");
         }
 
-        if (auto possible_value = indexee.dict.value(index.str); possible_value.has_value()) {
+        if (auto possible_value = indexee.dict.value(*index.str); possible_value.has_value()) {
             return possible_value->value;
         }
 
@@ -559,7 +559,7 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(SliceExpression *expr)
 
     const size_t sentinel = indexee.type == ExprResultType::RT_ARRAY 
         ? indexee.array.size() 
-        : indexee.str.size();
+        : indexee.str->size();
 
     const size_t end_index = expr->end 
         ? assert_is_positive_integer(expr->end).n   
@@ -580,7 +580,7 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(SliceExpression *expr)
         
     std::string result;
     for (size_t i = begin_index; i < end_index; ++i) {
-        result += indexee.str[i];
+        result += indexee.str->at(i);
     }
 
     return result;

@@ -43,7 +43,7 @@ std::string ankh::lang::ExprResult::stringify() const noexcept
 {
     switch (type) {
     case ankh::lang::ExprResultType::RT_STRING:
-        return str;
+        return *str;
     case ankh::lang::ExprResultType::RT_NUMBER:
         return std::to_string(n);
     case ankh::lang::ExprResultType::RT_BOOL:

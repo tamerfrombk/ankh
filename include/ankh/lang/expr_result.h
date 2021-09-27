@@ -4,6 +4,7 @@
 
 #include <ankh/lang/types/dictionary.h>
 #include <ankh/lang/types/array.h>
+#include <ankh/lang/types/string.h>
 
 #include <ankh/log.h>
 
@@ -29,9 +30,9 @@ inline std::string expr_result_type_str(ankh::lang::ExprResultType type) noexcep
     case ankh::lang::ExprResultType::RT_STRING:    return "STRING";
     case ankh::lang::ExprResultType::RT_NUMBER:    return "NUMBER";
     case ankh::lang::ExprResultType::RT_BOOL:      return "BOOL";
-    case ankh::lang::ExprResultType::RT_CALLABLE:  return "RT_CALLABLE";
-    case ankh::lang::ExprResultType::RT_ARRAY:     return "RT_ARRAY";
-    case ankh::lang::ExprResultType::RT_DICT:      return "RT_DICT";
+    case ankh::lang::ExprResultType::RT_CALLABLE:  return "CALLABLE";
+    case ankh::lang::ExprResultType::RT_ARRAY:     return "ARRAY";
+    case ankh::lang::ExprResultType::RT_DICT:      return "DICT";
     case ankh::lang::ExprResultType::RT_NIL:       return "NIL";
     default:                                       
         ANKH_FATAL("expr_result_type_str(): unknown expression result type!");
@@ -40,7 +41,6 @@ inline std::string expr_result_type_str(ankh::lang::ExprResultType type) noexcep
 
 struct ExprResult {
 
-    std::string str;
     union {
         Number      n;
         bool        b;
@@ -49,6 +49,7 @@ struct ExprResult {
     
     Array<ExprResult> array;
     Dictionary<ExprResult> dict;
+    String str;
     ExprResultType type;
 
     ExprResult()                            :                      type(ExprResultType::RT_NIL) {}

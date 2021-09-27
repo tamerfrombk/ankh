@@ -81,6 +81,7 @@ TEST_CASE("primary expressions", "[interpreter]")
             INFO(source);
             
             ankh::lang::ExprResult actual_result = results.back();
+            INFO("actual result: " + actual_result.stringify());
 
             REQUIRE(actual_result.type == expected_result.type);
             switch (expected_result.type) {
@@ -107,7 +108,7 @@ TEST_CASE("primary expressions", "[interpreter]")
 
         ankh::lang::ExprResult actual_result = results.back();
         REQUIRE(actual_result.type == ankh::lang::ExprResultType::RT_STRING);
-        REQUIRE(actual_result.str == "the value of a is lol");
+        REQUIRE(*actual_result.str == "the value of a is lol");
     }
 
     SECTION("strings, substitution expression, missing closing brace")
@@ -145,7 +146,7 @@ TEST_CASE("primary expressions", "[interpreter]")
 
         ankh::lang::ExprResult actual_result = results.back();
         REQUIRE(actual_result.type == ankh::lang::ExprResultType::RT_STRING);
-        REQUIRE(actual_result.str == "the value is false");
+        REQUIRE(*actual_result.str == "the value is false");
     }
 
     SECTION("strings, substitution expression, raw braces")
@@ -162,7 +163,7 @@ TEST_CASE("primary expressions", "[interpreter]")
 
         ankh::lang::ExprResult actual_result = results.back();
         REQUIRE(actual_result.type == ankh::lang::ExprResultType::RT_STRING);
-        REQUIRE(actual_result.str == "the value is {} false");
+        REQUIRE(*actual_result.str == "the value is {} false");
     }
 
     SECTION("strings, substitution expression, multi")
@@ -178,7 +179,7 @@ TEST_CASE("primary expressions", "[interpreter]")
 
         ankh::lang::ExprResult actual_result = results.back();
         REQUIRE(actual_result.type == ankh::lang::ExprResultType::RT_STRING);
-        REQUIRE(actual_result.str == "the value is true is true");
+        REQUIRE(*actual_result.str == "the value is true is true");
     }
 
     SECTION("lambda, rvalue")
@@ -209,7 +210,7 @@ TEST_CASE("primary expressions", "[interpreter]")
 
         ankh::lang::ExprResult identifier = results[0];
         REQUIRE(identifier.type == ankh::lang::ExprResultType::RT_STRING);
-        REQUIRE(identifier.str == "hello\n");
+        REQUIRE(*identifier.str == "hello\n");
     }
 
     SECTION("command, piping")
@@ -224,7 +225,7 @@ TEST_CASE("primary expressions", "[interpreter]")
 
         ankh::lang::ExprResult identifier = results[0];
         REQUIRE(identifier.type == ankh::lang::ExprResultType::RT_STRING);
-        REQUIRE(identifier.str == "jello\n");
+        REQUIRE(*identifier.str == "jello\n");
     }
 
     SECTION("parenthetic expression")
@@ -267,10 +268,10 @@ TEST_CASE("call expressions", "[interpreter]")
         REQUIRE(results[0].type == ankh::lang::ExprResultType::RT_CALLABLE);
         
         REQUIRE(results[1].type == ankh::lang::ExprResultType::RT_STRING);
-        REQUIRE(results[1].str == "foobar");
+        REQUIRE(*results[1].str == "foobar");
        
         REQUIRE(results[2].type == ankh::lang::ExprResultType::RT_STRING);
-        REQUIRE(results[2].str == "foobar");
+        REQUIRE(*results[2].str == "foobar");
     }
 
     SECTION("function call, recursive")
@@ -333,7 +334,7 @@ TEST_CASE("call expressions", "[interpreter]")
 
         ankh::lang::ExprResult result = results.back();
         REQUIRE(result.type == ankh::lang::ExprResultType::RT_STRING);
-        REQUIRE(result.str == "ab");
+        REQUIRE(*result.str == "ab");
     }
 
     SECTION("lambda call, no return statement -- should return nil")
@@ -1002,7 +1003,7 @@ TEST_CASE("dicts", "[interpreter]")
         REQUIRE(actual_result.type == ankh::lang::ExprResultType::RT_DICT);
 
         REQUIRE(actual_result.dict.value(std::string{"ab"})->key.type == ankh::lang::ExprResultType::RT_STRING);  
-        REQUIRE(actual_result.dict.value(std::string{"ab"})->value.str == "abc");      
+        REQUIRE(*actual_result.dict.value(std::string{"ab"})->value.str == "abc");      
     }
 
     SECTION("dict lookup, string")
@@ -1022,7 +1023,7 @@ TEST_CASE("dicts", "[interpreter]")
 
         ankh::lang::ExprResult actual_result = results.back();
         REQUIRE(actual_result.type == ankh::lang::ExprResultType::RT_STRING);
-        REQUIRE(actual_result.str == "g");    
+        REQUIRE(*actual_result.str == "g");    
     }
 
     SECTION("dict lookup, non-string")
@@ -1336,7 +1337,7 @@ TEST_CASE("strings are indexable", "interpreter")
     auto [program, results] = interpret(interpreter, source);
 
     REQUIRE(results.back().type == ankh::lang::ExprResultType::RT_STRING);
-    REQUIRE(results.back().str == "f");    
+    REQUIRE(*results.back().str == "f");    
 }
 
 TEST_CASE("interpreter has predefined functions", "[interpreter]")
