@@ -82,28 +82,6 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(binary != nullptr);
     }
 
-    SECTION("parse declaration statement, local storage")
-    {
-        const std::string source =
-        R"(
-            let i = 1
-        )";
-
-        auto program = ankh::lang::parse(source);
-
-        REQUIRE(program.size() == 1);
-
-        auto declaration = ankh::lang::instance<ankh::lang::VariableDeclaration>(program[0]);
-        REQUIRE(declaration != nullptr);
-
-        REQUIRE(declaration->name.str == "i");
-
-        auto literal = ankh::lang::instance<ankh::lang::LiteralExpression>(declaration->initializer);
-        REQUIRE(literal != nullptr);
-
-        REQUIRE(literal->literal.str == "1");
-    }
-
     SECTION("parse assignment statement")
     {
         const std::string source =
@@ -356,6 +334,100 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(return_stmt->expr != nullptr);
         REQUIRE(return_stmt->tok.str == "return");
     }
+}
+
+TEST_CASE("let declaration", "[parser]")
+{
+    const std::string source =
+    R"(
+        let i = 1
+    )";
+
+    auto program = ankh::lang::parse(source);
+
+    REQUIRE(program.size() == 1);
+
+    auto declaration = ankh::lang::instance<ankh::lang::VariableDeclaration>(program[0]);
+    REQUIRE(declaration != nullptr);
+
+    REQUIRE(declaration->name.str == "i");
+    REQUIRE(declaration->is_local());
+
+    auto literal = ankh::lang::instance<ankh::lang::LiteralExpression>(declaration->initializer);
+    REQUIRE(literal != nullptr);
+
+    REQUIRE(literal->literal.str == "1");
+}
+
+TEST_CASE("let declaration, no initializer", "[parser]")
+{
+    const std::string source =
+    R"(
+        let i;
+    )";
+
+    auto program = ankh::lang::parse(source);
+    REQUIRE(program.has_errors());
+}
+
+TEST_CASE("const declaration", "[parser]")
+{
+    const std::string source =
+    R"(
+        const i = 1
+    )";
+
+    auto program = ankh::lang::parse(source);
+
+    REQUIRE(program.size() == 1);
+
+    auto declaration = ankh::lang::instance<ankh::lang::VariableDeclaration>(program[0]);
+    REQUIRE(declaration != nullptr);
+
+    REQUIRE(declaration->name.str == "i");
+    REQUIRE(declaration->is_const());
+
+    auto literal = ankh::lang::instance<ankh::lang::LiteralExpression>(declaration->initializer);
+    REQUIRE(literal != nullptr);
+
+    REQUIRE(literal->literal.str == "1");
+}
+
+TEST_CASE("const declaration, no initializer", "[parser]")
+{
+    const std::string source =
+    R"(
+        const i;
+    )";
+
+    auto program = ankh::lang::parse(source);
+    REQUIRE(program.has_errors());
+}
+
+TEST_CASE("const declaration, assignment fails", "[parser]")
+{
+    const std::string source =
+    R"(
+        const i = 1
+
+        i = 2
+    )";
+
+    auto program = ankh::lang::parse(source);
+    REQUIRE(program.has_errors());
+}
+
+TEST_CASE("const declaration, not allowed in for loop", "[parser]")
+{
+    const std::string source =
+    R"(
+        for const i = 0; i < 2; ++i {
+            
+        }
+    )";
+
+    auto program = ankh::lang::parse(source);
+    REQUIRE(program.has_errors());
 }
 
 TEST_CASE("for statements", "[parser]")

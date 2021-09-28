@@ -123,7 +123,8 @@ struct CompoundAssignment
 
 enum class StorageClass
 {
-    LOCAL
+    LOCAL,
+    CONST
 };
 
 struct VariableDeclaration
@@ -146,10 +147,21 @@ struct VariableDeclaration
         std::string result;
         switch (storage_class) {
         case StorageClass::LOCAL:  result = "let";     break;
+        case StorageClass::CONST:  result = "const";     break;
         default:                   ANKH_FATAL("unknown storage_class");
         }
 
         return result + " " + name.str + " = " + initializer->stringify();
+    }
+
+    bool is_local() const noexcept
+    {
+        return storage_class == StorageClass::LOCAL;
+    }
+
+    bool is_const() const noexcept
+    {
+        return storage_class == StorageClass::CONST;
     }
 };
 
