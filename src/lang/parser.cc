@@ -88,8 +88,6 @@ ankh::lang::StatementPtr ankh::lang::Parser::parse_variable_declaration()
     StorageClass storage_class;
     if (match(TokenType::LET)) {
         storage_class = StorageClass::LOCAL;
-    } else if (match(TokenType::EXPORT)) {
-        storage_class = StorageClass::EXPORT;
     } else {
         const Token& token = curr();
         panic<ParseException>(token, "syntax error: '{}' is not a valid storage class specifier.", token.str);
@@ -177,7 +175,7 @@ ankh::lang::StatementPtr ankh::lang::Parser::statement()
         return make_statement<BreakStatement>(prev());
     } else if (check({ TokenType::INC, TokenType::DEC })) {
         return parse_inc_dec();
-    } else if (check({ TokenType::LET, TokenType::EXPORT })) {
+    } else if (check(TokenType::LET)) {
         return parse_variable_declaration();
     }
 
@@ -689,7 +687,6 @@ void ankh::lang::Parser::synchronize_next_statement() noexcept
         TokenType::DEC,
         TokenType::FN,
         TokenType::LET,
-        TokenType::EXPORT,
         TokenType::DATA,
         TokenType::BREAK,
     };

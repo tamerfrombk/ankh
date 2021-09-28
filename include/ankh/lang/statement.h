@@ -123,8 +123,7 @@ struct CompoundAssignment
 
 enum class StorageClass
 {
-    LOCAL,
-    EXPORT
+    LOCAL
 };
 
 struct VariableDeclaration
@@ -147,7 +146,6 @@ struct VariableDeclaration
         std::string result;
         switch (storage_class) {
         case StorageClass::LOCAL:  result = "let";     break;
-        case StorageClass::EXPORT: result = "export";  break;
         default:                   ANKH_FATAL("unknown storage_class");
         }
 

@@ -17,7 +17,6 @@ static const std::unordered_map<std::string, ankh::lang::TokenType> KEYWORDS = {
     , { "break", ankh::lang::TokenType::BREAK }
     , { "fn", ankh::lang::TokenType::FN }
     , { "let", ankh::lang::TokenType::LET }
-    , { "export", ankh::lang::TokenType::EXPORT }
     , { "return", ankh::lang::TokenType::ANKH_RETURN }
 };
 

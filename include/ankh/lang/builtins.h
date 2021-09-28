@@ -70,10 +70,11 @@ private:
     const size_t arity_;
 };
 
-
+// System Builtins
 ANKH_DECLARE_BUILTIN_TYPE(PrintFn, print);
 ANKH_DECLARE_BUILTIN_TYPE(ExitFn, exit);
 ANKH_DECLARE_BUILTIN_TYPE(LengthFn, length);
+ANKH_DECLARE_BUILTIN_TYPE(ExportFn, exportfn);
 
 // Number Builtins
 ANKH_DECLARE_BUILTIN_TYPE(IntFn, cast_int);

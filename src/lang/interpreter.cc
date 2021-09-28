@@ -1,4 +1,5 @@
 #include "ankh/lang/expr_result.h"
+#include "ankh/sys/linux.h"
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
@@ -19,6 +20,8 @@
 #include <ankh/def.h>
 #include <ankh/log.h>
 
+#include <ankh/sys/sys.h>
+
 #include <ankh/lang/interpreter.h>
 #include <ankh/lang/parser.h>
 
@@ -29,6 +32,7 @@
 #include <ankh/lang/types/array.h>
 #include <ankh/lang/types/dictionary.h>
 #include <ankh/lang/builtins.h>
+
 
 #define ANKH_DEFINE_BUILTIN(name, arity, type) do {\
     functions_[(name)] = make_callable<type<ExprResult, Interpreter>>(this, global_, (name), (arity));\
@@ -201,6 +205,7 @@ ankh::lang::Interpreter::Interpreter()
     ANKH_DEFINE_BUILTIN("append", 2, AppendFn);
     ANKH_DEFINE_BUILTIN("str", 1, StrFn);
     ANKH_DEFINE_BUILTIN("keys", 1, KeysFn);
+    ANKH_DEFINE_BUILTIN("export", 2, ExportFn);
 }
 
 void ankh::lang::Interpreter::interpret(Program&& program)
@@ -314,6 +319,20 @@ void ankh::lang::Interpreter::keys(const std::vector<ExprResult>& args) const
     }
 
     builtin_panic<InterpretationException>("keys", "{} is not a viable argument type", expr_result_type_str(container.type));
+}
+
+void ankh::lang::Interpreter::exportfn(const std::vector<ExprResult>& args) const
+{
+    const ExprResult name = args[0];
+    if (name.type != ExprResultType::RT_STRING) {
+        builtin_panic<InterpretationException>("export", "exported name must be a string, not a {}", expr_result_type_str(name.type));    
+    }
+
+    const std::string value = args[1].stringify();
+    
+    const bool result = ankh::sys::setenv(name.str, value);
+
+    throw ReturnException(result);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -624,14 +643,6 @@ void ankh::lang::Interpreter::visit(VariableDeclaration *stmt)
 
     if (!current_env_->declare(stmt->name.str, result)) {
         panic<InterpretationException>(stmt->name, "runtime error: '{}' is already defined", stmt->name.str);
-    }
-
-    if (stmt->storage_class == StorageClass::EXPORT) {
-        const std::string result_str = result.stringify();
-        if (setenv(stmt->name.str.c_str(), result_str.c_str(), 1) == -1) {
-            const std::string errno_msg(std::strerror(errno));
-            panic<InterpretationException>(stmt->name, "runtime error: '{}' could not be exported due to {}", stmt->name.str, errno_msg);
-        }
     }
 }
 

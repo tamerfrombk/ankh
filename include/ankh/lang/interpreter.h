@@ -37,6 +37,7 @@ public:
     void append(const std::vector<ExprResult>& args) const;
     void str(const std::vector<ExprResult>& args) const;
     void keys(const std::vector<ExprResult>& args) const;
+    void exportfn(const std::vector<ExprResult>& args) const;
 
     inline const Environment<ExprResult>& environment() const noexcept
     {

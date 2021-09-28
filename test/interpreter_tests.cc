@@ -1271,55 +1271,6 @@ TEST_CASE("declarations")
         auto [program, results] = interpret(interpreter, source);
         REQUIRE(program.has_errors());
     }
-
-    SECTION("export declaration")
-    {
-        const std::string source = R"(
-            export LANGUAGE_DEV_TEST_123 = 0;
-        )";
-
-        INFO(source);
-
-        auto [program, results] = interpret(interpreter, source);
-        REQUIRE(!program.has_errors());
-
-        REQUIRE(interpreter.environment().value("LANGUAGE_DEV_TEST_123")->type == ankh::lang::ExprResultType::RT_NUMBER);
-        REQUIRE(interpreter.environment().value("LANGUAGE_DEV_TEST_123")->n == 0);
-
-        const std::string value(getenv("LANGUAGE_DEV_TEST_123"));
-        REQUIRE(value == "0.000000");
-    }
-
-    SECTION("export declaration, no initializer")
-    {
-        const std::string source = R"(
-            export a;
-        )";
-
-        INFO(source);
-
-        auto [program, results] = interpret(interpreter, source);
-        REQUIRE(program.has_errors());
-    }
-
-    SECTION("export declaration, assignment does not change environment value")
-    {
-        const std::string source = R"(
-            export LANGUAGE_DEV_TEST_123 = 0;
-            LANGUAGE_DEV_TEST_123 = 1
-        )";
-
-        INFO(source);
-
-        auto [program, results] = interpret(interpreter, source);
-        REQUIRE(!program.has_errors());
-
-        REQUIRE(interpreter.environment().value("LANGUAGE_DEV_TEST_123")->type == ankh::lang::ExprResultType::RT_NUMBER);
-        REQUIRE(interpreter.environment().value("LANGUAGE_DEV_TEST_123")->n == 1.0);
-
-        const std::string value(getenv("LANGUAGE_DEV_TEST_123"));
-        REQUIRE(value == "0.000000");
-    }
 }
 
 TEST_CASE("strings are indexable", "interpreter")

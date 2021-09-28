@@ -44,7 +44,6 @@ enum class TokenType {
     BREAK,             // "break"
     SEMICOLON,         // ;
     LET,               // "let"
-    EXPORT,            // "export"
     COMMA,             // ,
     FN,                // "fn"
     // prepended ankh because RETURN is a macro defined in some library

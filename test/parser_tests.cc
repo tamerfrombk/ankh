@@ -104,28 +104,6 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(literal->literal.str == "1");
     }
 
-    SECTION("parse declaration statement, export storage")
-    {
-        const std::string source =
-        R"(
-            export i = 1
-        )";
-
-        auto program = ankh::lang::parse(source);
-
-        REQUIRE(program.size() == 1);
-
-        auto declaration = ankh::lang::instance<ankh::lang::VariableDeclaration>(program[0]);
-        REQUIRE(declaration != nullptr);
-
-        REQUIRE(declaration->name.str == "i");
-
-        auto literal = ankh::lang::instance<ankh::lang::LiteralExpression>(declaration->initializer);
-        REQUIRE(literal != nullptr);
-
-        REQUIRE(literal->literal.str == "1");
-    }
-
     SECTION("parse assignment statement")
     {
         const std::string source =

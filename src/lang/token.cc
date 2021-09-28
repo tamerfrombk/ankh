@@ -74,8 +74,6 @@ std::string ankh::lang::token_type_str(ankh::lang::TokenType type) noexcept
         return "SEMICOLON";
     case ankh::lang::TokenType::LET:
         return "LET";
-    case ankh::lang::TokenType::EXPORT:
-        return "EXPORT";
     case ankh::lang::TokenType::COMMA:
         return "COMMA";
     case ankh::lang::TokenType::FN:
