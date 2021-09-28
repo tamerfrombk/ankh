@@ -92,13 +92,13 @@ ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(LambdaExpression *expr)
     ANKH_DEBUG("static analyzer: analyzing '{}'", expr->stringify());
 
     const Token name{ expr->generated_name, TokenType::IDENTIFIER, 0 , 0 };
-    declare(name);
+    declare(name, StorageClass::CONST);
     define(name);
 
     begin_analysis(FunctionType::FUNCTION, current_analysis().loop_type);
     begin_scope();
     for (const auto& param : expr->params) {
-        declare(param);
+        declare(param, StorageClass::LOCAL);
         define(param);
     }
     analyze(expr->body);
@@ -170,7 +170,7 @@ void ankh::lang::StaticAnalyzer::visit(VariableDeclaration *stmt)
 {
     ANKH_DEBUG("static analyzer: analyzing '{}'", stmt->stringify());
     
-    declare(stmt->name);
+    declare(stmt->name, stmt->storage_class);
     analyze(stmt->initializer);
     define(stmt->name);
 }
@@ -180,13 +180,22 @@ void ankh::lang::StaticAnalyzer::visit(AssignmentStatement *stmt)
     ANKH_DEBUG("static analyzer: analyzing '{}'", stmt->stringify());
 
     analyze(stmt->initializer);
-    resolve(stmt, stmt->name);
+    
+    const Scope& variable_scope = resolve(stmt, stmt->name);
+    if (variable_scope.variables.at(stmt->name.str).is_const()) {
+        panic<ParseException>(stmt->name, "cannot assign a value to {} because it was declared const", stmt->name.str);
+    }
+    
 }
 
 void ankh::lang::StaticAnalyzer::visit(CompoundAssignment* stmt)
 {
     analyze(stmt->value);
-    resolve(stmt, stmt->target);
+    
+    const Scope& variable_scope = resolve(stmt, stmt->target);
+    if (variable_scope.variables.at(stmt->target.str).is_const()) {
+        panic<ParseException>(stmt->target, "cannot assign a value to {} because it was declared const", stmt->target.str);
+    }
 }
 
 void ankh::lang::StaticAnalyzer::visit(IncOrDecIdentifierStatement* stmt)
@@ -252,14 +261,14 @@ void ankh::lang::StaticAnalyzer::visit(FunctionDeclaration *stmt)
 {
     ANKH_DEBUG("static analyzer: analyzing '{}'", stmt->stringify());
 
-    declare(stmt->name);
+    declare(stmt->name, StorageClass::CONST);
     define(stmt->name);
 
     // we can't define functions in loops so we hardcode NONE
     begin_analysis(FunctionType::FUNCTION, LoopType::NONE);
     begin_scope();
     for (const auto& param : stmt->params) {
-        declare(param);
+        declare(param, StorageClass::LOCAL);
         define(param);
     }
     analyze(stmt->body);
@@ -331,27 +340,27 @@ const ankh::lang::StaticAnalyzer::Scope& ankh::lang::StaticAnalyzer::top() const
     return scopes_.back();
 }
 
-void ankh::lang::StaticAnalyzer::declare(const ankh::lang::Token& token)
+void ankh::lang::StaticAnalyzer::declare(const ankh::lang::Token& token, StorageClass storage_class)
 {
     ANKH_VERIFY(top().variables.count(token.str) == 0);
     
-    top().variables.insert({token.str, false});
+    top().variables.insert({token.str, Variable{storage_class}});
     
-    ANKH_DEBUG("'{}' declared at scope {}", token.str, scopes_.size() - 1);
+    ANKH_DEBUG("'{}' declared with storage class {} at scope {}", token.str, top().variables.at(token.str).storage_class, scopes_.size() - 1);
 }
 
 void ankh::lang::StaticAnalyzer::define(const ankh::lang::Token& token)
 {
     ANKH_VERIFY(top().variables.count(token.str) > 0);
 
-    top().variables[token.str] = true;
+    top().variables.at(token.str).is_defined = true;
 
     ANKH_DEBUG("'{}' defined at scope {}", token.str, scopes_.size() - 1);
 }
 
 bool ankh::lang::StaticAnalyzer::is_declared_but_not_defined(const Token& token) const noexcept
 {
-    return top().variables.count(token.str) > 0 && top().variables.at(token.str) == false;
+    return top().variables.count(token.str) > 0 && top().variables.at(token.str).is_defined == false;
 }
 
 void ankh::lang::StaticAnalyzer::analyze(const ExpressionPtr& expr)
@@ -364,7 +373,7 @@ void ankh::lang::StaticAnalyzer::analyze(const StatementPtr& stmt)
     stmt->accept(this);
 }
 
-void ankh::lang::StaticAnalyzer::resolve(const void *entity, const Token& name)
+const ankh::lang::StaticAnalyzer::Scope& ankh::lang::StaticAnalyzer::resolve(const void *entity, const Token& name)
 {
     ANKH_DEBUG("static analyzer: resolving {}", name.str);
 
@@ -374,7 +383,14 @@ void ankh::lang::StaticAnalyzer::resolve(const void *entity, const Token& name)
             ANKH_DEBUG("'{}' is {} hops away from current scope {}", name.str, hops, scopes_.size() - 1);
             ANKH_VERIFY(hop_table_.count(entity) == 0);
             hop_table_[entity] = hops;
-            return;
+            return *it;
         }
     }
+
+    // TODO: there is a bug in the interactive shell of Ankh
+    // where resolutions between statements on the shell are not recognized
+    // To see what I mean, try this out (ignoring the '>' prompt)
+    // > let i = 0
+    // > i
+    panic<ParseException>(name, "{} was not found in any static scope", name.str);
 }

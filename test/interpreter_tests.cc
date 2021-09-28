@@ -52,9 +52,11 @@ struct ExecutionResult
 
 ExecutionResult interpret(TracingInterpreter& interpreter, const std::string& source)
 {
+    INFO(source);
+
     ankh::lang::Program program = ankh::lang::parse(source);
     if (program.has_errors()) {
-        return { std::move(program), {} };
+        FAIL("program should not have any errors after parsing");
     }
 
     interpreter.interpret(std::move(program));
@@ -91,94 +93,6 @@ TEST_CASE("primary expressions", "[interpreter]")
             default: FAIL("unknown ExprResultType not accounted for");
             };
         }
-    }
-
-    SECTION("strings, substitution expression")
-    {
-        const std::string source =
-        R"(
-            let a = "lol"
-            "the value of a is {a}"
-        )";
-
-        auto [program, results] = interpret(interpreter, source);
-
-        REQUIRE(!program.has_errors());
-
-        ankh::lang::ExprResult actual_result = results.back();
-        REQUIRE(actual_result.type == ankh::lang::ExprResultType::RT_STRING);
-        REQUIRE(actual_result.str == "the value of a is lol");
-    }
-
-    SECTION("strings, substitution expression, missing closing brace")
-    {
-        const std::string source =
-        R"(
-            let a = "lol"
-            "the value of a is {a"
-        )";
-
-        REQUIRE_THROWS(interpret(interpreter, source));
-    }
-
-    SECTION("strings, substitution expression, missing opening brace")
-    {
-        const std::string source =
-        R"(
-            let a = "lol"
-            "the value of a is a}"
-        )";
-
-        REQUIRE_THROWS(interpret(interpreter, source));
-    }
-
-    SECTION("strings, substitution expression, non-string expression")
-    {
-        const std::string source =
-        R"(
-            "the value is {1 == 2}"
-        )";
-
-        auto [program, results] = interpret(interpreter, source);
-
-        REQUIRE(!program.has_errors());
-
-        ankh::lang::ExprResult actual_result = results.back();
-        REQUIRE(actual_result.type == ankh::lang::ExprResultType::RT_STRING);
-        REQUIRE(actual_result.str == "the value is false");
-    }
-
-    SECTION("strings, substitution expression, raw braces")
-    {
-        const std::string source =
-        R"(
-            let a = 1 > 2
-            "the value is \{\} {a}"
-        )";
-
-        auto [program, results] = interpret(interpreter, source);
-
-        REQUIRE(!program.has_errors());
-
-        ankh::lang::ExprResult actual_result = results.back();
-        REQUIRE(actual_result.type == ankh::lang::ExprResultType::RT_STRING);
-        REQUIRE(actual_result.str == "the value is {} false");
-    }
-
-    SECTION("strings, substitution expression, multi")
-    {
-        const std::string source =
-        R"(
-            "the value is {true || false} is { true }"
-        )";
-
-        auto [program, results] = interpret(interpreter, source);
-
-        REQUIRE(!program.has_errors());
-
-        ankh::lang::ExprResult actual_result = results.back();
-        REQUIRE(actual_result.type == ankh::lang::ExprResultType::RT_STRING);
-        REQUIRE(actual_result.str == "the value is true is true");
     }
 
     SECTION("lambda, rvalue")
@@ -547,6 +461,7 @@ TEST_CASE("ordering", "[interpreter]")
 
         for (const auto& [src, expected_result] : src_to_expected_result) {
             auto [program, results] = interpret(interpreter, src);
+            INFO(src);
 
             REQUIRE(!program.has_errors());
             ankh::lang::ExprResult actual_result = results.back();
@@ -558,14 +473,15 @@ TEST_CASE("ordering", "[interpreter]")
 
     SECTION("comparison, non-numbers")
     {
-        std::unordered_map<std::string, ankh::lang::ExprResult> src_to_expected_result = {
-            { "2 > \"foo\"", {} }
-            , { "2 < true", {} }
-            , { "1 >= \"\"", {} }
-            , { "5 <= def () {}", {} }
+        std::initializer_list<std::string> bad_sources = {
+            "2 > \"foo\""
+            , "2 < true"
+            , "1 >= \"\""
+            , "5 <= fn () {}"
         };
 
-        for (const auto& [src, expected_result] : src_to_expected_result) {
+        for (const auto& src : bad_sources) {
+            INFO(src);
             REQUIRE_THROWS(interpret(interpreter, src));
         }
     }
@@ -581,6 +497,7 @@ TEST_CASE("ordering", "[interpreter]")
 
         for (const auto& [src, expected_result] : src_to_expected_result) {
             auto [program, results] = interpret(interpreter, src);
+            INFO(src);
 
             REQUIRE(!program.has_errors());
             ankh::lang::ExprResult actual_result = results.back();
@@ -592,12 +509,13 @@ TEST_CASE("ordering", "[interpreter]")
 
     SECTION("equality, non-numbers")
     {
-        std::unordered_map<std::string, ankh::lang::ExprResult> src_to_expected_result = {
-            { "1 != \"foo\"", {} }
-            , { "false == 9.1", {} }
+        std::initializer_list<std::string> bad_sources  = {
+            "1 != \"foo\""
+            , "false == 9.1"
         };
 
-        for (const auto& [src, expected_result] : src_to_expected_result) {
+        for (const auto& src : bad_sources) {
+            INFO(src);
             REQUIRE_THROWS(interpret(interpreter, src));
         }
     }
@@ -921,20 +839,9 @@ TEST_CASE("assignments", "[interpreter]")
     {
         const std::string source = "let i = 0; i = 1";
 
-        INFO(source);
-
         auto [program, results] = interpret(interpreter, source);
 
         REQUIRE(interpreter.environment().value("i")->n == 1.0);
-    }
-
-    SECTION("assignment, non-existent")
-    {
-        const std::string source = "let i = 0; x = 1";
-
-        INFO(source);
-
-        REQUIRE_THROWS(interpret(interpreter, source));
     }
 }
 
@@ -1023,20 +930,6 @@ TEST_CASE("dicts", "[interpreter]")
         ankh::lang::ExprResult actual_result = results.back();
         REQUIRE(actual_result.type == ankh::lang::ExprResultType::RT_STRING);
         REQUIRE(actual_result.str == "g");    
-    }
-
-    SECTION("dict lookup, non-string")
-    {
-        const std::string source = R"(
-            let a = {
-                f: "g"
-            }
-
-            a[x]
-        )";
-
-        INFO(source);
-        REQUIRE_THROWS(interpret(interpreter, source));    
     }
 }
 
@@ -1258,18 +1151,6 @@ TEST_CASE("declarations")
 
         REQUIRE(interpreter.environment().value("a")->type == ankh::lang::ExprResultType::RT_NUMBER);
         REQUIRE(interpreter.environment().value("a")->n == 0);
-    }
-
-    SECTION("let declaration, no initializer")
-    {
-        const std::string source = R"(
-            let a;
-        )";
-
-        INFO(source);
-
-        auto [program, results] = interpret(interpreter, source);
-        REQUIRE(program.has_errors());
     }
 }
 

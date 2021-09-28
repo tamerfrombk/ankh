@@ -105,50 +105,19 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(literal->literal.str == "3");
     }
 
-    SECTION("parse compound assignment statement")
-    {
-        std::string ops[] = { "+=", "-=", "*=", "/=" };
-        std::string sources[] = {
-              "i += 3"
-            , "i -= 3"
-            , "i *= 3"
-            , "i /= 3"
-        };
-
-        int i = 0;
-        for (const auto& source : sources) {
-            INFO(source);
-
-            auto program = ankh::lang::parse(source);
-            REQUIRE(!program.has_errors());
-            REQUIRE(program.size() == 1);
-
-            auto assignment = ankh::lang::instance<ankh::lang::CompoundAssignment>(program[0]);
-            REQUIRE(assignment != nullptr);
-
-            REQUIRE(assignment->target.str == "i");
-            REQUIRE(assignment->op.str == ops[i++]);
-
-            auto literal = ankh::lang::instance<ankh::lang::LiteralExpression>(assignment->value);
-            REQUIRE(literal != nullptr);
-
-            REQUIRE(literal->literal.str == "3");
-        }
-    }
-
     SECTION("parse increment statement, identifier")
     {
         const std::string source =
         R"(
+            let i = 0
             ++i
         )";
 
         auto program = ankh::lang::parse(source);
-
-        REQUIRE(program.size() == 1);
         REQUIRE(!program.has_errors());
+        REQUIRE(program.size() == 2);
 
-        auto modify = ankh::lang::instance<ankh::lang::IncOrDecIdentifierStatement>(program[0]);
+        auto modify = ankh::lang::instance<ankh::lang::IncOrDecIdentifierStatement>(program[1]);
         REQUIRE(modify != nullptr);
 
         REQUIRE(modify->op.str == "++");
@@ -158,7 +127,7 @@ TEST_CASE("parse language statements", "[parser]")
     SECTION("parse increment statement, invalid target")
     {
         const std::string source =
-            R"(
+        R"(
             ++"foo"
         )";
 
@@ -170,15 +139,15 @@ TEST_CASE("parse language statements", "[parser]")
     {
         const std::string source =
         R"(
+            let i = 0
             --i
         )";
 
         auto program = ankh::lang::parse(source);
-
-        REQUIRE(program.size() == 1);
         REQUIRE(!program.has_errors());
+        REQUIRE(program.size() == 2);
 
-        auto modify = ankh::lang::instance<ankh::lang::IncOrDecIdentifierStatement>(program[0]);
+        auto modify = ankh::lang::instance<ankh::lang::IncOrDecIdentifierStatement>(program[1]);
         REQUIRE(modify != nullptr);
 
         REQUIRE(modify->op.str == "--");
@@ -336,6 +305,37 @@ TEST_CASE("parse language statements", "[parser]")
     }
 }
 
+TEST_CASE("parse compound assignments", "[parser]")
+{
+    std::string ops[] = { "+=", "-=", "*=", "/=" };
+    std::string sources[] = {
+        "let i = 0; i += 3"
+        , "let i = 0; i -= 3"
+        , "let i = 0; i *= 3"
+        , "let i = 0; i /= 3"
+    };
+
+    int i = 0;
+    for (const auto& source : sources) {
+        INFO(source);
+
+        auto program = ankh::lang::parse(source);
+        REQUIRE(!program.has_errors());
+        REQUIRE(program.size() == 2);
+
+        auto assignment = ankh::lang::instance<ankh::lang::CompoundAssignment>(program[1]);
+        REQUIRE(assignment != nullptr);
+
+        REQUIRE(assignment->target.str == "i");
+        REQUIRE(assignment->op.str == ops[i++]);
+
+        auto literal = ankh::lang::instance<ankh::lang::LiteralExpression>(assignment->value);
+        REQUIRE(literal != nullptr);
+
+        REQUIRE(literal->literal.str == "3");
+    }
+}
+
 TEST_CASE("let declaration", "[parser]")
 {
     const std::string source =
@@ -465,6 +465,7 @@ TEST_CASE("for statements", "[parser]")
     SECTION("for loop, no init")
     {
         const std::string source = R"(
+            let i = 0
             for ; i < 3; ++i {
             }
         )";
@@ -472,7 +473,9 @@ TEST_CASE("for statements", "[parser]")
         auto program = ankh::lang::parse(source);
         REQUIRE(!program.has_errors());
 
-        auto for_stmt = ankh::lang::instance<ankh::lang::ForStatement>(program[0]);
+        auto for_stmt = ankh::lang::instance<ankh::lang::ForStatement>(program[1]);
+        REQUIRE(for_stmt != nullptr);
+        
         REQUIRE(for_stmt->init == nullptr);
         REQUIRE(for_stmt->condition != nullptr);
         REQUIRE(for_stmt->mutator != nullptr);

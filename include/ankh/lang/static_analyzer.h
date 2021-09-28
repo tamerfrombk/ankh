@@ -58,8 +58,21 @@ private:
         LOOP
     };
 
+    struct Variable {
+        bool is_defined;
+        StorageClass storage_class;
+
+        Variable(StorageClass storage_class)
+            : is_defined(false)
+            , storage_class(storage_class) {}
+
+        bool is_const() const noexcept {
+            return storage_class == StorageClass::CONST;
+        }
+    };
+
     struct Scope {
-        std::unordered_map<std::string, bool> variables;
+        std::unordered_map<std::string, Variable> variables;
     };
 
     struct Analysis {
@@ -85,7 +98,7 @@ private:
     Scope& top() noexcept;
     const Scope& top() const noexcept;
 
-    void declare(const Token& token);
+    void declare(const Token& token, StorageClass storage_class);
     void define(const Token& token);
 
     bool is_declared_but_not_defined(const Token& token) const noexcept;
@@ -93,7 +106,7 @@ private:
     void analyze(const ExpressionPtr& expr);
     void analyze(const StatementPtr& stmt);
 
-    void resolve(const void *entity, const Token& name);
+    const Scope& resolve(const void *entity, const Token& name);
 
 private:
     std::vector<Scope> scopes_;
