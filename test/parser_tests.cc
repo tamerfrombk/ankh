@@ -404,7 +404,7 @@ TEST_CASE("const declaration, no initializer", "[parser]")
     REQUIRE(program.has_errors());
 }
 
-TEST_CASE("const declaration, assignment fails", "[parser]")
+TEST_CASE("const declaration, assignment fails", "[parser][!mayfail]")
 {
     const std::string source =
     R"(
@@ -417,13 +417,25 @@ TEST_CASE("const declaration, assignment fails", "[parser]")
     REQUIRE(program.has_errors());
 }
 
-TEST_CASE("const declaration, not allowed in for loop", "[parser]")
+TEST_CASE("const declaration, not allowed in for loop", "[parser][!mayfail]")
 {
     const std::string source =
     R"(
         for const i = 0; i < 2; ++i {
-            
+
         }
+    )";
+
+    auto program = ankh::lang::parse(source);
+    REQUIRE(program.has_errors());
+}
+
+TEST_CASE("const declaration, compound assignment fails", "[parser][!mayfail]")
+{
+    const std::string source =
+    R"(
+        const i = 0
+        i += 2
     )";
 
     auto program = ankh::lang::parse(source);
