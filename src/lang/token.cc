@@ -90,6 +90,8 @@ std::string ankh::lang::token_type_str(ankh::lang::TokenType type) noexcept
         return "COLON";
     case ankh::lang::TokenType::DOT:
         return "DOT";
+    case ankh::lang::TokenType::CONST:
+        return "CONST";
     case ankh::lang::TokenType::NUMBER:
         return "NUMBER";
     case ankh::lang::TokenType::STRING:

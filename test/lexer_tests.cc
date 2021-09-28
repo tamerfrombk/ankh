@@ -132,6 +132,7 @@ TEST_CASE("scan keyword tokens", "[lexer]")
         return
         let
         break
+        const
     )";
 
     auto tokens = ankh::lang::scan(source);
@@ -147,6 +148,7 @@ TEST_CASE("scan keyword tokens", "[lexer]")
     REQUIRE(tokens[8] == ankh::lang::Token{ "return", ankh::lang::TokenType::ANKH_RETURN, 10, 9 });
     REQUIRE(tokens[9] == ankh::lang::Token{ "let", ankh::lang::TokenType::LET, 11, 9 });
     REQUIRE(tokens[10] == ankh::lang::Token{ "break", ankh::lang::TokenType::BREAK, 12, 9 });
+    REQUIRE(tokens[11] == ankh::lang::Token{ "const", ankh::lang::TokenType::CONST, 13, 9 });
 
     for (const ankh::lang::Token& token : tokens) {
         if (token.type != ankh::lang::TokenType::ANKH_EOF){

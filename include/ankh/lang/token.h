@@ -53,6 +53,7 @@ enum class TokenType {
     DEC,               // --
     COLON,             // ":"
     DOT,               // "."
+    CONST,             // "const"
     NUMBER,
     STRING,
     COMMAND,

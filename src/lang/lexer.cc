@@ -18,6 +18,7 @@ static const std::unordered_map<std::string, ankh::lang::TokenType> KEYWORDS = {
     , { "fn", ankh::lang::TokenType::FN }
     , { "let", ankh::lang::TokenType::LET }
     , { "return", ankh::lang::TokenType::ANKH_RETURN }
+    , { "const", ankh::lang::TokenType::CONST }
 };
 
 ankh::lang::Lexer::Lexer(std::string text)
