@@ -56,7 +56,7 @@ ExecutionResult interpret(TracingInterpreter& interpreter, const std::string& so
 
     ankh::lang::Program program = ankh::lang::parse(source);
     if (program.has_errors()) {
-        FAIL("program should not have any errors after parsing");
+        FAIL("program had syntax or semantic errors. interpretation aborted...");
     }
 
     interpreter.interpret(std::move(program));
@@ -1262,4 +1262,17 @@ TEST_CASE("test slices, out of bounds", "[interpreter]")
     TracingInterpreter interpreter(std::make_unique<ankh::lang::Interpreter>());
 
     REQUIRE_THROWS(interpret(interpreter, R"([1,2,3][:99])"));
+}
+
+TEST_CASE("call builtin, print", "[interpreter][!mayfail]")
+{
+    const std::string source = R"(
+        print("foo")
+    )";
+
+    TracingInterpreter interpreter(std::make_unique<ankh::lang::Interpreter>());
+
+    auto [program, results] = interpret(interpreter, source);
+
+    REQUIRE(results.back().type == ankh::lang::ExprResultType::RT_NIL);
 }
