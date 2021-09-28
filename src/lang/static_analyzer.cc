@@ -1,4 +1,3 @@
-#include "ankh/lang/expr.h"
 #include <ankh/def.h>
 #include <ankh/log.h>
 
@@ -67,7 +66,7 @@ ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(ParenExpression *expr)
 
 ankh::lang::ExprResult ankh::lang::StaticAnalyzer::visit(IdentifierExpression *expr)
 {
-    ANKH_DEBUG("static analyzer: analyzing '{}'", expr->stringify());
+    ANKH_DEBUG("static analyzer: analyzing identifier '{}'", expr->stringify());
 
     if (is_declared_but_not_defined(expr->name)) {
         panic<ParseException>(expr->name, "can't read local variable in its own initializer");
@@ -283,11 +282,13 @@ void ankh::lang::StaticAnalyzer::visit(ReturnStatement *stmt)
 void ankh::lang::StaticAnalyzer::begin_scope()
 {
     scopes_.emplace_back();
+    ANKH_DEBUG("static analyzer: new scope {} created", scopes_.size() - 1);
 }
 
 void ankh::lang::StaticAnalyzer::end_scope()
 {
     scopes_.pop_back();
+    ANKH_DEBUG("static analyzer: scope {} destroyed", scopes_.size());
 }
 
 void ankh::lang::StaticAnalyzer::begin_analysis(FunctionType fn_type, LoopType loop_type) noexcept
@@ -365,6 +366,8 @@ void ankh::lang::StaticAnalyzer::analyze(const StatementPtr& stmt)
 
 void ankh::lang::StaticAnalyzer::resolve(const void *entity, const Token& name)
 {
+    ANKH_DEBUG("static analyzer: resolving {}", name.str);
+
     for (auto it = scopes_.crbegin(); it != scopes_.crend(); ++it) {
         if (it->variables.count(name.str) > 0) {
             const size_t hops = it - scopes_.crbegin();
