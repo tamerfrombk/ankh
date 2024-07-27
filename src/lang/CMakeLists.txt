@@ -1,5 +1,4 @@
 add_library(ankhlang STATIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}/../ankh.cc 
     lexer.cc 
     token.cc 
     parser.cc
