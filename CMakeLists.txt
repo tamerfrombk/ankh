@@ -11,30 +11,8 @@ else()
     add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-
-set(APP_EXE ankhsh)
-set(APP_LIB ankh)
-set(APP_SOURCES 
-    src/ankh.cc 
-    src/lang/lexer.cc 
-    src/lang/token.cc 
-    src/lang/parser.cc
-    src/lang/expr.cc
-    src/lang/interpreter.cc
-    src/lang/static_analyzer.cc
-    src/pkg/path.cc
-)
-
 add_subdirectory(vendor)
-
-add_library(${APP_LIB} STATIC ${APP_SOURCES})
-target_link_libraries(${APP_LIB} PRIVATE fmt::fmt)
-add_executable(${APP_EXE} src/main.cc)
-
-target_include_directories(${APP_EXE} PRIVATE ${CMAKE_SOURCE_DIR}/include)
-target_include_directories(${APP_LIB} PRIVATE ${CMAKE_SOURCE_DIR}/include)
-
-target_link_libraries(${APP_EXE} PRIVATE ${APP_LIB} fmt::fmt)
+add_subdirectory(src)
 
 enable_testing()
 add_subdirectory(test)
