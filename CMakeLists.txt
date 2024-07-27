@@ -11,6 +11,7 @@ else()
     add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+
 set(APP_EXE ankhsh)
 set(APP_LIB ankh)
 set(APP_SOURCES 
@@ -24,21 +25,16 @@ set(APP_SOURCES
     src/pkg/path.cc
 )
 
-set(FMT_LIB fmt)
-set(FMT_SOURCES
-    src/fmt/format.cc
-    src/fmt/os.cc
-)
+add_subdirectory(vendor)
 
 add_library(${APP_LIB} STATIC ${APP_SOURCES})
-add_library(${FMT_LIB} STATIC ${FMT_SOURCES})
+target_link_libraries(${APP_LIB} PRIVATE fmt::fmt)
 add_executable(${APP_EXE} src/main.cc)
 
 target_include_directories(${APP_EXE} PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_include_directories(${APP_LIB} PRIVATE ${CMAKE_SOURCE_DIR}/include)
-target_include_directories(${FMT_LIB} PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
-target_link_libraries(${APP_EXE} ${APP_LIB} ${FMT_LIB})
+target_link_libraries(${APP_EXE} PRIVATE ${APP_LIB} fmt::fmt)
 
 enable_testing()
 add_subdirectory(test)

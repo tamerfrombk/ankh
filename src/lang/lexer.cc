@@ -305,9 +305,9 @@ std::vector<ankh::lang::Token> ankh::lang::scan(const std::string& source)
     }
 
 #ifndef NDEBUG
-    for (const auto& tok : tokens) {
-        ANKH_DEBUG("{}", tok);
-    }
+    // for (const auto& tok : tokens) {
+    //     // ANKH_DEBUG("{}", tok);
+    // }
 #endif
 
     return tokens;

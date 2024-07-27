@@ -14,10 +14,9 @@
 namespace ankh::log {
 
 template <class... Args>
-void debug(std::string_view file, const char *func, size_t line, const char *fmt, Args&&... args)
+void debug(const char *fmt, Args&&... args)
 {
-        const std::string_view path = ankh::pkg::parse_file_name_from_full_path(file);
-        auto str = fmt::format(fmt, path, func, line, std::forward<Args>(args)...);
+        auto str = fmt::format(fmt::runtime(fmt), std::forward<Args>(args)...);
 
         std::fputs(str.c_str(), stderr);
 }
@@ -35,10 +34,9 @@ void error(const char *fmt, Args&&... args)
 }
 
 template <class... Args>
-ANKH_NO_RETURN void fatal(std::string_view file, const char *func, size_t line, const char *fmt, Args&&... args)
+ANKH_NO_RETURN void fatal(const char *fmt, Args&&... args)
 {
-        const std::string_view path = ankh::pkg::parse_file_name_from_full_path(file);
-        auto str = fmt::format(fmt, path, func, line, std::forward<Args>(args)...);
+        auto str = fmt::format(fmt::runtime(fmt), std::forward<Args>(args)...);
 
         std::fputs(str.c_str(), stderr);
 
@@ -48,11 +46,11 @@ ANKH_NO_RETURN void fatal(std::string_view file, const char *func, size_t line, 
 }
 
 #ifndef NDEBUG
-        #define ANKH_DEBUG(str, ...) ankh::log::debug(__FILE__, __FUNCTION__, __LINE__, "{}/{}() @ {}: "#str"\n",##__VA_ARGS__)
+        #define ANKH_DEBUG(str, ...) ankh::log::debug("{}/{}() @ {}: "#str"\n", __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
 #else
         #define ANKH_DEBUG(str, ...)
 #endif
 
 #define ANKH_VERIFY(cond) do { if (!(cond)) { ankh::log::fatal(__FILE__, __FUNCTION__, __LINE__, "ASSERTION FAILURE @ {}/{}() @ {} since '( {} )' was false", #cond); }} while(0)
 
-#define ANKH_FATAL(str, ...) ankh::log::fatal(__FILE__, __FUNCTION__, __LINE__, "{}/{}() @ {}: "#str"\n",##__VA_ARGS__)
+#define ANKH_FATAL(str, ...) ankh::log::fatal("{}/{}() @ {}: "#str"\n", __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
