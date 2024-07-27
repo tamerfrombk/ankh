@@ -4,8 +4,8 @@
 #include <utility>
 #include <vector>
 
-#include <ankh/lang/expr.h>
-#include <ankh/lang/token.h>
+#include <ankh/lang/expr.hpp>
+#include <ankh/lang/token.hpp>
 
 namespace ankh::lang {
 

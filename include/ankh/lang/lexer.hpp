@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include <ankh/lang/token.h>
+#include <ankh/lang/token.hpp>
 
 namespace ankh::lang {
 

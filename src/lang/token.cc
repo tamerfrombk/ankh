@@ -1,5 +1,5 @@
-#include <ankh/lang/token.h>
-#include <ankh/log.h>
+#include <ankh/lang/token.hpp>
+#include <ankh/log.hpp>
 
 std::string ankh::lang::token_type_str(ankh::lang::TokenType type) noexcept
 {

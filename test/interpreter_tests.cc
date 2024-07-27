@@ -5,13 +5,13 @@
 #include <memory>
 #include <vector>
 
-#include <ankh/lang/expr.h>
-#include <ankh/lang/statement.h>
-#include <ankh/lang/program.h>
-#include <ankh/lang/parser.h>
-#include <ankh/lang/interpreter.h>
+#include <ankh/lang/expr.hpp>
+#include <ankh/lang/statement.hpp>
+#include <ankh/lang/program.hpp>
+#include <ankh/lang/parser.hpp>
+#include <ankh/lang/interpreter.hpp>
 
-#include <ankh/def.h>
+#include <ankh/def.hpp>
 
 class TracingInterpreter
     : public ankh::lang::Interpreter

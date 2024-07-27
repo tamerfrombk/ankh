@@ -4,13 +4,13 @@
 #include <unordered_map>
 #include <string>
 
-#include <ankh/lang/expr_result.h>
-#include <ankh/lang/expr.h>
-#include <ankh/lang/statement.h>
-#include <ankh/lang/program.h>
-#include <ankh/lang/lambda.h>
-#include <ankh/lang/env.h>
-#include <ankh/lang/callable.h>
+#include <ankh/lang/expr_result.hpp>
+#include <ankh/lang/expr.hpp>
+#include <ankh/lang/statement.hpp>
+#include <ankh/lang/program.hpp>
+#include <ankh/lang/lambda.hpp>
+#include <ankh/lang/env.hpp>
+#include <ankh/lang/callable.hpp>
 
 namespace ankh::lang {
 

@@ -1,14 +1,14 @@
 #pragma once
 
-#include <ankh/lang/expr.h>
-#include <ankh/lang/statement.h>
+#include <ankh/lang/expr.hpp>
+#include <ankh/lang/statement.hpp>
 
 namespace ankh::lang {
 
-// This is here instead of in lang/expr.h because we need both expression and statement constructs
+// This is here instead of in lang/expr.hpp because we need both expression and statement constructs
 // to create a lambda
-// Including this in expr.h will create a circular include problem between expr.h and statement.h
-// since statement.h relies on expr.h which would rely and statement.h and so on
+// Including this in expr.hpp will create a circular include problem between expr.hpp and statement.hpp
+// since statement.hpp relies on expr.hpp which would rely and statement.hpp and so on
 struct LambdaExpression 
     : public Expression 
 {

@@ -6,7 +6,7 @@
 #include <string>
 #include <optional>
 
-#include <ankh/lang/types/entry.h>
+#include <ankh/lang/types/entry.hpp>
 
 namespace ankh::lang {
 

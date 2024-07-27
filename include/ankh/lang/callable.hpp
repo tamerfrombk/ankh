@@ -4,13 +4,13 @@
 #include <vector>
 #include <memory>
 
-#include <ankh/lang/expr.h>
-#include <ankh/lang/statement.h>
-#include <ankh/lang/lambda.h>
+#include <ankh/lang/expr.hpp>
+#include <ankh/lang/statement.hpp>
+#include <ankh/lang/lambda.hpp>
 
-#include <ankh/lang/env.h>
+#include <ankh/lang/env.hpp>
 
-#include <ankh/log.h>
+#include <ankh/log.hpp>
 
 namespace ankh::lang {
 

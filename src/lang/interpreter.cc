@@ -1,5 +1,5 @@
-#include "ankh/lang/expr_result.h"
-#include "ankh/sys/linux.h"
+#include <ankh/lang/expr_result.hpp>
+#include <ankh/sys/linux.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
@@ -17,21 +17,21 @@
 
 #include <fmt/format.h>
 
-#include <ankh/def.h>
-#include <ankh/log.h>
+#include <ankh/def.hpp>
+#include <ankh/log.hpp>
 
-#include <ankh/sys/sys.h>
+#include <ankh/sys/sys.hpp>
 
-#include <ankh/lang/interpreter.h>
-#include <ankh/lang/parser.h>
+#include <ankh/lang/interpreter.hpp>
+#include <ankh/lang/parser.hpp>
 
-#include <ankh/lang/token.h>
-#include <ankh/lang/expr.h>
-#include <ankh/lang/exceptions.h>
+#include <ankh/lang/token.hpp>
+#include <ankh/lang/expr.hpp>
+#include <ankh/lang/exceptions.hpp>
 
-#include <ankh/lang/types/array.h>
-#include <ankh/lang/types/dictionary.h>
-#include <ankh/lang/builtins.h>
+#include <ankh/lang/types/array.hpp>
+#include <ankh/lang/types/dictionary.hpp>
+#include <ankh/lang/builtins.hpp>
 
 
 #define ANKH_DEFINE_BUILTIN(name, arity, type) do {\

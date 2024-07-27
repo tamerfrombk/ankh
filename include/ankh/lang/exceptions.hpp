@@ -5,9 +5,9 @@
 #include <fmt/core.h>
 #include <fmt/format.h>
 
-#include <ankh/def.h>
+#include <ankh/def.hpp>
 
-#include <ankh/lang/token.h>
+#include <ankh/lang/token.hpp>
 
 namespace ankh::lang {
 

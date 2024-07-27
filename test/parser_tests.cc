@@ -5,12 +5,12 @@
 #include <unordered_map>
 #include <vector>
 
-#include <ankh/lang/token.h>
-#include <ankh/lang/exceptions.h>
-#include <ankh/lang/expr.h>
-#include <ankh/lang/statement.h>
-#include <ankh/lang/lambda.h>
-#include <ankh/lang/parser.h>
+#include <ankh/lang/token.hpp>
+#include <ankh/lang/exceptions.hpp>
+#include <ankh/lang/expr.hpp>
+#include <ankh/lang/statement.hpp>
+#include <ankh/lang/lambda.hpp>
+#include <ankh/lang/parser.hpp>
 
 static void test_binary_expression_parse(const std::string& op) noexcept
 {

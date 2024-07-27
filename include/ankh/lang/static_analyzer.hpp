@@ -4,10 +4,10 @@
 #include <string>
 #include <unordered_map>
 
-#include <ankh/lang/expr.h>
-#include <ankh/lang/statement.h>
-#include <ankh/lang/hop_table.h>
-#include <ankh/lang/program.h>
+#include <ankh/lang/expr.hpp>
+#include <ankh/lang/statement.hpp>
+#include <ankh/lang/hop_table.hpp>
+#include <ankh/lang/program.hpp>
 
 namespace ankh::lang {
 

@@ -2,10 +2,10 @@
 
 #include <string>
 
-#include <ankh/lang/types/dictionary.h>
-#include <ankh/lang/types/array.h>
+#include <ankh/lang/types/dictionary.hpp>
+#include <ankh/lang/types/array.hpp>
 
-#include <ankh/log.h>
+#include <ankh/log.hpp>
 
 namespace ankh::lang {
 

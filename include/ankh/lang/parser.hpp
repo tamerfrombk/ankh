@@ -3,10 +3,10 @@
 #include <string>
 #include <vector>
 
-#include <ankh/lang/expr.h>
-#include <ankh/lang/statement.h>
-#include <ankh/lang/token.h>
-#include <ankh/lang/program.h>
+#include <ankh/lang/expr.hpp>
+#include <ankh/lang/statement.hpp>
+#include <ankh/lang/token.hpp>
+#include <ankh/lang/program.hpp>
 
 namespace ankh::lang {
 

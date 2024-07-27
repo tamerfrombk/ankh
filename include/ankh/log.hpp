@@ -8,8 +8,7 @@
 #include <fmt/core.h>
 #include <fmt/format.h>
 
-#include <ankh/def.h>
-#include <ankh/pkg/path.h>
+#include <ankh/def.hpp>
 
 namespace ankh::log {
 

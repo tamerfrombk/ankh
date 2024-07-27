@@ -6,7 +6,7 @@
 #include <memory>
 #include <utility>
 
-#include <ankh/log.h>
+#include <ankh/log.hpp>
 
 namespace ankh::lang {
 

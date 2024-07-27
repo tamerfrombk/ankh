@@ -1,7 +1,7 @@
 #pragma once
 
-#include <ankh/log.h>
-#include <ankh/lang/callable.h>
+#include <ankh/log.hpp>
+#include <ankh/lang/callable.hpp>
 
 #define ANKH_DECLARE_BUILTIN_TYPE(ClassName, method) \
 template <class T, class I>\

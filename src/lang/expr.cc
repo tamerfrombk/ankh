@@ -1,9 +1,9 @@
-#include <ankh/lang/expr.h>
-#include <ankh/lang/token.h>
-#include <ankh/lang/callable.h>
+#include <ankh/lang/expr.hpp>
+#include <ankh/lang/token.hpp>
+#include <ankh/lang/callable.hpp>
 
-#include <ankh/log.h>
-#include <ankh/def.h>
+#include <ankh/log.hpp>
+#include <ankh/def.hpp>
 
 static std::string stringify(const ankh::lang::Array<ankh::lang::ExprResult>& array) noexcept
 {

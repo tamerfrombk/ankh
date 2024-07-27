@@ -3,8 +3,8 @@
 #include <vector>
 #include <string>
 
-#include <ankh/lang/statement.h>
-#include <ankh/lang/hop_table.h>
+#include <ankh/lang/statement.hpp>
+#include <ankh/lang/hop_table.hpp>
 
 
 namespace ankh::lang {

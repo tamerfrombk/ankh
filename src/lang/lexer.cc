@@ -1,10 +1,10 @@
 #include <cctype>
 #include <unordered_map>
 
-#include <ankh/lang/lexer.h>
-#include <ankh/lang/exceptions.h>
+#include <ankh/lang/lexer.hpp>
+#include <ankh/lang/exceptions.hpp>
 
-#include <ankh/log.h>
+#include <ankh/log.hpp>
 
 static const std::unordered_map<std::string, ankh::lang::TokenType> KEYWORDS = {
       { "true", ankh::lang::TokenType::ANKH_TRUE }

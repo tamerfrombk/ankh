@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
-#include <ankh/lang/token.h>
-#include <ankh/lang/expr_result.h>
+#include <ankh/lang/token.hpp>
+#include <ankh/lang/expr_result.hpp>
 
 namespace ankh::lang {
 

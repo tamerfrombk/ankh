@@ -1,17 +1,17 @@
-#include "ankh/lang/expr.h"
-#include "ankh/lang/statement.h"
+#include <ankh/lang/expr.hpp>
+#include <ankh/lang/statement.hpp>
 #include <algorithm>
 #include <initializer_list>
 #include <random>
 
-#include <ankh/log.h>
+#include <ankh/log.hpp>
 
-#include <ankh/lang/parser.h>
-#include <ankh/lang/lexer.h>
-#include <ankh/lang/token.h>
-#include <ankh/lang/exceptions.h>
-#include <ankh/lang/lambda.h>
-#include <ankh/lang/static_analyzer.h>
+#include <ankh/lang/parser.hpp>
+#include <ankh/lang/lexer.hpp>
+#include <ankh/lang/token.hpp>
+#include <ankh/lang/exceptions.hpp>
+#include <ankh/lang/lambda.hpp>
+#include <ankh/lang/static_analyzer.hpp>
 
 
 static char generate_random_alpha_char() noexcept

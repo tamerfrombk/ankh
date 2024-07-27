@@ -3,9 +3,9 @@
 #include <string>
 #include <vector>
 
-#include <ankh/lang/token.h>
-#include <ankh/lang/lexer.h>
-#include <ankh/lang/exceptions.h>
+#include <ankh/lang/token.hpp>
+#include <ankh/lang/lexer.hpp>
+#include <ankh/lang/exceptions.hpp>
 
 TEST_CASE("scan assignment tokens", "[lexer]")
 {
