@@ -1,56 +1,33 @@
 #pragma once
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 namespace ankh::lang {
 
-template <class T>
-class Array
-{
+template <class T> class Array {
     using ArrayType = std::vector<T>;
 
-public:
-    Array()                : elems_(std::make_shared<ArrayType>()) {}
+  public:
+    Array() : elems_(std::make_shared<ArrayType>()) {}
     Array(ArrayType elems) : elems_(std::make_shared<ArrayType>(std::move(elems))) {}
 
-    void append(const T& elem) noexcept
-    {
-        elems_->push_back(elem);
-    }
+    void append(const T &elem) noexcept { elems_->push_back(elem); }
 
-    bool empty() const noexcept
-    {
-        return elems_->empty();
-    }
+    bool empty() const noexcept { return elems_->empty(); }
 
-    T& operator[](size_t i) noexcept
-    {
-        return (*elems_)[i];
-    }
+    T &operator[](size_t i) noexcept { return (*elems_)[i]; }
 
-    const T& operator[](size_t i) const noexcept
-    {
-        return (*elems_)[i];
-    }
+    const T &operator[](size_t i) const noexcept { return (*elems_)[i]; }
 
-    size_t size() const noexcept
-    {
-        return elems_->size();
-    }
+    size_t size() const noexcept { return elems_->size(); }
 
-    friend bool operator==(const Array<T>& lhs, const Array<T>& rhs) noexcept
-    {
-        return *lhs.elems_ == *rhs.elems_;
-    }
+    friend bool operator==(const Array<T> &lhs, const Array<T> &rhs) noexcept { return *lhs.elems_ == *rhs.elems_; }
 
-    friend bool operator!=(const Array<T>& lhs, const Array<T>& rhs) noexcept
-    {
-        return !(operator==(lhs, rhs));
-    }
+    friend bool operator!=(const Array<T> &lhs, const Array<T> &rhs) noexcept { return !(operator==(lhs, rhs)); }
 
-private:
+  private:
     std::shared_ptr<ArrayType> elems_;
 };
 
-}
+} // namespace ankh::lang

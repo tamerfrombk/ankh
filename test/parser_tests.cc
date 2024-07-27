@@ -5,17 +5,16 @@
 #include <unordered_map>
 #include <vector>
 
-#include <ankh/lang/token.hpp>
 #include <ankh/lang/exceptions.hpp>
 #include <ankh/lang/expr.hpp>
-#include <ankh/lang/statement.hpp>
 #include <ankh/lang/lambda.hpp>
 #include <ankh/lang/parser.hpp>
+#include <ankh/lang/statement.hpp>
+#include <ankh/lang/token.hpp>
 
-static void test_binary_expression_parse(const std::string& op) noexcept
-{
+static void test_binary_expression_parse(const std::string &op) noexcept {
     const std::string source("1" + op + "2" + "\n");
-    
+
     auto program = ankh::lang::parse(source);
     REQUIRE(program.size() == 1);
 
@@ -29,10 +28,9 @@ static void test_binary_expression_parse(const std::string& op) noexcept
     REQUIRE(binary->op.str == op);
 }
 
-static void test_boolean_binary_expression(const std::string& op) noexcept
-{
+static void test_boolean_binary_expression(const std::string &op) noexcept {
     const std::string source("true" + op + "false" + "\n");
-    
+
     auto program = ankh::lang::parse(source);
     REQUIRE(program.size() == 1);
 
@@ -45,8 +43,7 @@ static void test_boolean_binary_expression(const std::string& op) noexcept
     REQUIRE(binary->right != nullptr);
 }
 
-static void test_unary_expression(const std::string& op) noexcept
-{
+static void test_unary_expression(const std::string &op) noexcept {
     const std::string source(op + "3" + "\n");
 
     auto program = ankh::lang::parse(source);
@@ -55,19 +52,17 @@ static void test_unary_expression(const std::string& op) noexcept
 
     auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
     REQUIRE(stmt != nullptr);
-    
+
     auto unary = ankh::lang::instance<ankh::lang::UnaryExpression>(stmt->expr);
     REQUIRE(unary != nullptr);
     REQUIRE(unary->right != nullptr);
     REQUIRE(unary->op.str == op);
 }
 
-TEST_CASE("parse language statements", "[parser]")
-{
-    SECTION("parse expression statement")
-    {
+TEST_CASE("parse language statements", "[parser]") {
+    SECTION("parse expression statement") {
         const std::string source =
-        R"(
+            R"(
             1 + 2
         )";
 
@@ -82,10 +77,9 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(binary != nullptr);
     }
 
-    SECTION("parse declaration statement, local storage")
-    {
+    SECTION("parse declaration statement, local storage") {
         const std::string source =
-        R"(
+            R"(
             let i = 1
         )";
 
@@ -104,10 +98,9 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(literal->literal.str == "1");
     }
 
-    SECTION("parse assignment statement")
-    {
+    SECTION("parse assignment statement") {
         const std::string source =
-        R"(
+            R"(
             let i = 2
             i = 3
         )";
@@ -127,18 +120,12 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(literal->literal.str == "3");
     }
 
-    SECTION("parse compound assignment statement")
-    {
-        std::string ops[] = { "+=", "-=", "*=", "/=" };
-        std::string sources[] = {
-              "i += 3"
-            , "i -= 3"
-            , "i *= 3"
-            , "i /= 3"
-        };
+    SECTION("parse compound assignment statement") {
+        std::string ops[] = {"+=", "-=", "*=", "/="};
+        std::string sources[] = {"i += 3", "i -= 3", "i *= 3", "i /= 3"};
 
         int i = 0;
-        for (const auto& source : sources) {
+        for (const auto &source : sources) {
             INFO(source);
 
             auto program = ankh::lang::parse(source);
@@ -158,10 +145,9 @@ TEST_CASE("parse language statements", "[parser]")
         }
     }
 
-    SECTION("parse increment statement, identifier")
-    {
+    SECTION("parse increment statement, identifier") {
         const std::string source =
-        R"(
+            R"(
             ++i
         )";
 
@@ -174,11 +160,10 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(modify != nullptr);
 
         REQUIRE(modify->op.str == "++");
-        REQUIRE(ankh::lang::instanceof<ankh::lang::IdentifierExpression>(modify->expr));
+        REQUIRE(ankh::lang:: instanceof <ankh::lang::IdentifierExpression>(modify->expr));
     }
 
-    SECTION("parse increment statement, invalid target")
-    {
+    SECTION("parse increment statement, invalid target") {
         const std::string source =
             R"(
             ++"foo"
@@ -188,10 +173,9 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(program.has_errors());
     }
 
-    SECTION("parse decrement statement, identifier")
-    {
+    SECTION("parse decrement statement, identifier") {
         const std::string source =
-        R"(
+            R"(
             --i
         )";
 
@@ -204,11 +188,10 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(modify != nullptr);
 
         REQUIRE(modify->op.str == "--");
-        REQUIRE(ankh::lang::instanceof<ankh::lang::IdentifierExpression>(modify->expr));
+        REQUIRE(ankh::lang:: instanceof <ankh::lang::IdentifierExpression>(modify->expr));
     }
 
-    SECTION("parse decrement statement, invalid target")
-    {
+    SECTION("parse decrement statement, invalid target") {
         const std::string source =
             R"(
             --"foo"
@@ -218,10 +201,9 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(program.has_errors());
     }
 
-    SECTION("parse block statement")
-    {
+    SECTION("parse block statement") {
         const std::string source =
-        R"(
+            R"(
             {
                 a
                 b
@@ -238,10 +220,9 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(block->statements.size() == 2);
     }
 
-    SECTION("parse if statement with no else")
-    {
+    SECTION("parse if statement with no else") {
         const std::string source =
-        R"(
+            R"(
             if 1 == 1 {
             }
         )";
@@ -259,10 +240,9 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(if_stmt->else_block == nullptr);
     }
 
-    SECTION("parse if statement with else")
-    {
+    SECTION("parse if statement with else") {
         const std::string source =
-        R"(
+            R"(
             if 1 == 1 {
             } else {
             }
@@ -282,10 +262,9 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(else_block != nullptr);
     }
 
-    SECTION("parse if statement with else-if")
-    {
+    SECTION("parse if statement with else-if") {
         const std::string source =
-        R"(
+            R"(
             if 1 == 2 {
             } else if 2 == 2 {
             }
@@ -305,10 +284,9 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(else_block != nullptr);
     }
 
-    SECTION("parse while statement")
-    {
+    SECTION("parse while statement") {
         const std::string source =
-        R"(
+            R"(
             let i = 1
             while i < 2 {
             }
@@ -328,10 +306,9 @@ TEST_CASE("parse language statements", "[parser]")
         REQUIRE(while_stmt->condition != nullptr);
     }
 
-    SECTION("parse function declaration")
-    {
+    SECTION("parse function declaration") {
         const std::string source =
-        R"(
+            R"(
             fn sum(a, b, c) {
                 return a + b + c
             }
@@ -358,10 +335,8 @@ TEST_CASE("parse language statements", "[parser]")
     }
 }
 
-TEST_CASE("for statements", "[parser]")
-{
-    SECTION("for loop, 3 components")
-    {
+TEST_CASE("for statements", "[parser]") {
+    SECTION("for loop, 3 components") {
         const std::string source = R"(
             for let i = 0; i < 3; ++i {
             }
@@ -378,8 +353,7 @@ TEST_CASE("for statements", "[parser]")
         REQUIRE(for_stmt->marker.str == "for");
     }
 
-    SECTION("for loop, no init")
-    {
+    SECTION("for loop, no init") {
         const std::string source = R"(
             for ; i < 3; ++i {
             }
@@ -395,8 +369,7 @@ TEST_CASE("for statements", "[parser]")
         REQUIRE(for_stmt->body != nullptr);
     }
 
-    SECTION("for loop, no condition")
-    {
+    SECTION("for loop, no condition") {
         const std::string source = R"(
             for let i = 0; ; ++i {
             }
@@ -412,8 +385,7 @@ TEST_CASE("for statements", "[parser]")
         REQUIRE(for_stmt->body != nullptr);
     }
 
-    SECTION("for loop, no mutator")
-    {
+    SECTION("for loop, no mutator") {
         const std::string source = R"(
             for let i = 0; i < 3; {
             }
@@ -429,8 +401,7 @@ TEST_CASE("for statements", "[parser]")
         REQUIRE(for_stmt->body != nullptr);
     }
 
-    SECTION("infinite loop")
-    {
+    SECTION("infinite loop") {
         const std::string source = R"(
             for {
             }
@@ -447,12 +418,10 @@ TEST_CASE("for statements", "[parser]")
     }
 }
 
-TEST_CASE("parse language expressions", "[parser]")
-{
-    SECTION("parse primary")
-    {
+TEST_CASE("parse language expressions", "[parser]") {
+    SECTION("parse primary") {
         const std::string source =
-        R"(
+            R"(
             1
             true
             false
@@ -463,17 +432,16 @@ TEST_CASE("parse language expressions", "[parser]")
 
         REQUIRE(program.size() == 4);
 
-        for (const auto& stmt : program.statements) {
+        for (const auto &stmt : program.statements) {
             auto literal = ankh::lang::instance<ankh::lang::ExpressionStatement>(stmt);
             REQUIRE(literal != nullptr);
-            REQUIRE(ankh::lang::instanceof<ankh::lang::LiteralExpression>(literal->expr));
+            REQUIRE(ankh::lang:: instanceof <ankh::lang::LiteralExpression>(literal->expr));
         }
     }
 
-    SECTION("parse paren")
-    {
+    SECTION("parse paren") {
         const std::string source =
-        R"(
+            R"(
             ( "an expression" )
         )";
 
@@ -484,13 +452,12 @@ TEST_CASE("parse language expressions", "[parser]")
         auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
 
-        REQUIRE(ankh::lang::instanceof<ankh::lang::ParenExpression>(stmt->expr));
+        REQUIRE(ankh::lang:: instanceof <ankh::lang::ParenExpression>(stmt->expr));
     }
 
-    SECTION("parse identifier")
-    {
+    SECTION("parse identifier") {
         const std::string source =
-        R"(
+            R"(
             a
         )";
 
@@ -501,13 +468,12 @@ TEST_CASE("parse language expressions", "[parser]")
         auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
 
-        REQUIRE(ankh::lang::instanceof<ankh::lang::IdentifierExpression>(stmt->expr));
+        REQUIRE(ankh::lang:: instanceof <ankh::lang::IdentifierExpression>(stmt->expr));
     }
 
-    SECTION("parse function call, no args")
-    {
+    SECTION("parse function call, no args") {
         const std::string source =
-        R"(
+            R"(
             a()
         )";
 
@@ -516,7 +482,7 @@ TEST_CASE("parse language expressions", "[parser]")
 
         auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
-        
+
         auto call = ankh::lang::instance<ankh::lang::CallExpression>(stmt->expr);
         REQUIRE(call != nullptr);
         REQUIRE(call->args.size() == 0);
@@ -527,10 +493,9 @@ TEST_CASE("parse language expressions", "[parser]")
         REQUIRE(identifier->name.str == "a");
     }
 
-    SECTION("parse function call, >0 args")
-    {
+    SECTION("parse function call, >0 args") {
         const std::string source =
-        R"(
+            R"(
             a(1, 2)
         )";
 
@@ -540,7 +505,7 @@ TEST_CASE("parse language expressions", "[parser]")
 
         auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
-        
+
         auto call = ankh::lang::instance<ankh::lang::CallExpression>(stmt->expr);
         REQUIRE(call != nullptr);
         REQUIRE(call->args.size() == 2);
@@ -551,10 +516,9 @@ TEST_CASE("parse language expressions", "[parser]")
         REQUIRE(identifier->name.str == "a");
     }
 
-    SECTION("parse function call, multicall")
-    {
+    SECTION("parse function call, multicall") {
         const std::string source =
-        R"(
+            R"(
             a(1, 2)()
         )";
 
@@ -564,7 +528,7 @@ TEST_CASE("parse language expressions", "[parser]")
 
         auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
-        
+
         auto inner_call = ankh::lang::instance<ankh::lang::CallExpression>(stmt->expr);
         REQUIRE(inner_call != nullptr);
         REQUIRE(inner_call->args.size() == 0);
@@ -578,10 +542,9 @@ TEST_CASE("parse language expressions", "[parser]")
         REQUIRE(callee_name->name.str == "a");
     }
 
-    SECTION("parse lambda expression")
-    {
+    SECTION("parse lambda expression") {
         const std::string source =
-        R"(
+            R"(
             let lambda = fn (a, b) {
                 return a + b
             }
@@ -593,7 +556,7 @@ TEST_CASE("parse language expressions", "[parser]")
 
         auto stmt = ankh::lang::instance<ankh::lang::VariableDeclaration>(program[0]);
         REQUIRE(stmt != nullptr);
-        
+
         auto lambda = ankh::lang::instance<ankh::lang::LambdaExpression>(stmt->initializer);
         REQUIRE(lambda != nullptr);
         REQUIRE(lambda->params.size() == 2);
@@ -602,48 +565,41 @@ TEST_CASE("parse language expressions", "[parser]")
         REQUIRE(lambda->marker.str == "fn");
     }
 
-    SECTION("parse unary !")
-    {
+    SECTION("parse unary !") {
         test_unary_expression("!");
         test_unary_expression("-");
-    } 
+    }
 
-    SECTION("parse factor")
-    {
+    SECTION("parse factor") {
         test_binary_expression_parse("*");
         test_binary_expression_parse("/");
     }
 
-    SECTION("parse term")
-    {
+    SECTION("parse term") {
         test_binary_expression_parse("-");
         test_binary_expression_parse("+");
     }
 
-    SECTION("parse comparison")
-    {
+    SECTION("parse comparison") {
         test_binary_expression_parse(">");
         test_binary_expression_parse(">=");
         test_binary_expression_parse("<");
         test_binary_expression_parse("<=");
     }
 
-    SECTION("parse equality")
-    {
+    SECTION("parse equality") {
         test_binary_expression_parse("!=");
         test_binary_expression_parse("==");
     }
 
-    SECTION("parse logical")
-    {
+    SECTION("parse logical") {
         test_boolean_binary_expression("&&");
         test_boolean_binary_expression("||");
     }
 
-    SECTION("parse command")
-    {
+    SECTION("parse command") {
         const std::string source =
-        R"(
+            R"(
             $(echo hello)
         )";
 
@@ -653,17 +609,16 @@ TEST_CASE("parse language expressions", "[parser]")
 
         auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
-        
+
         auto cmd = ankh::lang::instance<ankh::lang::CommandExpression>(stmt->expr);
         REQUIRE(cmd != nullptr);
         REQUIRE(cmd->cmd.str == "echo hello");
         REQUIRE(cmd->cmd.type == ankh::lang::TokenType::COMMAND);
     }
 
-    SECTION("parse empty command")
-    {
+    SECTION("parse empty command") {
         const std::string source =
-        R"(
+            R"(
             $()
         )";
 
@@ -672,10 +627,9 @@ TEST_CASE("parse language expressions", "[parser]")
         REQUIRE(program.has_errors());
     }
 
-    SECTION("interleave call and index expressions")
-    {
+    SECTION("interleave call and index expressions") {
         const std::string source =
-        R"(
+            R"(
             foo()[0]
         )";
 
@@ -685,16 +639,15 @@ TEST_CASE("parse language expressions", "[parser]")
 
         auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
-        
+
         auto idx = ankh::lang::instance<ankh::lang::IndexExpression>(stmt->expr);
         REQUIRE(idx != nullptr);
         REQUIRE(idx->marker.type == ankh::lang::TokenType::LBRACKET);
     }
 
-    SECTION("interleave index and call expressions")
-    {
+    SECTION("interleave index and call expressions") {
         const std::string source =
-        R"(
+            R"(
             foo[0]()
         )";
 
@@ -704,15 +657,14 @@ TEST_CASE("parse language expressions", "[parser]")
 
         auto stmt = ankh::lang::instance<ankh::lang::ExpressionStatement>(program[0]);
         REQUIRE(stmt != nullptr);
-        
+
         auto idx = ankh::lang::instance<ankh::lang::CallExpression>(stmt->expr);
         REQUIRE(idx != nullptr);
     }
 
-    SECTION("index with no index expression")
-    {
+    SECTION("index with no index expression") {
         const std::string source =
-        R"(
+            R"(
             foo[]
         )";
 
@@ -721,10 +673,9 @@ TEST_CASE("parse language expressions", "[parser]")
         REQUIRE(program.has_errors());
     }
 
-    SECTION("dictionary, one key")
-    {
+    SECTION("dictionary, one key") {
         const std::string source =
-        R"(
+            R"(
             let dict = {
                 hello: "world"
             }
@@ -737,12 +688,12 @@ TEST_CASE("parse language expressions", "[parser]")
 
         auto decl = ankh::lang::instance<ankh::lang::VariableDeclaration>(program[0]);
         REQUIRE(decl != nullptr);
-        
+
         auto dict = ankh::lang::instance<ankh::lang::DictionaryExpression>(decl->initializer);
         REQUIRE(dict != nullptr);
         REQUIRE(dict->entries.size() == 1);
         REQUIRE(dict->marker.str == "{");
-        
+
         auto key = ankh::lang::instance<ankh::lang::StringExpression>(dict->entries[0].key);
         REQUIRE(key != nullptr);
 
@@ -750,10 +701,9 @@ TEST_CASE("parse language expressions", "[parser]")
         REQUIRE(value != nullptr);
     }
 
-    SECTION("dictionary, empty")
-    {
+    SECTION("dictionary, empty") {
         const std::string source =
-        R"(
+            R"(
             let dict = {}
         )";
 
@@ -764,16 +714,15 @@ TEST_CASE("parse language expressions", "[parser]")
 
         auto decl = ankh::lang::instance<ankh::lang::VariableDeclaration>(program[0]);
         REQUIRE(decl != nullptr);
-        
+
         auto dict = ankh::lang::instance<ankh::lang::DictionaryExpression>(decl->initializer);
         REQUIRE(dict != nullptr);
         REQUIRE(dict->entries.empty());
     }
 
-    SECTION("dictionary, multi entry")
-    {
+    SECTION("dictionary, multi entry") {
         const std::string source =
-        R"(
+            R"(
             let dict = {
                 hello: "world"
                 , foo: "1"
@@ -787,12 +736,12 @@ TEST_CASE("parse language expressions", "[parser]")
 
         auto decl = ankh::lang::instance<ankh::lang::VariableDeclaration>(program[0]);
         REQUIRE(decl != nullptr);
-        
+
         auto dict = ankh::lang::instance<ankh::lang::DictionaryExpression>(decl->initializer);
         REQUIRE(dict != nullptr);
         REQUIRE(dict->entries.size() == 2);
-        
-        for (const auto& e : dict->entries) {
+
+        for (const auto &e : dict->entries) {
             auto key = ankh::lang::instance<ankh::lang::StringExpression>(e.key);
             REQUIRE(key != nullptr);
 
@@ -801,10 +750,9 @@ TEST_CASE("parse language expressions", "[parser]")
         }
     }
 
-    SECTION("dictionary, expression key, single member")
-    {
+    SECTION("dictionary, expression key, single member") {
         const std::string source =
-        R"(
+            R"(
             let dict = {
                 [1 + 1] : 2
             }
@@ -817,7 +765,7 @@ TEST_CASE("parse language expressions", "[parser]")
 
         auto decl = ankh::lang::instance<ankh::lang::VariableDeclaration>(program[0]);
         REQUIRE(decl != nullptr);
-        
+
         auto dict = ankh::lang::instance<ankh::lang::DictionaryExpression>(decl->initializer);
         REQUIRE(dict != nullptr);
         REQUIRE(dict->entries.size() == 1);
@@ -829,10 +777,9 @@ TEST_CASE("parse language expressions", "[parser]")
         REQUIRE(value != nullptr);
     }
 
-    SECTION("dictionary, expression key, multi member")
-    {
+    SECTION("dictionary, expression key, multi member") {
         const std::string source =
-        R"(
+            R"(
             let dict = {
                 [1 + 1] : 2
                 , [3 + 4] : 2
@@ -847,16 +794,15 @@ TEST_CASE("parse language expressions", "[parser]")
 
         auto decl = ankh::lang::instance<ankh::lang::VariableDeclaration>(program[0]);
         REQUIRE(decl != nullptr);
-        
+
         auto dict = ankh::lang::instance<ankh::lang::DictionaryExpression>(decl->initializer);
         REQUIRE(dict != nullptr);
         REQUIRE(dict->entries.size() == 3);
     }
 
-    SECTION("dictionary, multi member, missing comma")
-    {
+    SECTION("dictionary, multi member, missing comma") {
         const std::string source =
-        R"(
+            R"(
             let dict = {
                 [1 + 1] : 2
                  [3 + 4] : 2
@@ -869,10 +815,9 @@ TEST_CASE("parse language expressions", "[parser]")
         REQUIRE(program.has_errors());
     }
 
-    SECTION("dictionary, lookup")
-    {
+    SECTION("dictionary, lookup") {
         const std::string source =
-        R"(
+            R"(
             let dict = {
                 [1 + 1] : 2
                 , [3 + 4] : 2
@@ -889,7 +834,7 @@ TEST_CASE("parse language expressions", "[parser]")
 
         auto decl = ankh::lang::instance<ankh::lang::VariableDeclaration>(program[0]);
         REQUIRE(decl != nullptr);
-        
+
         auto dict = ankh::lang::instance<ankh::lang::DictionaryExpression>(decl->initializer);
         REQUIRE(dict != nullptr);
         REQUIRE(dict->entries.size() == 3);
@@ -902,15 +847,10 @@ TEST_CASE("parse language expressions", "[parser]")
     }
 }
 
-TEST_CASE("parse arrays", "[parser]")
-{
-    std::unordered_map<std::string, size_t> sourcesToExpectedElementCount = {
-        { "[1, 2]", 2 }
-        , { "[1]", 1 }
-        , { "[]",  0 }
-    };
+TEST_CASE("parse arrays", "[parser]") {
+    std::unordered_map<std::string, size_t> sourcesToExpectedElementCount = {{"[1, 2]", 2}, {"[1]", 1}, {"[]", 0}};
 
-    for (const auto& [source, expected_count] : sourcesToExpectedElementCount) {
+    for (const auto &[source, expected_count] : sourcesToExpectedElementCount) {
         INFO(source);
 
         auto program = ankh::lang::parse(source);
@@ -923,24 +863,19 @@ TEST_CASE("parse arrays", "[parser]")
         auto arr = ankh::lang::instance<ankh::lang::ArrayExpression>(stmt->expr);
         REQUIRE(arr != nullptr);
         REQUIRE(arr->elems.size() == expected_count);
-    } 
+    }
 }
 
-TEST_CASE("parse slices", "[parser]")
-{
+TEST_CASE("parse slices", "[parser]") {
     struct TestCase {
         std::string source;
         bool has_begin, has_end;
     };
 
     std::initializer_list<TestCase> testCases = {
-        { "[][:]", false, false}
-        , { "[][1:]", true, false }
-        , { "[][:4]",  false, true }
-        , { "[][1:3]", true, true }
-    };
+        {"[][:]", false, false}, {"[][1:]", true, false}, {"[][:4]", false, true}, {"[][1:3]", true, true}};
 
-    for (const auto& [source, has_begin, has_end] : testCases) {
+    for (const auto &[source, has_begin, has_end] : testCases) {
         INFO(source);
 
         auto program = ankh::lang::parse(source);
@@ -958,20 +893,18 @@ TEST_CASE("parse slices", "[parser]")
         if (has_end) {
             REQUIRE(slice->end != nullptr);
         }
-    } 
+    }
 }
 
-TEST_CASE("test parse statement without a empty line at the end does not infinite loop", "[parser]")
-{
+TEST_CASE("test parse statement without a empty line at the end does not infinite loop", "[parser]") {
     auto program = ankh::lang::parse("1 + 2");
 
     REQUIRE(program.size() == 1);
 }
 
-TEST_CASE("parse two arrays as two separate statements rather than an index operation", "[parser]")
-{
+TEST_CASE("parse two arrays as two separate statements rather than an index operation", "[parser]") {
     const std::string source =
-    R"(
+        R"(
         [1, 2];
         [0]
     )";
@@ -979,17 +912,16 @@ TEST_CASE("parse two arrays as two separate statements rather than an index oper
     auto program = ankh::lang::parse(source);
     REQUIRE(program.size() == 2);
 
-    for (auto& stmt : program.statements) {
+    for (auto &stmt : program.statements) {
         auto ptr = ankh::lang::instance<ankh::lang::ExpressionStatement>(stmt);
         REQUIRE(ptr != nullptr);
-        REQUIRE(ankh::lang::instanceof<ankh::lang::ArrayExpression>(ptr->expr));   
+        REQUIRE(ankh::lang:: instanceof <ankh::lang::ArrayExpression>(ptr->expr));
     }
 }
 
-TEST_CASE("top level return not allowed", "[parser]")
-{
+TEST_CASE("top level return not allowed", "[parser]") {
     const std::string source =
-    R"(
+        R"(
         return;
     )";
 
@@ -999,10 +931,9 @@ TEST_CASE("top level return not allowed", "[parser]")
     REQUIRE(program.errors[0] == "2:9, a return statement can only be within function scope");
 }
 
-TEST_CASE("top level break not allowed", "[parser]")
-{
+TEST_CASE("top level break not allowed", "[parser]") {
     const std::string source =
-    R"(
+        R"(
         break
     )";
 
@@ -1012,10 +943,9 @@ TEST_CASE("top level break not allowed", "[parser]")
     REQUIRE(program.errors[0] == "2:9, a break statement can only be within loop scope");
 }
 
-TEST_CASE("local variable declaration cannot be read in its own declaration", "[parser]")
-{
+TEST_CASE("local variable declaration cannot be read in its own declaration", "[parser]") {
     const std::string source =
-    R"(
+        R"(
         let a = "outer";
         {
             let a = a;

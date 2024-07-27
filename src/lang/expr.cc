@@ -1,12 +1,11 @@
+#include <ankh/lang/callable.hpp>
 #include <ankh/lang/expr.hpp>
 #include <ankh/lang/token.hpp>
-#include <ankh/lang/callable.hpp>
 
-#include <ankh/log.hpp>
 #include <ankh/def.hpp>
+#include <ankh/log.hpp>
 
-static std::string stringify(const ankh::lang::Array<ankh::lang::ExprResult>& array) noexcept
-{
+static std::string stringify(const ankh::lang::Array<ankh::lang::ExprResult> &array) noexcept {
     if (array.empty()) {
         return "[]";
     }
@@ -21,14 +20,13 @@ static std::string stringify(const ankh::lang::Array<ankh::lang::ExprResult>& ar
     return result;
 }
 
-static std::string stringify(const ankh::lang::Dictionary<ankh::lang::ExprResult>& dict) noexcept
-{
+static std::string stringify(const ankh::lang::Dictionary<ankh::lang::ExprResult> &dict) noexcept {
     if (dict.empty()) {
         return "{}";
     }
 
     std::string result = "{";
-    for (const auto& [key, value] : dict) {
+    for (const auto &[key, value] : dict) {
         result += (key.stringify() + " : " + value.stringify());
         result += ",\n";
     }
@@ -39,8 +37,7 @@ static std::string stringify(const ankh::lang::Dictionary<ankh::lang::ExprResult
     return result;
 }
 
-std::string ankh::lang::ExprResult::stringify() const noexcept
-{
+std::string ankh::lang::ExprResult::stringify() const noexcept {
     switch (type) {
     case ankh::lang::ExprResultType::RT_STRING:
         return str;

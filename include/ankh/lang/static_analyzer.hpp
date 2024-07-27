@@ -1,24 +1,21 @@
 #pragma once
 
-#include <vector>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include <ankh/lang/expr.hpp>
-#include <ankh/lang/statement.hpp>
 #include <ankh/lang/hop_table.hpp>
 #include <ankh/lang/program.hpp>
+#include <ankh/lang/statement.hpp>
 
 namespace ankh::lang {
 
-class StaticAnalyzer
-    : public ExpressionVisitor<ExprResult>
-    , public StatementVisitor<void>
-{
-public:
-    HopTable resolve(const Program& program);
+class StaticAnalyzer : public ExpressionVisitor<ExprResult>, public StatementVisitor<void> {
+  public:
+    HopTable resolve(const Program &program);
 
-private:
+  private:
     virtual ExprResult visit(BinaryExpression *expr) override;
     virtual ExprResult visit(UnaryExpression *expr) override;
     virtual ExprResult visit(LiteralExpression *expr) override;
@@ -36,8 +33,8 @@ private:
     virtual void visit(ExpressionStatement *stmt) override;
     virtual void visit(VariableDeclaration *stmt) override;
     virtual void visit(AssignmentStatement *stmt) override;
-    virtual void visit(CompoundAssignment* stmt) override;
-    virtual void visit(IncOrDecIdentifierStatement* stmt) override;
+    virtual void visit(CompoundAssignment *stmt) override;
+    virtual void visit(IncOrDecIdentifierStatement *stmt) override;
     virtual void visit(BlockStatement *stmt) override;
     virtual void visit(IfStatement *stmt) override;
     virtual void visit(WhileStatement *stmt) override;
@@ -46,17 +43,10 @@ private:
     virtual void visit(FunctionDeclaration *stmt) override;
     virtual void visit(ReturnStatement *stmt) override;
 
-private:
+  private:
+    enum class FunctionType { NONE, FUNCTION };
 
-    enum class FunctionType {
-        NONE,
-        FUNCTION
-    };
-
-    enum class LoopType {
-        NONE,
-        LOOP
-    };
+    enum class LoopType { NONE, LOOP };
 
     struct Scope {
         std::unordered_map<std::string, bool> variables;
@@ -66,8 +56,7 @@ private:
         FunctionType fn_type;
         LoopType loop_type;
 
-        Analysis(FunctionType fn_type, LoopType loop_type)
-            : fn_type(fn_type), loop_type(loop_type) {}
+        Analysis(FunctionType fn_type, LoopType loop_type) : fn_type(fn_type), loop_type(loop_type) {}
     };
 
     void begin_scope();
@@ -76,29 +65,29 @@ private:
     void begin_analysis(FunctionType fn_type, LoopType loop_type) noexcept;
     void end_analysis() noexcept;
 
-    Analysis& current_analysis() noexcept;
-    const Analysis& current_analysis() const noexcept;
+    Analysis &current_analysis() noexcept;
+    const Analysis &current_analysis() const noexcept;
 
     bool in_loop_scope() const noexcept;
     bool in_function_scope() const noexcept;
 
-    Scope& top() noexcept;
-    const Scope& top() const noexcept;
+    Scope &top() noexcept;
+    const Scope &top() const noexcept;
 
-    void declare(const Token& token);
-    void define(const Token& token);
+    void declare(const Token &token);
+    void define(const Token &token);
 
-    bool is_declared_but_not_defined(const Token& token) const noexcept;
+    bool is_declared_but_not_defined(const Token &token) const noexcept;
 
-    void analyze(const ExpressionPtr& expr);
-    void analyze(const StatementPtr& stmt);
+    void analyze(const ExpressionPtr &expr);
+    void analyze(const StatementPtr &stmt);
 
-    void resolve(const void *entity, const Token& name);
+    void resolve(const void *entity, const Token &name);
 
-private:
+  private:
     std::vector<Scope> scopes_;
     std::vector<Analysis> analyses_;
     HopTable hop_table_;
 };
 
-}
+} // namespace ankh::lang

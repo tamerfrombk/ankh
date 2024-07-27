@@ -23,16 +23,14 @@ struct BreakStatement;
 struct FunctionDeclaration;
 struct ReturnStatement;
 
-
-template <class R>
-struct StatementVisitor {
+template <class R> struct StatementVisitor {
     virtual ~StatementVisitor() = default;
-    
+
     virtual R visit(ExpressionStatement *stmt) = 0;
     virtual R visit(VariableDeclaration *stmt) = 0;
     virtual R visit(AssignmentStatement *stmt) = 0;
-    virtual R visit(IncOrDecIdentifierStatement* stmt) = 0;
-    virtual R visit(CompoundAssignment* stmt) = 0;
+    virtual R visit(IncOrDecIdentifierStatement *stmt) = 0;
+    virtual R visit(CompoundAssignment *stmt) = 0;
     virtual R visit(BlockStatement *stmt) = 0;
     virtual R visit(IfStatement *stmt) = 0;
     virtual R visit(WhileStatement *stmt) = 0;
@@ -46,63 +44,40 @@ struct Statement;
 
 using StatementPtr = std::unique_ptr<Statement>;
 
-struct Statement
-{
+struct Statement {
     virtual ~Statement() = default;
 
     virtual void accept(StatementVisitor<void> *visitor) = 0;
     virtual std::string stringify() const noexcept = 0;
 };
 
-
-template <class T, class... Args>
-StatementPtr make_statement(Args&&... args)
-{
+template <class T, class... Args> StatementPtr make_statement(Args &&...args) {
     return std::make_unique<T>(std::forward<Args>(args)...);
 }
 
-struct ExpressionStatement
-    : public Statement
-{
+struct ExpressionStatement : public Statement {
     ExpressionPtr expr;
 
-    ExpressionStatement(ExpressionPtr expr)
-        : expr(std::move(expr)) {}
+    ExpressionStatement(ExpressionPtr expr) : expr(std::move(expr)) {}
 
-    virtual void accept(StatementVisitor<void> *visitor) override
-    {
-        visitor->visit(this);
-    }
+    virtual void accept(StatementVisitor<void> *visitor) override { visitor->visit(this); }
 
-    virtual std::string stringify() const noexcept override
-    {
-        return expr->stringify();
-    }
+    virtual std::string stringify() const noexcept override { return expr->stringify(); }
 };
 
-struct AssignmentStatement
-    : public Statement
-{
+struct AssignmentStatement : public Statement {
     Token name;
     ExpressionPtr initializer;
 
     AssignmentStatement(Token name, ExpressionPtr initializer)
         : name(std::move(name)), initializer(std::move(initializer)) {}
 
-    virtual void accept(StatementVisitor<void> *visitor) override
-    {
-        visitor->visit(this);
-    }
+    virtual void accept(StatementVisitor<void> *visitor) override { visitor->visit(this); }
 
-    virtual std::string stringify() const noexcept override
-    {
-        return name.str + " = " + initializer->stringify();
-    }
+    virtual std::string stringify() const noexcept override { return name.str + " = " + initializer->stringify(); }
 };
 
-struct CompoundAssignment
-    : public Statement
-{
+struct CompoundAssignment : public Statement {
     Token target;
     Token op;
     ExpressionPtr value;
@@ -110,25 +85,16 @@ struct CompoundAssignment
     CompoundAssignment(Token target, Token op, ExpressionPtr value)
         : target(std::move(target)), op(std::move(op)), value(std::move(value)) {}
 
-    virtual void accept(StatementVisitor<void>* visitor) override
-    {
-        return visitor->visit(this);
-    }
+    virtual void accept(StatementVisitor<void> *visitor) override { return visitor->visit(this); }
 
-    virtual std::string stringify() const noexcept override
-    {
+    virtual std::string stringify() const noexcept override {
         return target.str + " " + op.str + " " + value->stringify();
     }
 };
 
-enum class StorageClass
-{
-    LOCAL
-};
+enum class StorageClass { LOCAL };
 
-struct VariableDeclaration
-    : public Statement
-{
+struct VariableDeclaration : public Statement {
     Token name;
     ExpressionPtr initializer;
     StorageClass storage_class;
@@ -136,38 +102,30 @@ struct VariableDeclaration
     VariableDeclaration(Token name, ExpressionPtr initializer, StorageClass storage_class)
         : name(std::move(name)), initializer(std::move(initializer)), storage_class(storage_class) {}
 
-    virtual void accept(StatementVisitor<void> *visitor) override
-    {
-        visitor->visit(this);
-    }
+    virtual void accept(StatementVisitor<void> *visitor) override { visitor->visit(this); }
 
-    virtual std::string stringify() const noexcept override
-    {
+    virtual std::string stringify() const noexcept override {
         std::string result;
         switch (storage_class) {
-        case StorageClass::LOCAL:  result = "let";     break;
-        default:                   ANKH_FATAL("unknown storage_class");
+        case StorageClass::LOCAL:
+            result = "let";
+            break;
+        default:
+            ANKH_FATAL("unknown storage_class");
         }
 
         return result + " " + name.str + " = " + initializer->stringify();
     }
 };
 
-struct BlockStatement
-    : public Statement
-{
+struct BlockStatement : public Statement {
     std::vector<StatementPtr> statements;
 
-    BlockStatement(std::vector<StatementPtr> statements)
-        : statements(std::move(statements)) {}
+    BlockStatement(std::vector<StatementPtr> statements) : statements(std::move(statements)) {}
 
-    virtual void accept(StatementVisitor<void> *visitor) override
-    {
-        visitor->visit(this);
-    }
+    virtual void accept(StatementVisitor<void> *visitor) override { visitor->visit(this); }
 
-    virtual std::string stringify() const noexcept override
-    {
+    virtual std::string stringify() const noexcept override {
         if (statements.empty()) {
             return "{}";
         }
@@ -183,36 +141,22 @@ struct BlockStatement
     }
 };
 
-template <class Derived>
-struct IncOrDecStatement
-    : public Statement
-{
+template <class Derived> struct IncOrDecStatement : public Statement {
     Token op;
     ExpressionPtr expr;
 
-    IncOrDecStatement(Token op, ExpressionPtr expr)
-        : op(std::move(op)), expr(std::move(expr)) {}
+    IncOrDecStatement(Token op, ExpressionPtr expr) : op(std::move(op)), expr(std::move(expr)) {}
 
-    virtual void accept(StatementVisitor<void>* visitor) override
-    {
-        visitor->visit(static_cast<Derived*>(this));
-    }
+    virtual void accept(StatementVisitor<void> *visitor) override { visitor->visit(static_cast<Derived *>(this)); }
 
-    virtual std::string stringify() const noexcept override
-    {
-        return op.str + expr->stringify();
-    }
+    virtual std::string stringify() const noexcept override { return op.str + expr->stringify(); }
 };
 
-struct IncOrDecIdentifierStatement 
-    : public IncOrDecStatement<IncOrDecIdentifierStatement> 
-{ 
-    using IncOrDecStatement::IncOrDecStatement; 
+struct IncOrDecIdentifierStatement : public IncOrDecStatement<IncOrDecIdentifierStatement> {
+    using IncOrDecStatement::IncOrDecStatement;
 };
 
-struct IfStatement
-    : public Statement
-{
+struct IfStatement : public Statement {
     Token marker;
     ExpressionPtr condition;
     StatementPtr then_block;
@@ -220,26 +164,18 @@ struct IfStatement
     StatementPtr else_block;
 
     IfStatement(Token marker, ExpressionPtr condition, StatementPtr then_block, StatementPtr else_block)
-        : marker(std::move(marker))
-        , condition(std::move(condition))
-        , then_block(std::move(then_block))
-        , else_block(std::move(else_block)) 
-    {}
+        : marker(std::move(marker)), condition(std::move(condition)), then_block(std::move(then_block)),
+          else_block(std::move(else_block)) {}
 
-    virtual void accept(StatementVisitor<void> *visitor) override
-    {
-        visitor->visit(this);
-    }
+    virtual void accept(StatementVisitor<void> *visitor) override { visitor->visit(this); }
 
-    virtual std::string stringify() const noexcept override
-    {
-        return "if " + condition->stringify() + " " + then_block->stringify() + (else_block ? " " + else_block->stringify() : "");
+    virtual std::string stringify() const noexcept override {
+        return "if " + condition->stringify() + " " + then_block->stringify() +
+               (else_block ? " " + else_block->stringify() : "");
     }
 };
 
-struct WhileStatement
-    : public Statement
-{
+struct WhileStatement : public Statement {
     Token marker;
     ExpressionPtr condition;
     StatementPtr body;
@@ -247,20 +183,14 @@ struct WhileStatement
     WhileStatement(Token marker, ExpressionPtr condition, StatementPtr body)
         : marker(std::move(marker)), condition(std::move(condition)), body(std::move(body)) {}
 
-    virtual void accept(StatementVisitor<void> *visitor) override
-    {
-        visitor->visit(this);
-    }
+    virtual void accept(StatementVisitor<void> *visitor) override { visitor->visit(this); }
 
-    virtual std::string stringify() const noexcept override
-    {
+    virtual std::string stringify() const noexcept override {
         return "while " + condition->stringify() + " " + body->stringify();
     }
 };
 
-struct ForStatement
-    : public Statement
-{
+struct ForStatement : public Statement {
     Token marker;
     StatementPtr init;
     ExpressionPtr condition;
@@ -268,50 +198,28 @@ struct ForStatement
     StatementPtr body;
 
     ForStatement(Token marker, StatementPtr init, ExpressionPtr condition, StatementPtr mutator, StatementPtr body)
-        : marker(std::move(marker))
-        , init(std::move(init))
-        , condition(std::move(condition))
-        , mutator(std::move(mutator))
-        , body(std::move(body))
-    {}
+        : marker(std::move(marker)), init(std::move(init)), condition(std::move(condition)),
+          mutator(std::move(mutator)), body(std::move(body)) {}
 
-    virtual void accept(StatementVisitor<void> *visitor) override
-    {
-        visitor->visit(this);
-    }
+    virtual void accept(StatementVisitor<void> *visitor) override { visitor->visit(this); }
 
-    virtual std::string stringify() const noexcept override
-    {
-        return "for " 
-            + ( init      ? init->stringify()       + "; " : "" )
-            + ( condition ? condition->stringify()  + "; " : "" )
-            + ( mutator   ? mutator->stringify()    + "; " : "" )
-            + body->stringify();
+    virtual std::string stringify() const noexcept override {
+        return "for " + (init ? init->stringify() + "; " : "") + (condition ? condition->stringify() + "; " : "") +
+               (mutator ? mutator->stringify() + "; " : "") + body->stringify();
     }
 };
 
-struct BreakStatement
-    : public Statement
-{
+struct BreakStatement : public Statement {
     Token tok;
-    
-    BreakStatement(Token tok)
-        : tok(std::move(tok)) {}
 
-    virtual void accept(StatementVisitor<void> *visitor) override
-    {
-        visitor->visit(this);
-    }
+    BreakStatement(Token tok) : tok(std::move(tok)) {}
 
-    virtual std::string stringify() const noexcept override
-    {
-        return tok.str; 
-    }
+    virtual void accept(StatementVisitor<void> *visitor) override { visitor->visit(this); }
+
+    virtual std::string stringify() const noexcept override { return tok.str; }
 };
 
-struct FunctionDeclaration
-    : public Statement
-{
+struct FunctionDeclaration : public Statement {
     Token name;
     std::vector<Token> params;
     StatementPtr body;
@@ -319,13 +227,9 @@ struct FunctionDeclaration
     FunctionDeclaration(Token name, std::vector<Token> params, StatementPtr body)
         : name(std::move(name)), params(std::move(params)), body(std::move(body)) {}
 
-    virtual void accept(StatementVisitor<void> *visitor) override
-    {
-        visitor->visit(this);
-    }
+    virtual void accept(StatementVisitor<void> *visitor) override { visitor->visit(this); }
 
-    virtual std::string stringify() const noexcept override
-    {
+    virtual std::string stringify() const noexcept override {
         std::string result("fn (");
         if (params.size() > 0) {
             result += params[0].str;
@@ -342,24 +246,15 @@ struct FunctionDeclaration
     }
 };
 
-struct ReturnStatement
-    : public Statement
-{
+struct ReturnStatement : public Statement {
     Token tok;
     ExpressionPtr expr;
 
-    ReturnStatement(Token tok, ExpressionPtr expr)
-        : tok(std::move(tok)), expr(std::move(expr)) {}
+    ReturnStatement(Token tok, ExpressionPtr expr) : tok(std::move(tok)), expr(std::move(expr)) {}
 
-    virtual void accept(StatementVisitor<void> *visitor) override
-    {
-        visitor->visit(this);
-    }
+    virtual void accept(StatementVisitor<void> *visitor) override { visitor->visit(this); }
 
-    virtual std::string stringify() const noexcept override
-    {
-        return "return " + (expr ? expr->stringify() : "");
-    }
+    virtual std::string stringify() const noexcept override { return "return " + (expr ? expr->stringify() : ""); }
 };
 
-}
+} // namespace ankh::lang

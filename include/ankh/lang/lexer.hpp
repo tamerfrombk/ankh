@@ -8,7 +8,7 @@
 namespace ankh::lang {
 
 class Lexer {
-public:
+  public:
     Lexer(std::string text);
 
     Token next();
@@ -16,10 +16,10 @@ public:
 
     bool is_eof() const noexcept;
 
-private:
+  private:
     void skip_whitespace() noexcept;
     void skip_comment() noexcept;
-    
+
     Token scan_alnum() noexcept;
     Token scan_string();
     Token scan_number();
@@ -32,17 +32,17 @@ private:
     char advance() noexcept;
 
     Token tokenize(char c, TokenType type) const noexcept;
-    Token tokenize(const std::string& s, TokenType type) const noexcept;
+    Token tokenize(const std::string &s, TokenType type) const noexcept;
 
-private:
+  private:
     const std::string text_;
     size_t cursor_;
     size_t line_;
     size_t col_;
 };
 
-bool is_keyword(const std::string& str) noexcept;
+bool is_keyword(const std::string &str) noexcept;
 
-std::vector<Token> scan(const std::string& source);
+std::vector<Token> scan(const std::string &source);
 
-}
+} // namespace ankh::lang

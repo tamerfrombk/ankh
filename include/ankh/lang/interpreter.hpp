@@ -1,55 +1,46 @@
 #pragma once
 
-#include <vector>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
-#include <ankh/lang/expr_result.hpp>
-#include <ankh/lang/expr.hpp>
-#include <ankh/lang/statement.hpp>
-#include <ankh/lang/program.hpp>
-#include <ankh/lang/lambda.hpp>
-#include <ankh/lang/env.hpp>
 #include <ankh/lang/callable.hpp>
+#include <ankh/lang/env.hpp>
+#include <ankh/lang/expr.hpp>
+#include <ankh/lang/expr_result.hpp>
+#include <ankh/lang/lambda.hpp>
+#include <ankh/lang/program.hpp>
+#include <ankh/lang/statement.hpp>
 
 namespace ankh::lang {
 
-class Interpreter
-    : public ExpressionVisitor<ExprResult>
-    , public StatementVisitor<void>
-{
-public:
+class Interpreter : public ExpressionVisitor<ExprResult>, public StatementVisitor<void> {
+  public:
     Interpreter();
 
-    void interpret(Program&& program);
+    void interpret(Program &&program);
 
-    virtual ExprResult evaluate(const ExpressionPtr& expr);
-    void execute(const StatementPtr& stmt);
+    virtual ExprResult evaluate(const ExpressionPtr &expr);
+    void execute(const StatementPtr &stmt);
 
     void execute_block(const BlockStatement *stmt, EnvironmentPtr<ExprResult> environment);
 
     // Builtins
 
-    void print(const std::vector<ExprResult>& args) const;
-    void exit(const std::vector<ExprResult>& args) const;
-    void length(const std::vector<ExprResult>& args) const;
-    void cast_int(const std::vector<ExprResult>& args) const;
-    void append(const std::vector<ExprResult>& args) const;
-    void str(const std::vector<ExprResult>& args) const;
-    void keys(const std::vector<ExprResult>& args) const;
-    void exportfn(const std::vector<ExprResult>& args) const;
+    void print(const std::vector<ExprResult> &args) const;
+    void exit(const std::vector<ExprResult> &args) const;
+    void length(const std::vector<ExprResult> &args) const;
+    void cast_int(const std::vector<ExprResult> &args) const;
+    void append(const std::vector<ExprResult> &args) const;
+    void str(const std::vector<ExprResult> &args) const;
+    void keys(const std::vector<ExprResult> &args) const;
+    void exportfn(const std::vector<ExprResult> &args) const;
 
-    inline const Environment<ExprResult>& environment() const noexcept
-    {
-        return *current_env_;
-    }
+    inline const Environment<ExprResult> &environment() const noexcept { return *current_env_; }
 
-    inline const std::unordered_map<std::string, CallablePtr>& functions() const noexcept
-    {
-        return functions_;
-    }
+    inline const std::unordered_map<std::string, CallablePtr> &functions() const noexcept { return functions_; }
 
-private:
+  private:
     virtual ExprResult visit(BinaryExpression *expr) override;
     virtual ExprResult visit(UnaryExpression *expr) override;
     virtual ExprResult visit(LiteralExpression *expr) override;
@@ -67,8 +58,8 @@ private:
     virtual void visit(ExpressionStatement *stmt) override;
     virtual void visit(VariableDeclaration *stmt) override;
     virtual void visit(AssignmentStatement *stmt) override;
-    virtual void visit(CompoundAssignment* stmt) override;
-    virtual void visit(IncOrDecIdentifierStatement* stmt) override;
+    virtual void visit(CompoundAssignment *stmt) override;
+    virtual void visit(IncOrDecIdentifierStatement *stmt) override;
     virtual void visit(BlockStatement *stmt) override;
     virtual void visit(IfStatement *stmt) override;
     virtual void visit(WhileStatement *stmt) override;
@@ -78,18 +69,20 @@ private:
     virtual void visit(ReturnStatement *stmt) override;
 
     std::string substitute(const StringExpression *expr);
-    ExprResult evaluate_single_expr(const Token& marker, const std::string& str);
+    ExprResult evaluate_single_expr(const Token &marker, const std::string &str);
     void declare_function(FunctionDeclaration *decl, EnvironmentPtr<ExprResult> env);
-private:
+
+  private:
     EnvironmentPtr<ExprResult> current_env_;
     EnvironmentPtr<ExprResult> global_;
     std::vector<Program> programs_;
 
     class ScopeGuard {
-    public:
+      public:
         ScopeGuard(ankh::lang::Interpreter *interpreter, ankh::lang::EnvironmentPtr<ExprResult> enclosing);
         ~ScopeGuard();
-    private:
+
+      private:
         ankh::lang::Interpreter *interpreter_;
         ankh::lang::EnvironmentPtr<ExprResult> prev_;
     };
@@ -99,5 +92,4 @@ private:
     std::unordered_map<std::string, CallablePtr> functions_;
 };
 
-}
-
+} // namespace ankh::lang

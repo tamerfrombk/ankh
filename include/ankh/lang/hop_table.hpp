@@ -5,6 +5,6 @@
 
 namespace ankh::lang {
 
-using HopTable = std::unordered_map<const void*, size_t>;
+using HopTable = std::unordered_map<const void *, size_t>;
 
 }

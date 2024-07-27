@@ -1,43 +1,38 @@
 #pragma once
 
-#include <cstdlib>
 #include <cstdio>
+#include <cstdlib>
 #include <iostream>
 #include <optional>
 #include <string>
 
-#include <ankh/log.h>
 #include <ankh/ankh.h>
+#include <ankh/log.h>
 
-#include <ankh/lang/parser.h>
-#include <ankh/lang/interpreter.h>
 #include <ankh/lang/exceptions.h>
+#include <ankh/lang/interpreter.h>
+#include <ankh/lang/parser.h>
 
 #include <fmt/color.h>
 
-static void print_error(const char *msg) noexcept
-{
+static void print_error(const char *msg) noexcept {
     fmt::print(fg(fmt::color::red) | fmt::emphasis::bold, "{}\n", msg);
 }
 
-static void print_error(const std::string& msg) noexcept
-{
-    print_error(msg.c_str());
-}
+static void print_error(const std::string &msg) noexcept { print_error(msg.c_str()); }
 
-static int execute(ankh::lang::Interpreter& interpreter, const std::string& script) noexcept
-{
+static int execute(ankh::lang::Interpreter &interpreter, const std::string &script) noexcept {
     ankh::lang::Program program = ankh::lang::parse(script);
     if (program.has_errors()) {
-        for (const auto& e : program.errors) {
-           print_error(e);
+        for (const auto &e : program.errors) {
+            print_error(e);
         }
         return EXIT_FAILURE;
     }
 
     try {
         interpreter.interpret(std::move(program));
-    } catch (const ankh::lang::InterpretationException& e) {
+    } catch (const ankh::lang::InterpretationException &e) {
         print_error(e.what());
         return EXIT_FAILURE;
     }
@@ -45,8 +40,7 @@ static int execute(ankh::lang::Interpreter& interpreter, const std::string& scri
     return EXIT_SUCCESS;
 }
 
-static std::optional<std::string> read_file(const std::string& path) noexcept
-{
+static std::optional<std::string> read_file(const std::string &path) noexcept {
     std::FILE *fp = std::fopen(path.c_str(), "r");
     if (fp == nullptr) {
         return std::nullopt;
@@ -66,28 +60,26 @@ static std::optional<std::string> read_file(const std::string& path) noexcept
 
     std::fclose(fp);
 
-    return { result };
+    return {result};
 }
 
-static std::optional<std::string> readline(const char *prompt) noexcept
-{
+static std::optional<std::string> readline(const char *prompt) noexcept {
     std::cout << prompt;
     if (std::string line; std::getline(std::cin, line)) {
-        return { line };
+        return {line};
     }
 
     return std::nullopt;
 }
 
-int ankh::shell_loop(int argc, char **argv)
-{
+int ankh::shell_loop(int argc, char **argv) {
     ankh::lang::Interpreter interpreter;
 
     if (argc > 1) {
         if (auto possible_script = read_file(argv[1]); possible_script) {
             return execute(interpreter, possible_script.value());
         }
-        
+
         ankh::log::error("could not open script '%s'\n", argv[1]);
 
         return EXIT_FAILURE;
@@ -102,7 +94,7 @@ int ankh::shell_loop(int argc, char **argv)
             ANKH_DEBUG("EOF");
             break;
         }
-        
+
         const std::string line = possible_line.value();
         if (line.empty()) {
             ANKH_DEBUG("empty line");

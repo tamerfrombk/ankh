@@ -1,49 +1,30 @@
 #pragma once
 
-#include <ankh/log.hpp>
 #include <ankh/lang/callable.hpp>
+#include <ankh/log.hpp>
 
-#define ANKH_DECLARE_BUILTIN_TYPE(ClassName, method) \
-template <class T, class I>\
-class ClassName\
-    : public BuiltIn<T, I>\
-{\
-public:\
-    ClassName(I* interpreter, EnvironmentPtr<T> closure, std::string name, int arity)\
-        : BuiltIn<T,I>(interpreter, closure, name, arity) {}\
-\
-protected:\
-    virtual void invoke(const std::vector<ExprResult>& args) override\
-    {\
-        this->interpreter_->method(args);\
-    }\
-}
+#define ANKH_DECLARE_BUILTIN_TYPE(ClassName, method)                                                                   \
+    template <class T, class I> class ClassName : public BuiltIn<T, I> {                                               \
+      public:                                                                                                          \
+        ClassName(I *interpreter, EnvironmentPtr<T> closure, std::string name, int arity)                              \
+            : BuiltIn<T, I>(interpreter, closure, name, arity) {}                                                      \
+                                                                                                                       \
+      protected:                                                                                                       \
+        virtual void invoke(const std::vector<ExprResult> &args) override { this->interpreter_->method(args); }        \
+    }
 
 namespace ankh::lang {
 
-template <class T, class I>
-class BuiltIn
-    : public Callable
-{
-public:
-    BuiltIn(I* interpreter, EnvironmentPtr<T> closure, std::string name, size_t arity)
-        : interpreter_(interpreter)
-        , closure_(closure)
-        , name_(name)
-        , arity_(arity) {}
-    
-    virtual std::string name() const noexcept override
-    {
-        return name_;
-    }
+template <class T, class I> class BuiltIn : public Callable {
+  public:
+    BuiltIn(I *interpreter, EnvironmentPtr<T> closure, std::string name, size_t arity)
+        : interpreter_(interpreter), closure_(closure), name_(name), arity_(arity) {}
 
-    virtual size_t arity() const noexcept override
-    {
-        return arity_;
-    }
+    virtual std::string name() const noexcept override { return name_; }
 
-    virtual void invoke(const std::vector<ExpressionPtr>& args) override
-    {
+    virtual size_t arity() const noexcept override { return arity_; }
+
+    virtual void invoke(const std::vector<ExpressionPtr> &args) override {
         EnvironmentPtr<T> environment(make_env<T>(closure_));
         ANKH_DEBUG("closure environment {} created", environment->scope());
 
@@ -58,13 +39,14 @@ public:
 
         invoke(evaluated_args);
     }
-protected:
-    virtual void invoke(const std::vector<ExprResult>& args) = 0;
 
-protected:
+  protected:
+    virtual void invoke(const std::vector<ExprResult> &args) = 0;
+
+  protected:
     I *interpreter_;
 
-private:
+  private:
     EnvironmentPtr<T> closure_;
     const std::string name_;
     const size_t arity_;
@@ -87,4 +69,4 @@ ANKH_DECLARE_BUILTIN_TYPE(StrFn, str);
 
 // Dictionary Builtins
 ANKH_DECLARE_BUILTIN_TYPE(KeysFn, keys);
-}
+} // namespace ankh::lang

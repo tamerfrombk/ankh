@@ -1,12 +1,12 @@
 #pragma once
 
 #include <memory>
-#include <utility>
 #include <string>
+#include <utility>
 #include <vector>
 
-#include <ankh/lang/token.hpp>
 #include <ankh/lang/expr_result.hpp>
+#include <ankh/lang/token.hpp>
 
 namespace ankh::lang {
 
@@ -25,9 +25,7 @@ struct SliceExpression;
 struct DictionaryExpression;
 struct StringExpression;
 
-
-template <class R>
-struct ExpressionVisitor {
+template <class R> struct ExpressionVisitor {
     virtual ~ExpressionVisitor() = default;
 
     virtual R visit(BinaryExpression *expr) = 0;
@@ -52,12 +50,11 @@ using ExpressionPtr = std::unique_ptr<Expression>;
 struct Expression {
     virtual ~Expression() = default;
 
-    virtual ExprResult    accept(ExpressionVisitor<ExprResult> *visitor) = 0;
-    virtual std::string   stringify() const noexcept = 0;
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) = 0;
+    virtual std::string stringify() const noexcept = 0;
 };
 
-template <class T>
-std::string stringify(const std::vector<T>& elems) noexcept {
+template <class T> std::string stringify(const std::vector<T> &elems) noexcept {
     if (elems.empty()) {
         return "";
     }
@@ -71,15 +68,11 @@ std::string stringify(const std::vector<T>& elems) noexcept {
     return result;
 }
 
-template <class T, class... Args>
-ExpressionPtr make_expression(Args&&... args)
-{
+template <class T, class... Args> ExpressionPtr make_expression(Args &&...args) {
     return std::make_unique<T>(std::forward<Args>(args)...);
 }
 
-struct BinaryExpression 
-    : public Expression 
-{
+struct BinaryExpression : public Expression {
     ExpressionPtr left;
     Token op;
     ExpressionPtr right;
@@ -87,121 +80,67 @@ struct BinaryExpression
     BinaryExpression(ExpressionPtr left, Token op, ExpressionPtr right)
         : left(std::move(left)), op(std::move(op)), right(std::move(right)) {}
 
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
-    {
-        return visitor->visit(this);
-    }
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override { return visitor->visit(this); }
 
-    virtual std::string stringify() const noexcept override
-    {
+    virtual std::string stringify() const noexcept override {
         return left->stringify() + " " + op.str + " " + right->stringify();
     }
 };
 
-struct UnaryExpression 
-    : public Expression 
-{
+struct UnaryExpression : public Expression {
     Token op;
     ExpressionPtr right;
 
-    UnaryExpression(Token op, ExpressionPtr right)
-        : op(std::move(op)), right(std::move(right)) {}
-    
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
-    {
-        return visitor->visit(this);
-    }
+    UnaryExpression(Token op, ExpressionPtr right) : op(std::move(op)), right(std::move(right)) {}
 
-    virtual std::string stringify() const noexcept override
-    {
-        return op.str + right->stringify();
-    }
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override { return visitor->visit(this); }
+
+    virtual std::string stringify() const noexcept override { return op.str + right->stringify(); }
 };
 
-struct LiteralExpression 
-    : public Expression 
-{
+struct LiteralExpression : public Expression {
     Token literal;
 
-    LiteralExpression(Token literal)
-        : literal(std::move(literal)) {}
+    LiteralExpression(Token literal) : literal(std::move(literal)) {}
 
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
-    {
-        return visitor->visit(this);
-    }
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override { return visitor->visit(this); }
 
-    virtual std::string stringify() const noexcept override
-    {
-        return literal.str;
-    }
+    virtual std::string stringify() const noexcept override { return literal.str; }
 
-    bool is_number() const noexcept
-    {
-        return literal.type == TokenType::NUMBER;
-    }
+    bool is_number() const noexcept { return literal.type == TokenType::NUMBER; }
 };
 
-struct StringExpression 
-    : public Expression 
-{
+struct StringExpression : public Expression {
     Token str;
 
-    StringExpression(Token str)
-        : str(std::move(str)) {}
+    StringExpression(Token str) : str(std::move(str)) {}
 
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
-    {
-        return visitor->visit(this);
-    }
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override { return visitor->visit(this); }
 
-    virtual std::string stringify() const noexcept override
-    {
-        return str.str;
-    }
+    virtual std::string stringify() const noexcept override { return str.str; }
 };
 
-struct ParenExpression 
-    : public Expression 
-{
+struct ParenExpression : public Expression {
     ExpressionPtr expr;
 
-    ParenExpression(ExpressionPtr expr)
-        : expr(std::move(expr)) {}
+    ParenExpression(ExpressionPtr expr) : expr(std::move(expr)) {}
 
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
-    {
-        return visitor->visit(this);
-    }
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override { return visitor->visit(this); }
 
-    virtual std::string stringify() const noexcept override
-    {
-        return expr->stringify();
-    }
+    virtual std::string stringify() const noexcept override { return expr->stringify(); }
 };
 
-struct IdentifierExpression 
-    : public Expression 
-{
+struct IdentifierExpression : public Expression {
     Token name;
 
-    IdentifierExpression(Token name)
-        : name(std::move(name)) {}
+    IdentifierExpression(Token name) : name(std::move(name)) {}
 
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
-    {
-        return visitor->visit(this);
-    }
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override { return visitor->visit(this); }
 
-    virtual std::string stringify() const noexcept override
-    {
-        return name.str;
-    }
+    virtual std::string stringify() const noexcept override { return name.str; }
 };
 
-struct CallExpression 
-    : public Expression 
-{
+struct CallExpression : public Expression {
     Token marker;
     ExpressionPtr callee;
     std::vector<ExpressionPtr> args;
@@ -209,63 +148,36 @@ struct CallExpression
     CallExpression(Token marker, ExpressionPtr callee, std::vector<ExpressionPtr> args)
         : marker(std::move(marker)), callee(std::move(callee)), args(std::move(args)) {}
 
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
-    {
-        return visitor->visit(this);
-    }
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override { return visitor->visit(this); }
 
-    virtual std::string stringify() const noexcept override
-    {
+    virtual std::string stringify() const noexcept override {
         return callee->stringify() + "(" + ankh::lang::stringify(args) + ")";
     }
 };
 
-struct CommandExpression 
-    : public Expression 
-{
+struct CommandExpression : public Expression {
     Token cmd;
 
-    CommandExpression(Token cmd)
-        : cmd(std::move(cmd)) {}
+    CommandExpression(Token cmd) : cmd(std::move(cmd)) {}
 
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
-    {
-        return visitor->visit(this);
-    }
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override { return visitor->visit(this); }
 
-    virtual std::string stringify() const noexcept override
-    {
-        return cmd.str;
-    }
+    virtual std::string stringify() const noexcept override { return cmd.str; }
 };
 
-struct ArrayExpression 
-    : public Expression 
-{
+struct ArrayExpression : public Expression {
     std::vector<ExpressionPtr> elems;
 
-    ArrayExpression(std::vector<ExpressionPtr> elems)
-        : elems(std::move(elems)) {}
+    ArrayExpression(std::vector<ExpressionPtr> elems) : elems(std::move(elems)) {}
 
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
-    {
-        return visitor->visit(this);
-    }
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override { return visitor->visit(this); }
 
-    size_t size() const noexcept
-    {
-        return elems.size();
-    }
+    size_t size() const noexcept { return elems.size(); }
 
-    virtual std::string stringify() const noexcept override
-    {
-        return "[" + ankh::lang::stringify(elems) + "]";
-    }
+    virtual std::string stringify() const noexcept override { return "[" + ankh::lang::stringify(elems) + "]"; }
 };
 
-struct IndexExpression 
-    : public Expression 
-{
+struct IndexExpression : public Expression {
     Token marker;
     ExpressionPtr indexee;
     ExpressionPtr index;
@@ -273,20 +185,14 @@ struct IndexExpression
     IndexExpression(Token marker, ExpressionPtr indexee, ExpressionPtr index)
         : marker(std::move(marker)), indexee(std::move(indexee)), index(std::move(index)) {}
 
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
-    {
-        return visitor->visit(this);
-    }
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override { return visitor->visit(this); }
 
-    virtual std::string stringify() const noexcept override
-    {
+    virtual std::string stringify() const noexcept override {
         return indexee->stringify() + "[" + index->stringify() + "]";
     }
 };
 
-struct SliceExpression 
-    : public Expression 
-{
+struct SliceExpression : public Expression {
     Token marker;
     ExpressionPtr indexee;
     ExpressionPtr begin, end;
@@ -294,42 +200,32 @@ struct SliceExpression
     SliceExpression(Token marker, ExpressionPtr indexee, ExpressionPtr begin, ExpressionPtr end)
         : marker(std::move(marker)), indexee(std::move(indexee)), begin(std::move(begin)), end(std::move(end)) {}
 
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
-    {
-        return visitor->visit(this);
-    }
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override { return visitor->visit(this); }
 
-    virtual std::string stringify() const noexcept override
-    {
+    virtual std::string stringify() const noexcept override {
         std::string begin_str = begin ? begin->stringify() : "";
         std::string end_str = end ? end->stringify() : "";
         return indexee->stringify() + "[" + begin_str + ":" + end_str + "]";
     }
 };
 
-struct DictionaryExpression 
-    : public Expression
-{
+struct DictionaryExpression : public Expression {
     Token marker;
     std::vector<Entry<ExpressionPtr>> entries;
 
     DictionaryExpression(Token marker, std::vector<Entry<ExpressionPtr>> entries)
         : marker(std::move(marker)), entries(std::move(entries)) {}
-    
-    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override
-    {
-        return visitor->visit(this);
-    }
 
-    virtual std::string stringify() const noexcept override
-    {
+    virtual ExprResult accept(ExpressionVisitor<ExprResult> *visitor) override { return visitor->visit(this); }
+
+    virtual std::string stringify() const noexcept override {
         if (entries.empty()) {
             return "{}";
         }
 
         std::string result("{\n");
         result += entries[0].key->stringify() + entries[0].value->stringify();
-        for (const auto& [k, v] : entries) {
+        for (const auto &[k, v] : entries) {
             result += "\n";
             result += k->stringify() + " : " + v->stringify();
         }
@@ -339,4 +235,4 @@ struct DictionaryExpression
     }
 };
 
-}
+} // namespace ankh::lang

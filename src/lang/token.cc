@@ -1,8 +1,7 @@
 #include <ankh/lang/token.hpp>
 #include <ankh/log.hpp>
 
-std::string ankh::lang::token_type_str(ankh::lang::TokenType type) noexcept
-{
+std::string ankh::lang::token_type_str(ankh::lang::TokenType type) noexcept {
     switch (type) {
     case ankh::lang::TokenType::IDENTIFIER:
         return "IDENTIFIER";
