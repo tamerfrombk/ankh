@@ -1,21 +1,19 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0.0)
-PROJECT(ankh VERSION 1.0.0)
+cmake_minimum_required(VERSION 3.25.0)
+project(ankh LANGUAGES CXX VERSION 1.0.0)
 
-SET(CMAKE_CXX_STANDARD 17)
-SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-SET(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
-if (WIN32) 
-    SET(CMAKE_CXX_WARNING_FLAGS "/W3")
+if (WIN32)
+    add_compile_options(/W3)
 else() 
-    SET(CMAKE_CXX_WARNING_FLAGS "-Wall -Wextra -Wpedantic")
+    add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_WARNING_FLAGS}")
-
-SET(APP_EXE ankhsh)
-SET(APP_LIB ankh)
-SET(APP_SOURCES 
+set(APP_EXE ankhsh)
+set(APP_LIB ankh)
+set(APP_SOURCES 
     src/ankh.cc 
     src/lang/lexer.cc 
     src/lang/token.cc 
@@ -26,21 +24,21 @@ SET(APP_SOURCES
     src/pkg/path.cc
 )
 
-SET(FMT_LIB fmt)
-SET(FMT_SOURCES
+set(FMT_LIB fmt)
+set(FMT_SOURCES
     src/fmt/format.cc
     src/fmt/os.cc
 )
 
-ADD_LIBRARY(${APP_LIB} STATIC ${APP_SOURCES})
-ADD_LIBRARY(${FMT_LIB} STATIC ${FMT_SOURCES})
-ADD_EXECUTABLE(${APP_EXE} src/main.cc)
+add_library(${APP_LIB} STATIC ${APP_SOURCES})
+add_library(${FMT_LIB} STATIC ${FMT_SOURCES})
+add_executable(${APP_EXE} src/main.cc)
 
-TARGET_INCLUDE_DIRECTORIES(${APP_EXE} PRIVATE ${CMAKE_SOURCE_DIR}/include)
-TARGET_INCLUDE_DIRECTORIES(${APP_LIB} PRIVATE ${CMAKE_SOURCE_DIR}/include)
-TARGET_INCLUDE_DIRECTORIES(${FMT_LIB} PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(${APP_EXE} PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(${APP_LIB} PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(${FMT_LIB} PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
-TARGET_LINK_LIBRARIES(${APP_EXE} ${APP_LIB} ${FMT_LIB})
+target_link_libraries(${APP_EXE} ${APP_LIB} ${FMT_LIB})
 
-# tests
-ADD_SUBDIRECTORY(test)
+enable_testing()
+add_subdirectory(test)

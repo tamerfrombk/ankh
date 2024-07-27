@@ -489,7 +489,7 @@ ankh::lang::ExprResult ankh::lang::Interpreter::visit(ankh::lang::CommandExpress
     while (std::fread(buf, sizeof(buf[0]), sizeof(buf), fp) > 0) {
         output += buf;
     }
-    fclose(fp);
+    pclose(fp);
 
     return output;
 }
@@ -871,8 +871,9 @@ ankh::lang::ExprResult ankh::lang::Interpreter::evaluate_single_expr(const Token
 {
     auto program = ankh::lang::parse(str);
     if (program.has_errors()) {
-        const std::string errors = std::accumulate(program.errors.begin(), program.errors.end(), std::string{""}
-        , [](auto& accum, const auto& v) {
+        std::string begin;
+        const std::string errors = std::accumulate(program.errors.begin(), program.errors.end(), begin
+        , [](auto accum, const auto& v) {
             accum += '\n';
             accum += v;
 
