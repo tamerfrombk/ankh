@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 
-#include <fmt/core.h>
+// #include <fmt/core.h>
 
 namespace ankh::lang {
 
@@ -85,11 +85,11 @@ inline std::ostream &operator<<(std::ostream &os, const Token &t) noexcept {
 
 } // namespace ankh::lang
 
-template <> struct fmt::formatter<ankh::lang::Token> {
-    template <typename ParseContext> constexpr auto parse(ParseContext &ctx) { return ctx.begin(); }
+// template <> struct fmt::formatter<ankh::lang::Token> {
+//     template <typename ParseContext> constexpr auto parse(ParseContext &ctx) { return ctx.begin(); }
 
-    template <typename FormatContext> auto format(const ankh::lang::Token &token, FormatContext &ctx) {
-        return fmt::format_to(ctx.out(), "({}, {}, {}, {})", token_type_str(token.type), token.str, token.line,
-                              token.col);
-    }
-};
+//     template <typename FormatContext> auto format(const ankh::lang::Token &token, FormatContext &ctx) {
+//         return fmt::format_to(ctx.out(), "({}, {}, {}, {})", token_type_str(token.type), token.str, token.line,
+//                               token.col);
+//     }
+// };

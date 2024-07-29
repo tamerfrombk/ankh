@@ -111,7 +111,7 @@ struct VariableDeclaration : public Statement {
             result = "let";
             break;
         default:
-            ANKH_FATAL("unknown storage_class");
+            std::unreachable();
         }
 
         return result + " " + name.str + " = " + initializer->stringify();

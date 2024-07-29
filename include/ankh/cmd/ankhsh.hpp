@@ -6,17 +6,17 @@
 #include <optional>
 #include <string>
 
-#include <ankh/ankh.h>
-#include <ankh/log.h>
+#include <ankh/log.hpp>
 
-#include <ankh/lang/exceptions.h>
-#include <ankh/lang/interpreter.h>
-#include <ankh/lang/parser.h>
+#include <ankh/lang/exceptions.hpp>
+#include <ankh/lang/interpreter.hpp>
+#include <ankh/lang/parser.hpp>
 
-#include <fmt/color.h>
+// #include <fmt/color.hpp>
 
 static void print_error(const char *msg) noexcept {
-    fmt::print(fg(fmt::color::red) | fmt::emphasis::bold, "{}\n", msg);
+    std::cerr << msg << "\n";
+    // fmt::print(fg(std::color::red) | fmt::emphasis::bold, "{}\n", msg);
 }
 
 static void print_error(const std::string &msg) noexcept { print_error(msg.c_str()); }
@@ -72,7 +72,9 @@ static std::optional<std::string> readline(const char *prompt) noexcept {
     return std::nullopt;
 }
 
-int ankh::shell_loop(int argc, char **argv) {
+namespace ankh {
+
+inline int shell_loop(int argc, char **argv) {
     ankh::lang::Interpreter interpreter;
 
     if (argc > 1) {
@@ -106,3 +108,6 @@ int ankh::shell_loop(int argc, char **argv) {
 
     return prev_process_exit_code;
 }
+
+}
+

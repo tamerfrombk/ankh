@@ -5,15 +5,14 @@
 #include <string>
 #include <string_view>
 
-#include <fmt/core.h>
-#include <fmt/format.h>
+#include <format>
 
 #include <ankh/def.hpp>
 
 namespace ankh::log {
 
 template <class... Args> void debug(const char *fmt, Args &&...args) {
-    auto str = fmt::format(fmt::runtime(fmt), std::forward<Args>(args)...);
+    auto str = std::vformat(fmt, std::make_format_args(args...));
 
     std::fputs(str.c_str(), stderr);
 }
@@ -27,7 +26,7 @@ template <class... Args> void error(const char *fmt, Args &&...args) {
 }
 
 template <class... Args> ANKH_NO_RETURN void fatal(const char *fmt, Args &&...args) {
-    auto str = fmt::format(fmt::runtime(fmt), std::forward<Args>(args)...);
+    auto str = std::vformat(fmt, std::make_format_args(args...));
 
     std::fputs(str.c_str(), stderr);
 

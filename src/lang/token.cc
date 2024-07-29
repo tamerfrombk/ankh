@@ -1,5 +1,6 @@
 #include <ankh/lang/token.hpp>
 #include <ankh/log.hpp>
+#include <utility>
 
 std::string ankh::lang::token_type_str(ankh::lang::TokenType type) noexcept {
     switch (type) {
@@ -100,6 +101,6 @@ std::string ankh::lang::token_type_str(ankh::lang::TokenType type) noexcept {
     case ankh::lang::TokenType::UNKNOWN:
         return "UNKNOWN";
     default:
-        ANKH_FATAL("unknown token type: this should never happen");
+        std::unreachable();
     }
 }

@@ -6,6 +6,7 @@
 #include <ankh/lang/types/dictionary.hpp>
 
 #include <ankh/log.hpp>
+#include <utility>
 
 namespace ankh::lang {
 
@@ -32,7 +33,7 @@ inline std::string expr_result_type_str(ankh::lang::ExprResultType type) noexcep
     case ankh::lang::ExprResultType::RT_NIL:
         return "NIL";
     default:
-        ANKH_FATAL("expr_result_type_str(): unknown expression result type!");
+        std::unreachable();
     }
 }
 
@@ -81,7 +82,7 @@ struct ExprResult {
         case ExprResultType::RT_DICT:
             return lhs.dict == rhs.dict;
         default:
-            ANKH_FATAL("unknown expression result type");
+            std::unreachable();
         }
     }
 

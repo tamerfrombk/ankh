@@ -15,7 +15,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include <fmt/format.h>
+#include <format>
 
 #include <ankh/def.hpp>
 #include <ankh/log.hpp>
@@ -32,6 +32,7 @@
 #include <ankh/lang/builtins.hpp>
 #include <ankh/lang/types/array.hpp>
 #include <ankh/lang/types/dictionary.hpp>
+#include <cmath>
 
 #define ANKH_DEFINE_BUILTIN(name, arity, type)                                                                         \
     do {                                                                                                               \
@@ -72,7 +73,7 @@ static ankh::lang::Number to_num(const ankh::lang::LiteralExpression *expr) {
 
 static bool is_integer(ankh::lang::Number n) noexcept {
     double intpart;
-    return modf(n, &intpart) == 0.0;
+    return std::modf(n, &intpart) == 0.0;
 }
 
 static ankh::lang::ExprResult negate(const ankh::lang::Token &marker, const ankh::lang::ExprResult &result) {

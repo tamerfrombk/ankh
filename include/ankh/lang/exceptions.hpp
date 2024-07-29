@@ -2,8 +2,7 @@
 
 #include <stdexcept>
 
-#include <fmt/core.h>
-#include <fmt/format.h>
+#include <format>
 
 #include <ankh/def.hpp>
 
@@ -25,14 +24,14 @@ struct ParseException : public std::runtime_error {
 
 template <class E, class... Args> ANKH_NO_RETURN void panic(const Token &marker, const char *fmt, Args &&...args) {
     const std::string fmt_str = "{}:{}, " + std::string{fmt};
-    const std::string str = fmt::format(fmt::runtime(fmt_str), marker.line, marker.col, std::forward<Args>(args)...);
+    const std::string str = std::vformat(fmt_str, std::make_format_args(marker.line, marker.col, args...));
 
     throw E(str);
 }
 
 template <class E, class... Args> ANKH_NO_RETURN void builtin_panic(const char *name, const char *fmt, Args &&...args) {
     const std::string fmt_str = "{}:{}, " + std::string{fmt};
-    const std::string str = fmt::format(fmt::runtime(fmt_str), "BUILTIN", name, std::forward<Args>(args)...);
+    const std::string str = std::vformat(fmt_str, std::make_format_args("BUILTIN", name, args...));
 
     throw E(str);
 }
